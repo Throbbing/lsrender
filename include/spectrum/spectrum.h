@@ -156,11 +156,11 @@ namespace ls
 		friend Spectrum operator * (f32 v, const Spectrum& s);
 
 
-		f32 padding = 1.f;
+		
 	private:
 		//RGB
 		f32 c[3];
-
+		f32 padding = 1.f;
 
 	};
 

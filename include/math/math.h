@@ -9,6 +9,7 @@ namespace ls
 {
 	struct Point3;
 	struct Vec3;
+
 	struct lsMath
 	{
 		//constant value

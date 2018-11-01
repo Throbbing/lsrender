@@ -16,7 +16,7 @@ void ls::Mesh::detachScene()
 	
 }
 
-bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out Record * rec)
+bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out Record * rec) const
 {
 	if(mGeomID != rtc.geomID)
 		return false;
@@ -26,7 +26,7 @@ bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCR
 	return false;
 }
 
-bool ls::Mesh::occlude(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc)
+bool ls::Mesh::occlude(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc) const
 {
 	if (mGeomID != rtc.geomID)
 		return false;
