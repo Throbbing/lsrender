@@ -9,22 +9,28 @@ ls::TriMesh::TriMesh(const std::vector<Point3>& vertices,
 		mIsValid = true;
 }
 
-bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out Record * rec) const
+bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray, 
+	ls_Param_In const RTCRecord & rtc, 
+	ls_Param_Out Record * rec) const
 {
 	return false;
 }
 
-bool ls::TriMesh::occlude(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc) const
+bool ls::TriMesh::occlude(ls_Param_In const ls::Ray & ray, 
+	ls_Param_In const RTCRecord & rtc) const
 {
 	return false;
 }
 
-bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, ls_Param_Out Record * rec) const
+bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
+	ls_Param_Out Record * rec) const
 {
 	return false;
 }
 
-bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, ls_Param_In const Record * refRec, ls_Param_Out Record * rec) const
+bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, 
+	ls_Param_In const Record * refRec, 
+	ls_Param_Out Record * rec) const
 {
 	return false;
 }
