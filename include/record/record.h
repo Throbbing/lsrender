@@ -30,8 +30,8 @@ namespace ls
 	class RTCRecord
 	{
 	public:
-		u32 geomID = -1;
-		u32 primID = -1;
+		s32 geomID = -1;
+		s32 primID = -1;
 	};
 
 

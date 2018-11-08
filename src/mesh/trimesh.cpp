@@ -1,6 +1,7 @@
 #include <mesh/trimesh.h>
 #include<config/common.h>
 #include<math/transform.h>
+#include<function/func.h>
 ls::TriMesh::TriMesh(const std::vector<Point3>& vertices, 
 	const std::vector<Normal>& normals, 
 	const std::vector<Point2>& uvs,
@@ -24,7 +25,20 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	ls_Param_In const RTCRecord & rtc, 
 	ls_Param_Out Record * rec) const
 {
-	return false;
+	if (rtc.geomID != mGeomID)
+		return false;
+
+
+	//Since intersect test has been completed by embree
+	//we only need to compute differential components
+	auto dgRec = IntersectionPtrCast(rec);
+
+	
+
+	
+
+
+	return true;
 }
 
 bool ls::TriMesh::occlude(ls_Param_In const ls::Ray & ray, 
