@@ -5,7 +5,7 @@
 #include<cassert>
 #include<cstdlib>
 #include<stdarg.h>
-#include<stdio.h>
+
 namespace ls
 {
 #if defined _DEBUG || DEBUG
@@ -57,10 +57,8 @@ namespace ls
 #define ls_Log(format,...) ls::Log::log(format,##__VA_ARGS__ ) \
 		std::cout<<" in "<<"function: "<<__FUNCTION__<<" lines: "<<__LINE__<<std::endl;
 
-#define ls_AssertMsg(e,msg) if(!(e)) \
-		{	std::cerr<<msg<<" in "<<"function: "<<__FUNCTION__<<" lines: "<<__LINE__<<std::endl;\
-			std::abort();\
-		}
+#define ls_AssertMsg(e,msg) if(!(e)) {std::cerr<<msg<<" in "<<"function: "<<__FUNCTION__<<" lines: "<<__LINE__<<std::endl;	system("pause");std::abort();}
+		
 		
 #define ls_CheckMsg(e,msg) if(!(e)) std::cerr<<msg<<" in "<<"function: "<<__FUNCTION__<<" lines: "<<__LINE__<<std::endl;;
 

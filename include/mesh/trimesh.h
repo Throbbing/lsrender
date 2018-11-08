@@ -1,6 +1,7 @@
 #pragma once
 #include<mesh/mesh.h>
 #include<math/transform.h>
+#include<embree3/rtcore.h>
 
 namespace ls
 {
@@ -34,12 +35,18 @@ namespace ls
 			ls_Param_In const RTCRecord& rtc) const override;
 
 
+		virtual void applyTransform(const Transform& transform) override;
+		virtual void commit() override;
+		
+
 		virtual bool sample(ls_Param_In Sampler* sampler,
 			ls_Param_Out Record* rec) const  override ;
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
 			ls_Param_In const Record* refRec,
 			ls_Param_Out Record* rec) const  override;
+
+		virtual 
 
 		virtual f32 pdf(ls_Param_In const Record* refRec) const override;
 
@@ -52,5 +59,10 @@ namespace ls
 		std::vector<Normal>			mNormals;
 		std::vector<Point2>			mUVs;
 		std::vector<u32>			mIndices;
+		Transform					mO2W;
+		
+		
+		RTCGeometry					mEmbreeGem;
+
 	};
 }

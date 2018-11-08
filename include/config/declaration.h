@@ -20,7 +20,7 @@ namespace ls
 	class Material;
 
 
-	//About transport
+	//About light transport
 	class ScatteringFunction;
 	class Medium;
 	class Phase;

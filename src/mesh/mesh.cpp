@@ -5,11 +5,13 @@ void ls::Mesh::attachScene(std::shared_ptr<Scene> scene)
 {
 	mScene = scene;
 	mGeomID = scene->addMesh(this);
-
 }
 
 void ls::Mesh::detachScene()
 {
+	if (mGeomID == -1 && !mScene)
+		return;
+
 	mScene->deleteMesh(this);
 	mScene = nullptr;
 	mGeomID = -1;
