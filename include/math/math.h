@@ -24,6 +24,9 @@ namespace ls
 		constexpr static f32 Epsilon = 1e-6;
 		constexpr static f32 PI = 3.1415926f;
 		constexpr static f32 PI_2 = 6.2831852f;
+		constexpr static f32 InvPi = 0.31830988618379067154;
+		constexpr static f32 Inv2Pi = 0.15915494309189533577;
+		constexpr static f32 Inv4Pi = 0.07957747154594766788;
 
 		static f32 expf(f32 v) { return std::expf(v); }
 		static f32 logf(f32 v) { return std::logf(v); }

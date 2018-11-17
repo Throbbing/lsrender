@@ -36,3 +36,15 @@ bool ls::Mesh::occlude(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRec
 	Unimplement;
 	return false;
 }
+
+void ls::Mesh::applyAreaLight(const Spectrum & power)
+{
+	mLightPower = power;
+	if (!mLightPower.isBlack())
+		mIsAreaLight = true;
+}
+
+bool ls::Mesh::isAreaLight()
+{
+	return mIsAreaLight;
+}

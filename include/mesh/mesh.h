@@ -3,6 +3,7 @@
 #include<config/declaration.h>
 #include<record/record.h>
 #include<math/transform.h>
+#include<spectrum/spectrum.h>
 namespace ls
 {
 	enum ESubdivision_Type
@@ -39,6 +40,7 @@ namespace ls
 			ls_Param_In const RTCRecord& rtc,
 			ls_Param_Out Record* rec) const ;
 
+
 		virtual bool occlude(ls_Param_In const ls::Ray& ray,
 			ls_Param_In const RTCRecord& rtc) const ;
 		
@@ -54,6 +56,9 @@ namespace ls
 
 		
 		virtual void applyTransform(const Transform& transform) = 0;
+		virtual void applyAreaLight(const Spectrum& power);
+		virtual bool isAreaLight();
+		
 		
 		//commit changes to geometry
 		virtual void commit() = 0;
@@ -66,6 +71,8 @@ namespace ls
 		s32							mGeomID = -1;
 		const EMesh_Type			mMeshType;
 		std::shared_ptr<Scene>		mScene = nullptr;
+		Spectrum					mLightPower;
+		bool						mIsAreaLight = false;
 		
 	};
 }

@@ -62,7 +62,15 @@ namespace ls
 	//About Spectrum
 	class Spectrum;
 
-
+	//About Math
+	struct Vec2;
+	struct Vec3;
+	struct Vec4;
+	struct Point2;
+	struct Point3;
+	struct Normal;
+	class Mat4x4;
+	class Transform;
 
 	
 }

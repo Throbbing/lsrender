@@ -36,3 +36,65 @@ bool ls::RenderLib::globalSample(ls_Param_In Scene * scene, ls_Param_In Sampler 
 	return false;
 }
 
+void ls::MonteCarlo::sampleHemisphere(ls_Param_In Vec2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
+{
+	auto z = uv.x;
+	f32 r = std::sqrt(std::max((f32)0, (float)1.f - z * z));
+	f32 phi = 2 * lsMath::PI * uv.y;
+	*w = Vec3(r * std::cos(phi), r * std::sin(phi), z);
+	*pdf = sampleHemispherePdf(*w);
+}
+
+f32 ls::MonteCarlo::sampleHemispherePdf(const Vec3 & w)
+{
+	return lsMath::Inv2Pi;
+}
+
+void ls::MonteCarlo::sampleCosHemisphere(ls_Param_In Vec2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
+{
+	Unimplement;
+}
+
+f32 ls::MonteCarlo::sampleCosHemisphere(const Vec3 & w)
+{
+	Unimplement;
+	return f32();
+}
+
+void ls::MonteCarlo::sampleSphere(ls_Param_In Vec2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
+{
+	f32 z = 1 - 2 * uv[0];
+	f32 r = std::sqrt(std::max((f32)0, (f32)1 - z * z));
+	f32 phi = 2 * lsMath::PI * uv[1];
+	*w =  Vec3(r * std::cos(phi), r * std::sin(phi), z);
+	*pdf = sampleSpherePdf(*w);
+}
+
+f32 ls::MonteCarlo::sampleSpherePdf(const Vec3 & w)
+{
+	return lsMath::Inv4Pi;
+}
+
+void ls::MonteCarlo::sampleDisk(ls_Param_In Vec2 uv, ls_Param_Out Point2 * p, ls_Param_Out f32 * pdf)
+{
+	f32 r = std::sqrt(uv[0]);
+	f32 theta = 2 * lsMath::PI * uv[1];
+	*p =  Point2(r * std::cos(theta), r * std::sin(theta));
+	*pdf = sampleDistPdf(*p);
+}
+
+f32 ls::MonteCarlo::sampleDistPdf(const Point2 & p)
+{
+	return lsMath::Inv2Pi;
+}
+
+void ls::MonteCarlo::sampleConcentricDisk(ls_Param_In Vec2 uv, ls_Param_Out Point2 * p, ls_Param_Out f32 * pdf)
+{
+	Unimplement;
+}
+
+f32 ls::MonteCarlo::sampleConcentricDistPdf(const Point2 & p)
+{
+	Unimplement;
+	return f32();
+}

@@ -32,6 +32,7 @@ namespace ls
 	public:
 		s32 geomID = -1;
 		s32 primID = -1;
+		RTCRayHit   rayHit;
 	};
 
 
@@ -184,13 +185,14 @@ namespace ls
 		virtual ScatteringFunction* getBSDF();
 	public:
 		Point		position;
-		Vec3		normal;
+		Normal		ng;
+		Normal		ns;
 		Vec2		uv;
 
-		Point		dpdx;
-		Point		dpdy;
-		Point		dpdu;
-		Point		dpdv;
+		Vec3		dpdx;
+		Vec3		dpdy;
+		Vec3		dpdu;
+		Vec3		dpdv;
 
 		Vec3		dndx;
 		Vec3		dndy;

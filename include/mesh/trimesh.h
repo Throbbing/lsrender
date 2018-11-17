@@ -1,6 +1,7 @@
 #pragma once
 #include<mesh/mesh.h>
 #include<math/transform.h>
+#include<spectrum/spectrum.h>
 #include<embree3/rtcore.h>
 
 namespace ls
@@ -36,6 +37,8 @@ namespace ls
 
 
 		virtual void applyTransform(const Transform& transform) override;
+
+
 		virtual void commit() override;
 		
 
@@ -60,8 +63,7 @@ namespace ls
 		std::vector<Point2>			mUVs;
 		std::vector<u32>			mIndices;
 		Transform					mO2W;
-		
-		
+
 		RTCGeometry					mEmbreeGem;
 
 	};

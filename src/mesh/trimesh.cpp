@@ -2,6 +2,7 @@
 #include<config/common.h>
 #include<math/transform.h>
 #include<function/func.h>
+#include<function/stru.h>
 ls::TriMesh::TriMesh(const std::vector<Point3>& vertices, 
 	const std::vector<Normal>& normals, 
 	const std::vector<Point2>& uvs,
@@ -31,26 +32,124 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 
 	//Since intersect test has been completed by embree
 	//we only need to compute differential components
+	Point position;
+	Normal ng = Normal(rtc.rayHit.hit.Ng_x,
+		rtc.rayHit.hit.Ng_y,
+		rtc.rayHit.hit.Ng_z);
+	Normal ns = ng;
+	Vec2 uv = Vec2(rtc.rayHit.hit.u,
+		rtc.rayHit.hit.v);
+	Vec3 dpdu, dpdv;
+
+	int slot = 0;
+	if (!mNormals.empty())
+	{
+		rtcInterpolate0(mEmbreeGem, rtc.primID,
+			rtc.rayHit.hit.u,
+			rtc.rayHit.hit.v,
+			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
+			slot++, &ns.x, 3);
+	}
+	if (!mUVs.empty())
+	{
+		rtcInterpolate0(mEmbreeGem, rtc.primID,
+			rtc.rayHit.hit.u,
+			rtc.rayHit.hit.v,
+			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
+			slot, &uv.x, 2);
+	}
+
+	rtcInterpolate0(mEmbreeGem, rtc.primID,
+		rtc.rayHit.hit.u,
+		rtc.rayHit.hit.v,
+		RTC_BUFFER_TYPE_VERTEX, 0, &position.x, 3);
+	
+	Point2 uv0, uv1, uv2;
+	if (!mUVs.empty())
+	{
+		u32 v0 = rtc.primID * 3 + 0;
+		u32 v1 = rtc.primID * 3 + 1;
+		u32 v2 = rtc.primID * 3 + 2;
+		uv0 = mUVs[mIndices[v0]];
+		uv1 = mUVs[mIndices[v1]];
+		uv2 = mUVs[mIndices[v2]];
+		f32 u02 = uv0.x - uv2.x;
+		f32 u12 = uv1.x - uv2.x;
+		f32 u01 = uv0.x - uv1.x;
+		f32 v02 = uv0.y - uv2.y;
+		f32 v01 = uv0.y - uv1.y;
+		f32 v12 = uv1.y - uv2.y;
+
+		
+
+		auto p02 = mVertices[v0] - mVertices[v2];
+		auto p01 = mVertices[v0] - mVertices[v1];
+		auto p12 = mVertices[v1] - mVertices[v2];
+
+
+		auto det = u02*v12 - v02*u02;
+		if (!lsMath::closeZero(det))
+		{
+			auto invDet = 1.f / det;
+			dpdu = Vec3(( v12 * p02 - v02 * p12)) * invDet;
+			dpdv = Vec3((-u12 * p02 + v02 * p12)) * invDet;
+		}
+		else
+		{
+			rtcInterpolate1(mEmbreeGem,
+				rtc.primID,
+				rtc.rayHit.hit.u,
+				rtc.rayHit.hit.v,
+				RTC_BUFFER_TYPE_VERTEX,
+				0, nullptr,
+				&dpdu.x, &dpdv.x,
+				3);
+		}
+	}
+	else
+	{
+		rtcInterpolate1(mEmbreeGem,
+			rtc.primID,
+			rtc.rayHit.hit.u,
+			rtc.rayHit.hit.v,
+			RTC_BUFFER_TYPE_VERTEX,
+			0, nullptr,
+			&dpdu.x, &dpdv.x,
+			3);
+	}
+
+
 	auto dgRec = IntersectionPtrCast(rec);
 
-	
-
-	
-
-
+	dgRec->position = position;
+	dgRec->ng = ng;
+	dgRec->ns = ns;
+	dgRec->dpdu = mO2W(dpdu);
+	dgRec->dpdv = mO2W(dpdv);
+	dgRec->dpdx = Vec3();
+	dgRec->dpdy = Vec3();
+	dgRec->dndu = Vec3();
+	dgRec->dndv = Vec3();
+	dgRec->dndx = Vec3();
+	dgRec->dndy = Vec3();
 	return true;
 }
 
 bool ls::TriMesh::occlude(ls_Param_In const ls::Ray & ray, 
 	ls_Param_In const RTCRecord & rtc) const
 {
-	return false;
+	if (mGeomID != rtc.geomID)
+		return false;
+
+	return true;
 }
 
 void ls::TriMesh::applyTransform(const Transform & transform)
 {
 	mO2W = transform;
 }
+
+
 
 void ls::TriMesh::commit()
 {

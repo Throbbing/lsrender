@@ -17,7 +17,7 @@ namespace ls
 		}
 		virtual ~Ray(){}
 		
-		Point operator()(f32 t) { return ori + t*dir; }
+		Point operator()(f32 t) const  { return ori + t*dir; }
 		
 
 		Point3	ori;
