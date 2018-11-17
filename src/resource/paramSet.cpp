@@ -1,7 +1,5 @@
 #include<resource\paramSet.h>
-#include<math\vector.h>
-#include<math\transform.h>
-#include<spectrum\spectrum.h>
+
 
 namespace ls
 {
