@@ -15,7 +15,7 @@
 
 	$$f_j(\overline{P_k}) = Le(P_k\to P_{k-1})\prod_{i=1}^{k-1}(f(p_{i+1}\to p_i \to p_{i-1})G(p_{i+1},p_i)) * G(p_1,p_0)W_e(p_0 \to p_1)d\mu(\overline{P_k})$$
 */
-void ls::PathTracer::render(Scene * scene, Sampler * sampler, Camera * camera, RNG & rng) 
+void ls::PathTracer::render(Scene * scene, Sampler * sampler, Camera * camera, RNG & rng)  const
 {
 }
 
@@ -23,7 +23,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 	ls_Param_In Scene * scene, 
 	ls_Param_In Sampler* sampler,
 	ls_Param_In RNG & rng, 
-	ls_Param_In MemoryAllocater * arena) 
+	ls_Param_In MemoryAllocater * arena) const
 {
 	
 	//safe cast

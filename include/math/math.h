@@ -27,6 +27,7 @@ namespace ls
 		constexpr static f32 InvPi = 0.31830988618379067154;
 		constexpr static f32 Inv2Pi = 0.15915494309189533577;
 		constexpr static f32 Inv4Pi = 0.07957747154594766788;
+		constexpr static f32 Inv180 = 0.00555555555555555556;
 
 		static f32 expf(f32 v) { return std::expf(v); }
 		static f32 logf(f32 v) { return std::logf(v); }
@@ -50,7 +51,9 @@ namespace ls
 		}
 
 		static f32 distance(Point3 p1, Point3 p2);
-		
+
+		static f32 radian2Degree(float radian);
+		static f32 degree2Radian(float degree);
 
 #define Mat2XMMATRIX(m) DirectX::XMLoadFloat4x4((const DirectX::XMFLOAT4X4*)(m))
 #define XMMATRIX2Mat(dest,xm) DirectX::XMStoreFloat4x4((DirectX::XMFLOAT4X4*)dest,xm)

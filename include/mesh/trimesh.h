@@ -48,8 +48,7 @@ namespace ls
 		virtual bool sample(ls_Param_In Sampler* sampler,
 			ls_Param_In const Record* refRec,
 			ls_Param_Out Record* rec) const  override;
-
-		virtual 
+ 
 
 		virtual f32 pdf(ls_Param_In const Record* refRec) const override;
 

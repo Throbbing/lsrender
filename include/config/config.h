@@ -41,7 +41,7 @@
 #endif
 
 #ifndef ls_Smart
-#define ls_Smart(argType,var)  std::shared_ptr<argType> var
+#define ls_Smart(argType)  std::shared_ptr<argType>
 #endif
 
 #ifndef ls_MakeSmart

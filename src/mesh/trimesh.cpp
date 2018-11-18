@@ -191,7 +191,7 @@ void ls::TriMesh::commit()
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			vertexAttriSlot,
 			RTC_FORMAT_FLOAT3, sizeof(Normal), mNormals.size());
-		ls_Assert(normals, "Invalid Set Normal Geometry Buffer");
+		ls_AssertMsg(normals, "Invalid Set Normal Geometry Buffer");
 		
 		for (int i = 0; i < mNormals.size(); ++i)
 		{
@@ -206,7 +206,7 @@ void ls::TriMesh::commit()
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			vertexAttriSlot,
 			RTC_FORMAT_FLOAT2, sizeof(Point2), mUVs.size());
-		ls_Assert(uvs, "Invalid Set UV Geometry Buffer");
+		ls_AssertMsg(uvs, "Invalid Set UV Geometry Buffer");
 
 		for (int i = 0; i < mUVs.size(); ++i)
 		{

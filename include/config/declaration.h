@@ -40,6 +40,7 @@ namespace ls
 	class MemoryAllocater;
 	class ResourceManager;
 	class XMLPackage;
+	class XMLParser;
 
 	//About Random
 	class RNG;

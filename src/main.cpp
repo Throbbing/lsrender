@@ -6,7 +6,7 @@
 #include<stdio.h>
 #include<stdarg.h>
 #include<cwchar>
-
+#include<resource\xmlHelper.h>
 
 
 
@@ -16,8 +16,11 @@ int main()
 {
 	
 
-	system("pause");
+	auto package = ls::XMLParser::loadXMLFromMTSFile("G:\\living-room\\", "scene.xml");
 
+	ls::XMLParser::printXMLPackage(package);
+
+	system("pause");
 	
 	return 0;
 }

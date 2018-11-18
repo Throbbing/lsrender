@@ -42,7 +42,7 @@ namespace ls
 			else
 				len = half;
 		}
-		return optix::clamp(first - 1, 0, size - 2);
+		return lsMath::clamp(first - 1, 0, size - 2);
 	}
 
 	class Distribution1D 
