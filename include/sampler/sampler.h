@@ -9,8 +9,10 @@ namespace ls
 	class CameraSample
 	{
 	public:
-		CameraSample() { Unimplement; }
+		CameraSample() { }
 		~CameraSample() {}
+
+		Point2 pos;
 	};
 
 	class Sampler

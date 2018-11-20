@@ -50,7 +50,10 @@ namespace ls
 		
 
 	};
+	class CameraSpwanRayRecord :public Record
+	{
 
+	};
 
 	class CameraSampleRecord:public Record
 	{
