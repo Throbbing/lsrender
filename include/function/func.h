@@ -6,6 +6,7 @@
 #include<config/declaration.h>
 #include<math/vector.h>
 #include<memory>
+
 namespace ls
 {
 	template<typename Ori,typename Dest>
@@ -144,6 +145,13 @@ namespace ls
 		static bool visible(Scene* scene, Point p0, Point p1);
 		static bool globalSample(ls_Param_In Scene* scene, ls_Param_In Sampler* sampler,
 			ls_Param_Out MeshSampleRecord* meshRec);
+	};
+
+	struct GeometryLib
+	{
+	public:
+
+		static RTCRay lsRay2Embree(const Ray& ray);
 	};
 	
 

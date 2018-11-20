@@ -13,7 +13,14 @@ namespace ls
 	public:
 		XMLPackage() {}
 		
-		std::vector<ParamSet>		ParamSets;
+		std::vector<ParamSet>				mParamSets;
+
+		u32									mIntegrator;
+		u32									mCamera;
+		std::map<std::string, size_t>		mShapes;
+		std::map<std::string, size_t>		mBSDFs;
+		std::map<std::string, size_t>		mMedium;
+
 
 		
 	};

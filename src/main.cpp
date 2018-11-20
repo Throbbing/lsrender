@@ -18,9 +18,9 @@ int main()
 
 	auto package = ls::XMLParser::loadXMLFromMTSFile("G:\\living-room\\", "scene.xml");
 
-	ls::XMLParser::printXMLPackage(package);
+	
 
 	system("pause");
 	
-	return 0;
+	return 0;                                      
 }

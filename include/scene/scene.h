@@ -7,10 +7,18 @@ namespace ls
 {
 	class Scene
 	{
+		friend ResourceManager;
+	private:
+
+		
+		Scene();
+
 	public:
-		Scene(const XMLPackage& xml);
 		virtual ~Scene();
 
+		void setScene(const std::string& path, XMLPackage& package);
+
+	
 		virtual bool intersect(ls_Param_In Ray& ray,
 			ls_Param_Out Record* rec);
 
@@ -38,6 +46,13 @@ namespace ls
 	protected:
 		std::vector<Light*>  mSceneLights;
 		std::vector<Mesh*>	 mSceneMeshs;
+		Camera*				 mCamera;
+		RenderAlgorithm*	 mAlgorithm;
+
+		
+
+
+
 
 	};
 }

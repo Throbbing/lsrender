@@ -154,3 +154,18 @@ Mat4x4 Transform::Mat4x4Camera(const Vec3& look, const Vec3& up, const Point3& p
 		-dot(p, right), -dot(p, up), -dot(p, look), 1.f);
 }
 
+Mat4x4 ls::Transform::Mat4x4Perspective(f32 fov, f32 near, f32 far)
+{
+	
+	
+	// Perform projective divide for perspective projection
+	Mat4x4 persp(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, far / (far - near), -far * near / (far - near),
+		0, 0, 1, 0);
+
+	// Scale canonical perspective view to specified field of view
+	f32 invTanAng = 1 / std::tan(lsMath::degree2Radian(fov) / 2);
+	return Transform::Mat4x4Scale(invTanAng, invTanAng, 1) * persp;
+
+	
+}
+

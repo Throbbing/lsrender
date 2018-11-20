@@ -28,12 +28,7 @@ namespace ls
 		Mesh(const EMesh_Type& type):mMeshType(type) {}
 		virtual ~Mesh() {}
 
-		//attach this meth to scene
-		//The mesh cant be detected until attaching to scene 
-		void attachScene(std::shared_ptr<Scene> scene);
-		
-		//detach this mesh from scene
-		void detachScene();
+
 
 		
 		virtual bool intersect(ls_Param_In const ls::Ray& ray,
@@ -74,5 +69,6 @@ namespace ls
 		Spectrum					mLightPower;
 		bool						mIsAreaLight = false;
 		
+		RTCGeometry					mEmbreeGem;
 	};
 }

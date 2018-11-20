@@ -1,5 +1,6 @@
-#include<function/func.h>
-#include<math/math.h>
+#include<function\func.h>
+#include<function\stru.h>
+#include<math\math.h>
 
 f32 ls::RenderLib::mis(s32 nf, f32 pf, s32 ng, f32 pg)
 {
@@ -97,4 +98,20 @@ f32 ls::MonteCarlo::sampleConcentricDistPdf(const Point2 & p)
 {
 	Unimplement;
 	return f32();
+}
+
+RTCRay ls::GeometryLib::lsRay2Embree(const Ray & ray)
+{
+	RTCRay rtcRay;
+	rtcRay.org_x = ray.ori.x;
+	rtcRay.org_y = ray.ori.y;
+	rtcRay.org_z = ray.ori.z;
+	rtcRay.dir_x = ray.dir.x;
+	rtcRay.dir_y = ray.dir.y;
+	rtcRay.dir_z = ray.dir.z;
+	rtcRay.tnear = ray.tnear;
+	rtcRay.tfar = ray.tfar;
+	rtcRay.time = ray.time;
+
+	return rtcRay;
 }

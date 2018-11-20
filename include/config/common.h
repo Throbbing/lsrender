@@ -11,8 +11,14 @@ namespace ls
 		
 		static struct _hw{
 			RTCDevice			rtcDevice = nullptr;
+			RTCScene			rtcScene = nullptr;
 		}hw;
 		
+		static void initEmbree();
+		static void releaseEmbree();
+
+	private:
+		static bool				isInit;
 	};
 
 

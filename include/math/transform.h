@@ -119,6 +119,7 @@ namespace ls
 		static Mat4x4   Mat4x4Camera(const Vec3& look, const Vec3& up,
 			const Point3& p);
 		
+		static Mat4x4 Mat4x4Perspective(f32 fov, f32 near, f32 far);
 		
 	private:
 		Mat4x4 matrix;

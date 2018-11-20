@@ -37,6 +37,12 @@ namespace ls
 			else if (v > high) return high;
 			else return v;
 		}
+		static s32 clamp(s32 v, s32 low, s32 high)
+		{
+			if (v < low) return low;
+			else if (v > high) return high;
+			else return v;
+		}
 		static f32 absCos(f32 radian)
 		{
 			return	std::fabsf(std::cosf(radian));

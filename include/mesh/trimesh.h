@@ -63,7 +63,7 @@ namespace ls
 		std::vector<u32>			mIndices;
 		Transform					mO2W;
 
-		RTCGeometry					mEmbreeGem;
+
 
 	};
 }

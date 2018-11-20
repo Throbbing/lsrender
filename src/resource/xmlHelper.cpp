@@ -5,7 +5,7 @@
 namespace ls
 {
 
-	ls::XMLPackage ls::XMLParser::loadXMLFromFile(const std::string & path, const std::string & file)
+	ls::XMLPackage ls::XMLParser::loadXMLFromMTSFile(const std::string & path, const std::string & file)
 	{
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile((path + file).c_str());
@@ -24,9 +24,24 @@ namespace ls
 		{
 			auto paramSet = parseParam(node);
 
-			package.ParamSets.push_back(paramSet);
+			package.mParamSets.push_back(paramSet);
 
 			node = node->NextSiblingElement();
+		}
+
+
+		for (u32 i = 0; i < package.mParamSets.size(); ++i)
+		{
+			if (package.mParamSets[i].type == "integrator")
+				package.mIntegrator = i;
+			else if (package.mParamSets[i].type == "shape")
+				package.mShapes[package.mParamSets[i].id] = i;
+			else if (package.mParamSets[i].type == "bsdf")
+				package.mBSDFs[package.mParamSets[i].id] = i;
+			else if (package.mParamSets[i].type == "sensor")
+				package.mCamera = i;
+			else if (package.mParamSets[i].type == "medium")
+				package.mMedium[package.mParamSets[i].id] = i;
 		}
 		
 
@@ -362,7 +377,7 @@ namespace ls
 
 	void XMLParser::printXMLPackage(XMLPackage & xmlPackage)
 	{
-		for (auto& p : xmlPackage.ParamSets)
+		for (auto& p : xmlPackage.mParamSets)
 		{
 			printParamSet(p, 0);
 		}

@@ -7,11 +7,9 @@ namespace ls
 
 	struct Pixel
 	{
-		f32			x, y;
-		f32			time;
-		Spectrum	radiance;
-		
-
+		u32 x, y;
+		Spectrum color;
+		float weight = 0.f;
 	};
 	class Film
 	{
@@ -20,8 +18,21 @@ namespace ls
 		virtual ~Film() {}
 
 
-		virtual void addPixel(const Pixel& pixel) = 0;
+		virtual void setResolution(s32 w, s32 h) { mWidth = w; mHeight = h; }
 
+		virtual s32 getWidth() { return mWidth; }
+		virtual s32 getHeight() { return mHeight; }
+
+		//commit changes into film
+		virtual void commit() = 0;
+		virtual void addPixel(const Spectrum& color,
+			float xpos,float ypos) = 0;
+
+		virtual void flush() = 0;
+
+	protected:
+		s32				mWidth = -1;
+		s32				mHeight = -1;
 
 	};
 }
