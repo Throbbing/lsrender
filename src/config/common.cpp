@@ -1,7 +1,7 @@
 #include<config\common.h>
 
 bool ls::lsEmbree::isInit = false;
-
+ls::lsEmbree::_hw ls::lsEmbree::hw;
 void ls::lsEmbree::initEmbree()
 {
 	if (isInit)
@@ -9,6 +9,8 @@ void ls::lsEmbree::initEmbree()
 
 	hw.rtcDevice = rtcNewDevice(nullptr);
 	hw.rtcScene = rtcNewScene(hw.rtcDevice);
+
+	isInit = true;
 }
 
 

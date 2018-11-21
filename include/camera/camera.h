@@ -12,7 +12,7 @@ namespace ls
 
 		virtual f32 spawnRay(ls_Param_In const Sampler* sampler,
 			ls_Param_In const CameraSample& sample,
-			ls_Param_Out Record* rec) const = 0;
+			ls_Param_Out CameraSpwanRayRecord* rec) const = 0;
 
 		virtual void sample(ls_Param_In const Sampler* sampler,
 			ls_Param_Out Record* rec) const  = 0;

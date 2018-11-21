@@ -64,6 +64,24 @@ namespace ls
 
 		return Transforms[name];
 	}
+	ParamSet ParamSet::queryParamSetByType(const std::string & type)
+	{
+		for (auto& p : childParamSets)
+		{
+			if (p.type == type)
+				return p;
+		}
+		return ParamSet();
+	}
+	ParamSet ParamSet::queryParamSetByName(const std::string & name)
+	{
+		for (auto& p : childParamSets)
+		{
+			if (p.name == name)
+				return p;
+		}
+		return ParamSet();
+	}
 	void ParamSet::addf32(const std::string & name, f32 value)
 	{
 		f32s[name] = value;

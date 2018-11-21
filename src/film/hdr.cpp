@@ -32,4 +32,38 @@ void ls::HDRFilm::flush()
 		if (!lsMath::closeZero(p.weight))
 			p.color /= p.weight;
 	}
+
+	std::ofstream file;
+	file.open("Test.ppm", std::ios::out);
+
+	if (file.fail())
+	{
+		std::cout << "Êä³ö´ò¿ªÊ§°Ü" << std::endl;
+		system("pause");
+	}
+
+
+	file << "P3" << std::endl;
+	file << mWidth << " " << mHeight << std::endl;
+	file << 255 << std::endl;
+	u32 r, g, b;
+	Spectrum color;
+	f32 rgb[3];
+	for (s32 y = 0; y < mHeight; ++y)
+	{
+
+		for (s32 x = 0; x < mWidth; ++x)
+		{
+
+			color = mRenderBuffer[y *mWidth + x].color;
+			color.toRGB(rgb);
+			file << lsMath::clamp(s32(rgb[0] * 255.f), 0, 255) << ' ' <<
+				lsMath::clamp(s32(rgb[1] * 255.f), 0, 255) << ' ' <<
+				lsMath::clamp(s32(rgb[2] * 255.f), 0, 255) << ' ';
+
+		}
+		file << std::endl;
+
+	}
+	file.close();
 }

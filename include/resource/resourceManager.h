@@ -2,6 +2,7 @@
 #include<config\config.h>
 #include<config\declaration.h>
 #include<map>
+
 namespace ls
 {
 	class ResourceManager

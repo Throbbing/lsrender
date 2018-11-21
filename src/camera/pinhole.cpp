@@ -22,13 +22,16 @@ ls::Pinhole::Pinhole(const Transform & w2c, f32 shutterStart, f32 shutterEnd, f3
 
 }
 
-f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler, ls_Param_In const CameraSample & sample, ls_Param_Out Record * rec) const
+f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler, 
+	ls_Param_In const CameraSample & sample, 
+	ls_Param_Out CameraSpwanRayRecord * rec) const
 {
 	Point3 pRaster = Point3(sample.pos.x, sample.pos.y, 0.f);
 	Point3 pCamera = mR2C(pRaster);
 	Ray ray = Ray(Point3(0, 0, 0), normalize(Vec3(pCamera)));
 
-	mC2W(ray);
+	ray = mC2W(ray);
+	rec->ray = DifferentialRay(ray);
 
 	return f32();
 }

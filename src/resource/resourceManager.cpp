@@ -3,9 +3,10 @@
 #include<function\log.h>
 #include<mesh\mesh.h>
 #include<mesh\trimesh.h>
-
+#include<scene\scene.h>
 #include<cstring>
-
+std::map<std::string, ls_Smart(ls::Mesh)>	ls::ResourceManager::mMeshs;
+std::map<std::string, ls_Smart(ls::Texture)> ls::ResourceManager::mTextures;
 
 ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const std::string & path, const std::string & fileName)
 {
@@ -83,5 +84,5 @@ ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFile(const std::string
 
 ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
 {
-	return ls_Smart(ls::Scene)();
+	return ls_Smart(ls::Scene)(new ls::Scene());
 }

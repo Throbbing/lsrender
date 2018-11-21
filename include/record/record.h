@@ -1,11 +1,12 @@
 #pragma once
-#include<config/config.h>
-#include<config/declaration.h>
-#include<function/log.h>
-#include<function/func.h>
-#include<Math/math.h>
-#include<Math/matrix.h>
-#include<Spectrum/spectrum.h>
+#include<config\config.h>
+#include<config\declaration.h>
+#include<function\log.h>
+#include<function\func.h>
+#include<Math\math.h>
+#include<Math\matrix.h>
+#include<Spectrum\spectrum.h>
+#include<function\stru.h>
 namespace ls
 {
 // forward declaration
@@ -52,6 +53,11 @@ namespace ls
 	};
 	class CameraSpwanRayRecord :public Record
 	{
+	public:
+		virtual Point3 getPosition() override;
+		virtual Normal getNormal() override;
+
+		DifferentialRay			ray;
 
 	};
 

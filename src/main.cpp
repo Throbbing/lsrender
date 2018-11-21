@@ -7,9 +7,9 @@
 #include<stdarg.h>
 #include<cwchar>
 #include<resource\xmlHelper.h>
-
-
-
+#include<scene\scene.h>
+#include<resource\resourceManager.h>
+#include<config\common.h>
 
 
 int main()
@@ -18,8 +18,15 @@ int main()
 
 	auto package = ls::XMLParser::loadXMLFromMTSFile("G:\\living-room\\", "scene.xml");
 
-	
+	auto scene = ls::ResourceManager::createSceneObj();
 
+	ls::lsEmbree::initEmbree();
+
+	scene->setScene("G:\\living-room\\",package);
+
+	scene->render();
+
+	ls::lsEmbree::releaseEmbree();
 	system("pause");
 	
 	return 0;                                      

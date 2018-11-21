@@ -38,6 +38,8 @@ namespace ls
 		virtual s32 addLight(Light* light);
 		virtual void deleteLight(Light* light);
 
+		virtual void render();
+
 		auto  getLightCount() { return mSceneLights.size(); }
 		auto  getMeshCount() { return mSceneMeshs.size(); }
 

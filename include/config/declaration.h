@@ -6,6 +6,7 @@ namespace ls
 	//Record
 	class RTCRecord;
 	class Record;
+	class CameraSpwanRayRecord;
 	class CameraSampleRecord;
 	class LightSampleRecord;
 	class MeshSampleRecord;

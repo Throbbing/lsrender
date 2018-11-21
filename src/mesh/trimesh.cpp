@@ -177,11 +177,21 @@ void ls::TriMesh::commit()
 	
 	{
 		auto indices = rtcSetNewGeometryBuffer(mEmbreeGem, RTC_BUFFER_TYPE_INDEX, 0,
-			RTC_FORMAT_UINT, sizeof(u32), mIndices.size());
+			RTC_FORMAT_UINT3, sizeof(u32) * 3, mIndices.size() / 3);
+		auto tt = rtcGetDeviceError(lsEmbree::hw.rtcDevice);
 		ls_AssertMsg(indices, "Invalid Set Index Geometry Buffer");
+
+		
 
 		std::memcpy(indices, &mIndices[0],
 			sizeof(mIndices[0]) * mIndices.size());
+	}
+
+	{
+		int vaCount = 0;
+		if (!mNormals.empty()) vaCount++;
+		if (!mUVs.empty()) vaCount++;
+		rtcSetGeometryVertexAttributeCount(mEmbreeGem, vaCount);
 	}
 
 	u32 vertexAttriSlot = 0;
@@ -191,6 +201,7 @@ void ls::TriMesh::commit()
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			vertexAttriSlot,
 			RTC_FORMAT_FLOAT3, sizeof(Normal), mNormals.size());
+		auto tt = rtcGetDeviceError(lsEmbree::hw.rtcDevice);
 		ls_AssertMsg(normals, "Invalid Set Normal Geometry Buffer");
 		
 		for (int i = 0; i < mNormals.size(); ++i)
@@ -206,6 +217,7 @@ void ls::TriMesh::commit()
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			vertexAttriSlot,
 			RTC_FORMAT_FLOAT2, sizeof(Point2), mUVs.size());
+		auto tt = rtcGetDeviceError(lsEmbree::hw.rtcDevice);
 		ls_AssertMsg(uvs, "Invalid Set UV Geometry Buffer");
 
 		for (int i = 0; i < mUVs.size(); ++i)

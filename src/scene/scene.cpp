@@ -12,6 +12,8 @@
 #include<resource\paramSet.h>
 #include<resource\xmlHelper.h>
 #include<resource\resourceManager.h>
+#include<film\hdr.h>
+#include<function\rng.h>
 ls::Scene::Scene()
 {
 	
@@ -31,11 +33,38 @@ void ls::Scene::setScene(const std::string& path, XMLPackage & package)
 	{
 		auto shapeParamSet = package.mParamSets[p.second];
 		auto mesh = ResourceManager::loadMeshFromFile(path, shapeParamSet.queryString("filename"));
-		mesh->applyTransform(shapeParamSet.queryTransform("toWorld"));
+		mesh->applyTransform(shapeParamSet.queryTransform("toWorld").getMat().transpose());
 		mesh->commit();
 		addMesh(mesh.get());
+	}
+
+	{
+		auto fov = cameraParamSet.queryf32("fov");
+		auto world = cameraParamSet.queryTransform("toWorld");
+		auto near = cameraParamSet.queryf32("nearClip",1e-4);
+		auto far = cameraParamSet.queryf32("farClip",1e4);
+		mCamera = new Pinhole(world.getMat().transpose(),
+			0, 0, fov, near, far);
+
+		
+		
+
+		auto filmParamSet = cameraParamSet.queryParamSetByType("film");
+		auto width = filmParamSet.querys32("width");
+		auto height = filmParamSet.querys32("height");
+
+		auto film = new HDRFilm();
+		film->setResolution(width, height);
+		film->commit();
+
+		mCamera->addFilm(film);
+		mCamera->commit();
+
 
 	}
+
+	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
+	
 
 
 }
@@ -47,9 +76,10 @@ bool ls::Scene::intersect(ls_Param_In Ray & ray, ls_Param_Out Record * rec)
 
 	RTCRayHit rtcHit;
 	rtcHit.ray = GeometryLib::lsRay2Embree(ray);
-
+	rtcHit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
 	rtcIntersect1(lsEmbree::hw.rtcScene, &context, &rtcHit);
 
+	auto ii = RTC_INVALID_GEOMETRY_ID;
 	if (rtcHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
 		return false;
 
@@ -128,6 +158,13 @@ void ls::Scene::deleteLight(Light * light)
 {
 	Unimplement;
 	
+}
+
+void ls::Scene::render()
+{
+	RNG rng;
+	mAlgorithm->render(this, nullptr,
+		mCamera, rng);
 }
 
 

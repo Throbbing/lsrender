@@ -11,7 +11,7 @@ namespace ls
 		virtual ~RenderAlgorithm() {}
 
 		virtual void render(Scene* scene, Sampler* sampler,
-			Camera* camera, RNG& rng) const = 0;
+			Camera* camera, RNG& rng)const ;
 
 		virtual ls::Spectrum Li(ls_Param_In Record* cameraRec,
 			ls_Param_In Scene* scene,

@@ -9,8 +9,7 @@ namespace ls
 		VisualNormal() {}
 		virtual ~VisualNormal(){}
 
-		virtual void render(Scene* scene, Sampler* sampler,
-			Camera* camera, RNG& rng) const override;
+
 
 		virtual ls::Spectrum Li(ls_Param_In Record* cameraRec,
 			ls_Param_In Scene* scene,

@@ -35,7 +35,7 @@ namespace ls
 			if (package.mParamSets[i].type == "integrator")
 				package.mIntegrator = i;
 			else if (package.mParamSets[i].type == "shape")
-				package.mShapes[package.mParamSets[i].id] = i;
+				package.mShapes[package.mParamSets[i].queryString("filename")] = i;
 			else if (package.mParamSets[i].type == "bsdf")
 				package.mBSDFs[package.mParamSets[i].id] = i;
 			else if (package.mParamSets[i].type == "sensor")

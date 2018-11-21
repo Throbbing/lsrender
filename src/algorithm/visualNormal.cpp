@@ -6,12 +6,13 @@
 #include<sampler/sampler.h>
 #include<spectrum/spectrum.h>
 #include<scatter/scatter.h>
-void ls::VisualNormal::render(Scene * scene, Sampler * sampler, Camera * camera, RNG & rng) const
-{
-	Unimplement
-}
 
-ls::Spectrum ls::VisualNormal::Li(ls_Param_In Record * cameraRec, ls_Param_In Scene * scene, ls_Param_In Sampler * sampler, ls_Param_In RNG & rng, ls_Param_In MemoryAllocater * arena) const
+
+ls::Spectrum ls::VisualNormal::Li(ls_Param_In Record * cameraRec, 
+	ls_Param_In Scene * scene, 
+	ls_Param_In Sampler * sampler, 
+	ls_Param_In RNG & rng, 
+	ls_Param_In MemoryAllocater * arena) const
 {
 	
 	auto cr = CameraSamplePtrCast(cameraRec);

@@ -43,6 +43,8 @@ namespace ls
 		Spectrum querySpectrum(const std::string& name, Spectrum value = Spectrum()) ;
 		Transform queryTransform(const std::string& name, Transform value = Transform()) ;
 
+		ParamSet queryParamSetByType(const std::string& type);
+		ParamSet queryParamSetByName(const std::string& name);
 
 		void addf32(const std::string& name, f32 value) ;
 		void adds32(const std::string& name, s32 value);
@@ -55,6 +57,7 @@ namespace ls
 		void addTransoform(const std::string& name, Transform value);
 		void addParamSet(const std::string& name, ParamSet value);
 		void addRef(const std::string& id, const std::string value);
+
 
 //		ParamSetType getType() { return paramType; }
 //		std::string getName() { return name; }

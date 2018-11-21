@@ -107,4 +107,16 @@ namespace ls
 
 
 
+	Point3 CameraSpwanRayRecord::getPosition()
+	{
+		Unimplement;
+		return Point3();
+	}
+
+	Normal CameraSpwanRayRecord::getNormal()
+	{
+		Unimplement;
+		return Normal();
+	}
+
 }
