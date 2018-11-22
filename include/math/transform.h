@@ -100,6 +100,8 @@ namespace ls
 		DifferentialRay operator()(const DifferentialRay& r) const;
 		AABB operator()(const AABB& bbox) const;
 
+		
+
 
 		//static method
 		//Ëõ·Å¾ØÕó
@@ -114,6 +116,8 @@ namespace ls
 		static Mat4x4  Mat4x4RotateX(f32 radian);
 		static Mat4x4  Mat4x4RotateY(f32 radian);
 		static Mat4x4  Mat4x4RotateZ(f32 radian);
+
+		static Mat4x4  Mat4x4LeftRightCast();
 
 		//Ïà»ú¾ØÕó
 		static Mat4x4   Mat4x4Camera(const Vec3& look, const Vec3& up,

@@ -26,8 +26,7 @@ ls::Spectrum ls::VisualNormal::Li(ls_Param_In Record * cameraRec,
 	{
 		auto offsetNormal = itsRec.ns * 0.5f + 0.5f;
 		return Spectrum(offsetNormal.x, offsetNormal.y, offsetNormal.z);
-//		return Spectrum(itsRec.position.z / 100.f);
-//		return Spectrum(1, 0, 0);
+
 	}
 	
 	return Spectrum(0.f);

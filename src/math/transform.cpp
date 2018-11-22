@@ -144,6 +144,14 @@ Mat4x4 Transform::Mat4x4RotateZ(f32 radian)
 		0.f, 0.f, 0.f, 1.f);
 }
 
+Mat4x4 ls::Transform::Mat4x4LeftRightCast()
+{
+	return Mat4x4(-1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		0,0,0,1);
+}
+
 Mat4x4 Transform::Mat4x4Camera(const Vec3& look, const Vec3& up, const Point3& p)
 {
 	Vec3 right = cross(up, look);
@@ -157,15 +165,20 @@ Mat4x4 Transform::Mat4x4Camera(const Vec3& look, const Vec3& up, const Point3& p
 Mat4x4 ls::Transform::Mat4x4Perspective(f32 fov, f32 near, f32 far)
 {
 	
-	
-	// Perform projective divide for perspective projection
-	Mat4x4 persp(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, far / (far - near), -far * near / (far - near),
-		0, 0, 1, 0);
+	f32 recip = 1.0f / (far - near);
 
-	// Scale canonical perspective view to specified field of view
-	f32 invTanAng = 1 / std::tan(lsMath::degree2Radian(fov) / 2);
-	return Transform::Mat4x4Scale(invTanAng, invTanAng, 1) * persp;
+	/* Perform a scale so that the field of view is mapped
+	* to the interval [-1, 1] */
+	f32 cot = 1.0f / std::tan(lsMath::degree2Radian(fov / 2.0f));
 
+	Mat4x4 trafo(
+		cot, 0, 0, 0,
+		0, cot, 0, 0,
+		0, 0,far * recip, -near * far * recip,
+		0, 0, 1, 0
+	);
+
+	return trafo.transpose();
 	
 }
 

@@ -59,8 +59,10 @@ namespace ls
 		void addRef(const std::string& id, const std::string value);
 
 
-//		ParamSetType getType() { return paramType; }
-//		std::string getName() { return name; }
+		std::string getType() { return type; }
+		std::string getName() { return name; }
+		std::string getVarName() { return varName; }
+		std::string getID() { return id; }
 
 	private:
 		std::string			type;

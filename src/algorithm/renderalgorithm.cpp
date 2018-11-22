@@ -15,13 +15,13 @@ void ls::RenderAlgorithm::render(Scene * scene,
 	s32 width = film->getWidth();
 	s32 height = film->getHeight();
 
-	for (s32 h = 0; h < height; ++h)
+	for (s32 h = 0; h < height ; ++h)
 	{
-		for (s32 w = 0; w < width; ++w)
+		for (s32 w = 0; w < width ; ++w)
 		{
 			CameraSample cs;
-			cs.pos.x = w; -width / 2;
-			cs.pos.y = h; -height / 2;
+			cs.pos.x = w; 
+			cs.pos.y = h; 
 
 			
 			CameraSpwanRayRecord csrRec;

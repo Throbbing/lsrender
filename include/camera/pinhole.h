@@ -41,5 +41,8 @@ namespace ls
 		f32					mFov;
 		f32					mNear;
 		f32					mFar;
+
+		f32					mInvWidth;
+		f32					mInvHeight;
 	};
 }

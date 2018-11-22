@@ -16,13 +16,13 @@ int main()
 {
 	
 
-	auto package = ls::XMLParser::loadXMLFromMTSFile("G:\\Pro\\lsrender\\dragon\\", "scene.xml");
+	auto package = ls::XMLParser::loadXMLFromMTSFile("G:\\Pro\\lsrender\\living-room\\", "scene.xml");
 
 	auto scene = ls::ResourceManager::createSceneObj();
 
 	ls::lsEmbree::initEmbree();
 
-	scene->setScene("G:\\Pro\\lsrender\\dragon\\",package);
+	scene->setScene("G:\\Pro\\lsrender\\living-room\\",package);
 
 	scene->render();
 

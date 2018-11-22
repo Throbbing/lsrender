@@ -26,9 +26,15 @@ f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler,
 	ls_Param_In const CameraSample & sample, 
 	ls_Param_Out CameraSpwanRayRecord * rec) const
 {
-	Point3 pRaster = Point3(sample.pos.x, sample.pos.y, 0.f);
+//	Point3 pRaster = Point3(sample.pos.x, sample.pos.y, 0.f);
+	Point3 pRaster = Point3(sample.pos.x * mInvWidth, sample.pos.y * mInvHeight, 0.f);
 	Point3 pCamera = mR2C(pRaster);
 	Ray ray = Ray(Point3(0, 0, 0), normalize(Vec3(pCamera)));
+
+
+	{
+	
+	}
 
 	ray = mC2W(ray);
 	ray.dir = normalize(ray.dir);
@@ -55,24 +61,49 @@ void ls::Pinhole::commit()
 
 	f32 w = mFilm->getWidth();
 	f32 h = mFilm->getHeight();
+
+	mInvWidth = 1.f / w;
+	mInvHeight = 1.f / h;
 	
 	f32 aspect = f32(w) / f32(h);
 
-	f32 invtan = 1.f / std::tanf(lsMath::degree2Radian(mFov*0.5f));
-	mC2S = { (1.f / aspect)*invtan, 0.f, 0.f, 0.f,
-		0.f, invtan, 0.f, 0.f,
-		0.f, 0.f, mFar / (mFar - mNear), 1.f,
-		0.f, 0.f, -mNear*mFar / (mFar - mNear), 0.f };
+	const Vec2 filmSize = Vec2(w,h);
+	const Vec2 cropSize = filmSize;
+	const Vec2 cropOffset = Vec2(0.f, 0.f);
 
-	mS2C = mC2S.inverse();
+	Vec2 relSize((f32)cropSize.x / (f32)filmSize.x,
+		(f32)cropSize.y / (f32)filmSize.y);
+	Point2 relOffset((f32)cropOffset.x / (f32)filmSize.x,
+		(f32)cropOffset.y / (f32)filmSize.y);
 
-	mS2R = Mat4x4{ w*0.5f, 0.f, 0.f, 0.f,
-		0.f, -h*0.5f, 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		w*0.5f, h*0.5f, 0.f, 1.f };
 
-	mR2S = mS2R.getMat().inverse();
+	Mat4x4 C2R =
+		Transform::Mat4x4Perspective(mFov, mNear, mFar) *
+		Transform::Mat4x4Translate(Vec3(-1.0f, -1.0f / aspect, 0.0f)) *
+		Transform::Mat4x4Scale(Vector(-0.5f, -0.5f*aspect, 1.0f)) *
+		Transform::Mat4x4Translate(Vector(-relOffset.x, -relOffset.y, 0.0f)) *
+		Transform::Mat4x4Scale(Vector(1.0f / relSize.x, 1.0f / relSize.y, 1.0f));
 
-	mR2C = (mC2S.getMat() * mS2R.getMat()).inverse();
 
+	mR2C = C2R.inverse();
+
+
+#if 0
+
+	/* Precompute some data for importance(). Please
+	look at that function for further details */
+	Point min(m_sampleToCamera(Point(0, 0, 0))),
+		max(m_sampleToCamera(Point(1, 1, 0)));
+
+	m_imageRect.reset();
+	m_imageRect.expandBy(Point2(min.x, min.y) / min.z);
+	m_imageRect.expandBy(Point2(max.x, max.y) / max.z);
+	m_normalization = 1.0f / m_imageRect.getVolume();
+
+	/* Clip-space transformation for OpenGL */
+	m_clipTransform = Transform::translate(
+		Vector((1 - 2 * relOffset.x) / relSize.x - 1,
+			-(1 - 2 * relOffset.y) / relSize.y + 1, 0.0f)) *
+		Transform::scale(Vector(1.0f / relSize.x, 1.0f / relSize.y, 1.0f));
+#endif
 }
