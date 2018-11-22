@@ -33,9 +33,9 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	//Since intersect test has been completed by embree
 	//we only need to compute differential components
 	Point position;
-	Normal ng = Normal(rtc.rayHit.hit.Ng_x,
+	Normal ng = normalize(Normal(rtc.rayHit.hit.Ng_x,
 		rtc.rayHit.hit.Ng_y,
-		rtc.rayHit.hit.Ng_z);
+		rtc.rayHit.hit.Ng_z));
 	Normal ns = ng;
 	Vec2 uv = Vec2(rtc.rayHit.hit.u,
 		rtc.rayHit.hit.v);
@@ -176,7 +176,7 @@ void ls::TriMesh::commit()
 	}
 	
 	{
-		auto indices = rtcSetNewGeometryBuffer(mEmbreeGem, RTC_BUFFER_TYPE_INDEX, 0,
+		auto indices = (u32*)rtcSetNewGeometryBuffer(mEmbreeGem, RTC_BUFFER_TYPE_INDEX, 0,
 			RTC_FORMAT_UINT3, sizeof(u32) * 3, mIndices.size() / 3);
 		auto tt = rtcGetDeviceError(lsEmbree::hw.rtcDevice);
 		ls_AssertMsg(indices, "Invalid Set Index Geometry Buffer");
@@ -225,8 +225,11 @@ void ls::TriMesh::commit()
 			uvs[i] = mUVs[i];
 		}
 	}
+	auto ttt = (Point3*)rtcGetGeometryBufferData(mEmbreeGem, RTC_BUFFER_TYPE_VERTEX, 0);
+	auto tttt = (u32*)rtcGetGeometryBufferData(mEmbreeGem, RTC_BUFFER_TYPE_INDEX, 0);
 
 	rtcCommitGeometry(mEmbreeGem);
+
 }
 
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,

@@ -33,17 +33,22 @@ void ls::Scene::setScene(const std::string& path, XMLPackage & package)
 	{
 		auto shapeParamSet = package.mParamSets[p.second];
 		auto mesh = ResourceManager::loadMeshFromFile(path, shapeParamSet.queryString("filename"));
-		mesh->applyTransform(shapeParamSet.queryTransform("toWorld").getMat().transpose());
-		mesh->commit();
-		addMesh(mesh.get());
+		
+		if (mesh)
+		{
+			auto w = shapeParamSet.queryTransform("toWorld");
+			mesh->applyTransform(w);
+			mesh->commit();
+			addMesh(mesh.get());
+		}
 	}
 
 	{
 		auto fov = cameraParamSet.queryf32("fov");
 		auto world = cameraParamSet.queryTransform("toWorld");
-		auto near = cameraParamSet.queryf32("nearClip",1e-4);
+		auto near = cameraParamSet.queryf32("nearClip",1);
 		auto far = cameraParamSet.queryf32("farClip",1e4);
-		mCamera = new Pinhole(world.getMat().transpose(),
+		mCamera = new Pinhole(world,
 			0, 0, fov, near, far);
 
 		

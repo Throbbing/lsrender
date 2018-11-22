@@ -20,8 +20,8 @@ void ls::RenderAlgorithm::render(Scene * scene,
 		for (s32 w = 0; w < width; ++w)
 		{
 			CameraSample cs;
-			cs.pos.x = w;
-			cs.pos.y = h;
+			cs.pos.x = w; -width / 2;
+			cs.pos.y = h; -height / 2;
 
 			
 			CameraSpwanRayRecord csrRec;

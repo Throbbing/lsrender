@@ -9,7 +9,7 @@ namespace ls
 	class Pinhole:public Camera
 	{
 	public:
-		Pinhole(const Transform& w2c,
+		Pinhole(const Transform& c2w,
 			f32 shutterStart, f32 shutterEnd,
 			f32 fov,
 			f32 near,

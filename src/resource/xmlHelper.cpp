@@ -191,7 +191,7 @@ namespace ls
 				arr[12], arr[13], arr[14], arr[15]);
 
 			transform = Transform(mat);
-			return transform;
+			return transform.getMat().transpose();
 		}
 
 		//ф╢╫спн Transform

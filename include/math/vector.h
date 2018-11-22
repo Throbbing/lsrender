@@ -48,7 +48,7 @@ namespace ls
 		}
 		ls_ForceInline bool valid()
 		{
-			return !ls_Isnan(x) && !!ls_Isnan(y);
+			return !ls_Isnan(x) && !ls_Isnan(y);
 		}
 		f32 operator[](int i)
 		{
