@@ -19,22 +19,23 @@ void ls::PathTracer::render(Scene * scene, Sampler * sampler, Camera * camera, R
 {
 }
 
-ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
-	ls_Param_In Scene * scene, 
+ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
+	ls_Param_In CameraSampleRecord* csr,
+	ls_Param_In Scene* scene,
 	ls_Param_In Sampler* sampler,
-	ls_Param_In RNG & rng, 
-	ls_Param_In MemoryAllocater * arena) const
+	ls_Param_In RNG& rng,
+	ls_Param_In MemoryAllocater* arena) const
 {
 	
 	//safe cast
-	auto cr = CameraSamplePtrCast(cameraRec);
+	
 
 
 	ls::Spectrum L =  ls::Spectrum(0.f);
-	ls::Spectrum throughput = ls::Spectrum(1.f) * cr->we;
+	ls::Spectrum throughput = ls::Spectrum(1.f) * csr->we;
 	
 	//spawn new ray
-	DifferentialRay cameraRay(cr->samplePosition, cr->sampleDirection, 0, cr->time);
+	DifferentialRay cameraRay(ray);
 
 	IntersectionRecord itsRec;
 	if (!scene->intersect(cameraRay, &itsRec))
@@ -60,11 +61,11 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 		//Note that  only depth = 0(i.e first sample vertex are on light source) ,we will take arealight into radiance
 		//since all of arealight samples will be  processed in "bsdf sample" except the first vertex
 		
-		if (itsRec.getAreaLight())
+		if (itsRec.areaLight)
 		{
 			if (castRay.depth == 0)
 			{
-				auto areaLight = itsRec.getAreaLight();
+				auto areaLight = itsRec.areaLight;
 				L += areaLight->sample(castRay);
 				break;
 			}
@@ -93,7 +94,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 			 However, there is no possiblity to sample bsdf which has 'S' component
 		*/
 		{
-			auto bsdf = itsRec.getBSDF();
+			auto bsdf = itsRec.bsdf;
 			if (!bsdf)
 				break;
 
@@ -117,8 +118,8 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 				SurfaceSampleRecord surSRec;
 				surSRec.wo = -castRay.dir;
 				surSRec.wi = wi;
-				surSRec.position = itsRec.getPosition();
-				surSRec.normal = itsRec.getNormal();
+				surSRec.position = itsRec.position;
+				surSRec.normal = itsRec.ns;
 
 				auto bsdfPdfW = bsdf->pdf(&surSRec);
 				auto bsdfVal = bsdf->f(&surSRec);
@@ -141,14 +142,14 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 			BSDF Sample
 		*/
 		{
-			auto bsdf = itsRec.getBSDF();
+			auto bsdf = itsRec.bsdf;
 			if (!bsdf)
 				break;
 
 			//sample direction from bsdf
 			SurfaceSampleRecord surSRec;
-			surSRec.position = itsRec.getPosition();
-			surSRec.normal = itsRec.getNormal();
+			surSRec.position = itsRec.position;
+			surSRec.normal = itsRec.ns;
 			surSRec.wo = -castRay.dir;
 			bsdf->sample(sampler, &surSRec);
 
@@ -169,7 +170,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In Record * cameraRec,
 			//we dont have to consider the singular light source since such lights have delta distributions
 			if (scene->intersect(castRay, &itsRec))
 			{
-				auto areaLight = itsRec.getAreaLight();
+				auto areaLight = itsRec.areaLight;
 				if (areaLight && !areaLight->isDelta())
 				{
 					hitLight = true;

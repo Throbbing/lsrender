@@ -16,21 +16,21 @@ namespace ls
 	public:
 		virtual ~Scene();
 
-		void setScene(const std::string& path, XMLPackage& package);
+		void setScene(const Path& path, XMLPackage& package);
 
 	
 		virtual bool intersect(ls_Param_In Ray& ray,
-			ls_Param_Out Record* rec);
+			ls_Param_Out IntersectionRecord* rec);
 
 		virtual bool occlude(ls_Param_In const Ray& ray);
 
 		virtual Light* envrionmentLight();
 
 		virtual f32 sampleLight(ls_Param_In Sampler* sampler,
-			ls_Param_Out Record* rec);
+			ls_Param_Out LightSampleRecord* rec);
 
 		virtual f32 sampleMesh(ls_Param_In Sampler* sampler,
-			ls_Param_Out Record* rec);
+			ls_Param_Out MeshSampleRecord* rec);
 
 		virtual s32 addMesh(Mesh* mesh);
 		virtual void deleteMesh(Mesh* mesh);

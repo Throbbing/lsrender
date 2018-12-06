@@ -2,7 +2,7 @@
 #include<record/record.h>
 #include<scene/scene.h>
 
-bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out Record * rec) const
+bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out IntersectionRecord * rec) const
 {
 	if(mGeomID != rtc.geomID)
 		return false;

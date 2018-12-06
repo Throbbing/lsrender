@@ -13,7 +13,8 @@ namespace ls
 		virtual void render(Scene* scene, Sampler* sampler,
 			Camera* camera, RNG& rng)const ;
 
-		virtual ls::Spectrum Li(ls_Param_In Record* cameraRec,
+		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
+			ls_Param_In CameraSampleRecord* cameraSampleRec,
 			ls_Param_In Scene* scene,
 			ls_Param_In Sampler* sampler,
 			ls_Param_In RNG& rng,

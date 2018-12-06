@@ -22,9 +22,9 @@ namespace ls
 			ls_Param_Out CameraSpwanRayRecord* rec) const override;
 
 		virtual void sample(ls_Param_In const Sampler* sampler,
-			ls_Param_Out Record* rec) const override;
+			ls_Param_Out CameraSampleRecord* rec) const override;
 
-		virtual f32 pdf(ls_Param_In const Record* rec) const override ;
+		virtual f32 pdf(ls_Param_In const CameraSampleRecord* rec) const override ;
 
 		//commit changes into camera
 		virtual void commit()  override;

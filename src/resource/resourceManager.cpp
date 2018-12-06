@@ -1,14 +1,16 @@
 #include<resource\resourceManager.h>
 #include<3rd\tiny_obj_loader.h>
 #include<function\log.h>
+#include<function\file.h>
 #include<mesh\mesh.h>
 #include<mesh\trimesh.h>
 #include<scene\scene.h>
 #include<cstring>
+
 std::map<std::string, ls_Smart(ls::Mesh)>	ls::ResourceManager::mMeshs;
 std::map<std::string, ls_Smart(ls::Texture)> ls::ResourceManager::mTextures;
 
-ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const std::string & path, const std::string & fileName)
+ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, const std::string & fileName)
 {
 	if (mMeshs.find(fileName) != mMeshs.end())
 		return mMeshs[fileName];
@@ -77,7 +79,7 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const std::string & pat
 	return mesh;
 }
 
-ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFile(const std::string & path, const std::string & fileName)
+ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFile(const  Path& path, const std::string & fileName)
 {
 	return ls_Smart(ls::Texture)();
 }

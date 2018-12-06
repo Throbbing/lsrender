@@ -28,9 +28,9 @@ void ls::RenderAlgorithm::render(Scene * scene,
 			camera->spawnRay(sampler, cs, &csrRec);
 
 			CameraSampleRecord cr;
-			cr.samplePosition = csrRec.ray.ori;
-			cr.sampleDirection = csrRec.ray.dir;
-			auto l = Li(&cr, scene, sampler, rng, nullptr);
+			cr.samplePosition = csrRec.spwanRay.ori;
+			cr.sampleDirection = csrRec.spwanRay.dir;
+			auto l = Li(csrRec.spwanRay,&cr, scene, sampler, rng, nullptr);
 //			auto l = csrRec.ray.dir * 0.5f + Vec3(0.5f);
 //			film->addPixel(Spectrum(l.x,l.y,l.z), w, h);
 			film->addPixel(l, w, h);

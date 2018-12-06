@@ -1,16 +1,18 @@
 #pragma once
 #include<config\config.h>
 #include<config\declaration.h>
+
 #include<map>
 
 namespace ls
 {
+	class Path;
 	class ResourceManager
 	{
 	public:
-		static ls_Smart(ls::Mesh) loadMeshFromFile(const std::string& path,
+		static ls_Smart(ls::Mesh) loadMeshFromFile(const Path& path,
 			const std::string& fileName);
-		static ls_Smart(ls::Texture) loadTextureFromFile(const std::string& path,
+		static ls_Smart(ls::Texture) loadTextureFromFile(const Path& path,
 			const std::string& fileName);
 		static ls_Smart(ls::Scene)   createSceneObj();
 

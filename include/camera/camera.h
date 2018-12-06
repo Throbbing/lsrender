@@ -15,9 +15,9 @@ namespace ls
 			ls_Param_Out CameraSpwanRayRecord* rec) const = 0;
 
 		virtual void sample(ls_Param_In const Sampler* sampler,
-			ls_Param_Out Record* rec) const  = 0;
+			ls_Param_Out CameraSampleRecord* rec) const  = 0;
 
-		virtual f32 pdf(ls_Param_In const Record* rec) const = 0;
+		virtual f32 pdf(ls_Param_In const CameraSampleRecord* rec) const = 0;
 
 		//commit changes into camera
 		virtual void commit() = 0;

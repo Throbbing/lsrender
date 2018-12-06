@@ -24,7 +24,7 @@ ls::TriMesh::TriMesh(const std::vector<Point3>& vertices,
 
 bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray, 
 	ls_Param_In const RTCRecord & rtc, 
-	ls_Param_Out Record * rec) const
+	ls_Param_Out IntersectionRecord * rec) const
 {
 	if (rtc.geomID != mGeomID)
 		return false;
@@ -119,19 +119,19 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	}
 
 
-	auto dgRec = IntersectionPtrCast(rec);
+	auto dgRec = rec;
 
 	dgRec->position = position;
 	dgRec->ng = ng;
 	dgRec->ns = ns;
 	dgRec->dpdu = mO2W(dpdu);
 	dgRec->dpdv = mO2W(dpdv);
-	dgRec->dpdx = Vec3();
-	dgRec->dpdy = Vec3();
-	dgRec->dndu = Vec3();
-	dgRec->dndv = Vec3();
-	dgRec->dndx = Vec3();
-	dgRec->dndy = Vec3();
+	dgRec->dpdx = Vec3(0.f);
+	dgRec->dpdy = Vec3(0.f);
+	dgRec->dndu = Vec3(0.f);
+	dgRec->dndv = Vec3(0.f);
+	dgRec->dndx = Vec3(0.f);
+	dgRec->dndy = Vec3(0.f);
 	return true;
 }
 
@@ -233,19 +233,19 @@ void ls::TriMesh::commit()
 }
 
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
-	ls_Param_Out Record * rec) const
+	ls_Param_Out MeshSampleRecord * rec) const
 {
 	return false;
 }
 
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, 
-	ls_Param_In const Record * refRec, 
-	ls_Param_Out Record * rec) const
+	ls_Param_In const MeshSampleRecord * refRec, 
+	ls_Param_Out MeshSampleRecord * rec) const
 {
 	return false;
 }
 
-f32 ls::TriMesh::pdf(ls_Param_In const Record * refRec) const
+f32 ls::TriMesh::pdf(ls_Param_In const MeshSampleRecord * refRec) const
 {
 	return f32();
 }

@@ -5,7 +5,7 @@
 #include<record\record.h>
 #include<mesh\mesh.h>
 #include<function\stru.h>
-
+#include<function\file.h>
 #include<camera\pinhole.h>
 #include<algorithm\renderalgorithm.h>
 #include<algorithm\visualNormal.h>
@@ -23,7 +23,7 @@ ls::Scene::~Scene()
 {
 }
 
-void ls::Scene::setScene(const std::string& path, XMLPackage & package)
+void ls::Scene::setScene(const ls::Path& path, XMLPackage & package)
 {
 	mAlgorithm = new VisualNormal();
 	
@@ -49,10 +49,10 @@ void ls::Scene::setScene(const std::string& path, XMLPackage & package)
 	{
 		auto fov = cameraParamSet.queryf32("fov");
 		auto world = cameraParamSet.queryTransform("toWorld");
-		auto near = cameraParamSet.queryf32("nearClip",1e-2);
-		auto far = cameraParamSet.queryf32("farClip",1e4);
+		auto zNear = cameraParamSet.queryf32("nearClip",1e-2);
+		auto zFar = cameraParamSet.queryf32("farClip",1e4);
 		mCamera = new Pinhole(world.getMat()  ,
-			0, 0, fov, near, far);
+			0, 0, fov, zNear, zFar);
 
 		
 		
@@ -77,7 +77,7 @@ void ls::Scene::setScene(const std::string& path, XMLPackage & package)
 
 }
 
-bool ls::Scene::intersect(ls_Param_In Ray & ray, ls_Param_Out Record * rec)
+bool ls::Scene::intersect(ls_Param_In Ray & ray, ls_Param_Out IntersectionRecord * rec)
 {
 	RTCIntersectContext context;
 	rtcInitIntersectContext(&context);
@@ -131,12 +131,12 @@ ls::Light * ls::Scene::envrionmentLight()
 	return nullptr;
 }
 
-f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out Record * rec)
+f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out LightSampleRecord * rec)
 {
 	Unimplement;
 }
 
-f32 ls::Scene::sampleMesh(ls_Param_In Sampler * sampler, ls_Param_Out Record * rec)
+f32 ls::Scene::sampleMesh(ls_Param_In Sampler * sampler, ls_Param_Out MeshSampleRecord * rec)
 {
 	Unimplement;
 }

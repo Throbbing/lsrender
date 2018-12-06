@@ -12,7 +12,7 @@ namespace ls
 // forward declaration
 
 
-
+#if 0
 #define CameraSamplePtrCast(p)		safePtrCast<Record,CameraSampleRecord>(p)
 #define LightSamplePtrCast(p)		safePtrCast<Record,LightSampleRecord>(p)
 #define MeshSamplePtrCast(p)		safePtrCast<Record,MeshSampleRecord>(p)
@@ -26,9 +26,9 @@ namespace ls
 #define MediumSampleSmartCast(p)	safeSmartPtrCast<Record,MediumSampleRecord>(p)
 #define SurfaceSampleSmartCast(p)	safeSmartPtrCast<Record,SurfaceSampleRecord>(p)
 #define IntersectionSmartCast(p)	safeSmartPtrCast<Record,IntersectionRecord>(p)
+#endif
 
-
-	class RTCRecord
+	struct RTCRecord
 	{
 	public:
 		s32 geomID = -1;
@@ -38,40 +38,17 @@ namespace ls
 
 
 
-	class Record
+	struct CameraSpwanRayRecord 
 	{
 	public:
-		Record() {}
-		virtual ~Record() {}
-
-
-		virtual Point3 getPosition() = 0;
-		virtual Normal getNormal() = 0;
-
-		
-
-	};
-	class CameraSpwanRayRecord :public Record
-	{
-	public:
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
-		DifferentialRay			ray;
+		DifferentialRay			spwanRay;
 
 	};
 
-	class CameraSampleRecord:public Record
+	struct CameraSampleRecord
 	{
 	public:
-		CameraSampleRecord() {}
-		virtual ~CameraSampleRecord() {}
 
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
-
-	public:
 		// $ We = W^0_e * W^1_e $
 		Point			samplePosition;
 		Vec3			sampleDirection;
@@ -79,20 +56,11 @@ namespace ls
 		f32				pdfA;
 		f32				pdfD;
 		f32				time;
-
-		Camera*		camera;
-
+		Camera*			camera;
 	};
 
-	class LightSampleRecord :public Record
+	struct LightSampleRecord 
 	{
-	public:
-		LightSampleRecord() {}
-		virtual ~LightSampleRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
 	public:
 		// $ Le = L^0_e * L^1_e $
 		Point			samplePosition;
@@ -103,15 +71,8 @@ namespace ls
 		Light*			light = nullptr;
 	};
 
-	class MeshSampleRecord :public Record
+	struct MeshSampleRecord 
 	{
-	public:
-		MeshSampleRecord() {}
-		virtual ~MeshSampleRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
 	public:
 		Point		samplePosition;
 		Normal		surfaceNormal;
@@ -122,76 +83,40 @@ namespace ls
 		f32			pdfW;
 
 		Mesh*		mesh = nullptr;
-		
-		
-
 	};
 
-	class ScatteringRecord :public Record
+	struct ScatteringRecord 
 	{
-	public:
-		ScatteringRecord() {}
-		virtual ~ScatteringRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
 	public:
 		Point		position;
 		Normal		normal;
 
 		Vec3		wi;
 		Vec3		wo;
-
 		ls::Spectrum	sampleValue;
 		f32				pdfRadiance;
 		f32				pdfImportance;
-
-		
 	};
 
 
 
-	class MediumSampleRecord :public ScatteringRecord
+	struct MediumSampleRecord :public ScatteringRecord
 	{
-	public:
-		MediumSampleRecord(){}
-		virtual ~MediumSampleRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
 	public:
 		Medium*		medium;
 
 	};
 
-	class SurfaceSampleRecord :public ScatteringRecord
+	struct SurfaceSampleRecord :public ScatteringRecord
 	{
-	public:
-		SurfaceSampleRecord() {}
-		virtual ~SurfaceSampleRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
 	public:
 		Mesh*		mesh;
 	};
 
 
 
-	class IntersectionRecord : public Record
+	struct IntersectionRecord 
 	{
-	public:
-		IntersectionRecord() {}
-		virtual ~IntersectionRecord() {}
-
-		virtual Point3 getPosition() override;
-		virtual Normal getNormal() override;
-
-		virtual Light* getAreaLight();
-		virtual ScatteringFunction* getBSDF();
 	public:
 		Point		position;
 		Normal		ng;
@@ -207,7 +132,7 @@ namespace ls
 		Vec3		dndy;
 		Vec3		dndu;
 		Vec3		dndv;
-	private:
+
 		Light*					areaLight = nullptr;
 		ScatteringFunction*		bsdf = nullptr;
 	};

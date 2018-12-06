@@ -32,15 +32,15 @@ namespace ls
 		
 		
 		virtual void sample(ls_Param_In Sampler* sampler,
-			ls_Param_Out Record* rec) = 0;
+			ls_Param_Out ScatteringRecord* rec) = 0;
 
 #if 0
 		virtual void sample(ls_Param_In Sampler* sampler,
 			ls_Param_In const Record* refRec,
 			ls_Param_Out Record* rec) = 0; 
 #endif
-		virtual f32 pdf(ls_Param_In const Record* refRec) = 0;
-		virtual ls::Spectrum f(ls_Param_In const Record* refRec) = 0;
+		virtual f32 pdf(ls_Param_In const ScatteringRecord* refRec) = 0;
+		virtual ls::Spectrum f(ls_Param_In const ScatteringRecord* refRec) = 0;
 
 	protected:
 		s32			mSFlag;

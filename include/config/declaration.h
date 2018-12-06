@@ -4,16 +4,15 @@
 namespace ls
 {
 	//Record
-	class RTCRecord;
-	class Record;
-	class CameraSpwanRayRecord;
-	class CameraSampleRecord;
-	class LightSampleRecord;
-	class MeshSampleRecord;
-	class ScatteringRecord;
-	class SurfaceSampleRecord;
-	class MediumSampleRecord;
-	class IntersectionRecord;
+	struct RTCRecord;
+	struct CameraSpwanRayRecord;
+	struct CameraSampleRecord;
+	struct LightSampleRecord;
+	struct ScatteringRecord;
+	struct MeshSampleRecord;
+	struct SurfaceSampleRecord;
+	struct MediumSampleRecord;
+	struct IntersectionRecord;
 
 	//About object
 	class Light;
@@ -63,6 +62,9 @@ namespace ls
 
 	//About Spectrum
 	class Spectrum;
+
+	//About File
+	class Path;
 
 	//About Math
 	struct Vec2;

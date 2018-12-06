@@ -30,7 +30,7 @@ namespace ls
 
 		virtual bool intersect(ls_Param_In const ls::Ray& ray,
 			ls_Param_In const RTCRecord& rtc,
-			ls_Param_Out Record* rec) const override;
+			ls_Param_Out IntersectionRecord* rec) const override;
 
 		virtual bool occlude(ls_Param_In const ls::Ray& ray,
 			ls_Param_In const RTCRecord& rtc) const override;
@@ -43,14 +43,14 @@ namespace ls
 		
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
-			ls_Param_Out Record* rec) const  override ;
+			ls_Param_Out MeshSampleRecord* rec) const  override ;
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
-			ls_Param_In const Record* refRec,
-			ls_Param_Out Record* rec) const  override;
+			ls_Param_In const MeshSampleRecord* refRec,
+			ls_Param_Out MeshSampleRecord* rec) const  override;
  
 
-		virtual f32 pdf(ls_Param_In const Record* refRec) const override;
+		virtual f32 pdf(ls_Param_In const MeshSampleRecord* refRec) const override;
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const override;
 

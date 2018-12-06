@@ -33,7 +33,7 @@ namespace ls
 		
 		virtual bool intersect(ls_Param_In const ls::Ray& ray,
 			ls_Param_In const RTCRecord& rtc,
-			ls_Param_Out Record* rec) const ;
+			ls_Param_Out IntersectionRecord* rec) const ;
 
 
 		virtual bool occlude(ls_Param_In const ls::Ray& ray,
@@ -41,11 +41,11 @@ namespace ls
 		
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
-			ls_Param_Out Record* rec) const = 0;
+			ls_Param_Out MeshSampleRecord* rec) const = 0;
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
-			ls_Param_In const Record* refRec,
-			ls_Param_Out Record* rec) const = 0;
+			ls_Param_In const MeshSampleRecord* refRec,
+			ls_Param_Out MeshSampleRecord* rec) const = 0;
 
 		
 
@@ -58,7 +58,7 @@ namespace ls
 		//commit changes to geometry
 		virtual void commit() = 0;
 
-		virtual f32 pdf(ls_Param_In const Record* refRec) const = 0;
+		virtual f32 pdf(ls_Param_In const MeshSampleRecord* refRec) const = 0;
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const = 0;
 
