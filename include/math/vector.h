@@ -53,11 +53,7 @@ namespace ls
 		f32 operator[](int i)
 		{
 			assert(i >= 0 && i < 2);
-
-			if (i == 0)
-				return x;
-			else
-				return y;
+			return *(&x + i);
 		}
 		ls_ForceInline f32 length2() const
 		{
@@ -199,13 +195,7 @@ namespace ls
 		f32 operator[](int i) const
 		{
 			assert(i >= 0 && i < 3);
-
-			if (i == 0)
-				return x;
-			else if (i == 1)
-				return y;
-			else
-				return z;
+			return *(&x + i);
 		}
 
 		ls_ForceInline f32 length2() const
@@ -361,16 +351,8 @@ namespace ls
 		f32 operator[](int i) const
 		{
 			assert(i >= 0 && i < 4);
-
-			switch (i)
-			{
-			case 0:return x; break;
-			case 1:return y; break;
-			case 2:return z; break;
-			case 3:return w; break;
-			default:return 0;
-				break;
-			}
+			return *(&x + i);
+			
 		}
 
 		ls_ForceInline f32 length2() const
@@ -495,11 +477,7 @@ namespace ls
 		f32 operator[](u32 i)
 		{
 			assert(i == 0 || i == 1);
-
-			if (i == 0)
-				return x;
-			else
-				return y;
+			return *(&x + i);
 		}
 		
 		Point2 operator+ (const Point2& p) const
@@ -590,13 +568,7 @@ namespace ls
 		f32 operator[](u32 i) const
 		{
 			assert(i >=0&&i<3);
-
-			if (i == 0)
-				return x;
-			else if (i == 1)
-				return y;
-			else
-				return z;
+			return *(&x + i);
 		}
 		
 		f32 length2() const
@@ -721,13 +693,7 @@ namespace ls
 		f32 operator[](u32 i) const
 		{
 			assert(i >= 0 && i<3);
-
-			if (i == 0)
-				return x;
-			else if (i == 1)
-				return y;
-			else
-				return z;
+			return *(&x + i);
 		}
 
 		Normal operator+ (const Normal& p) const

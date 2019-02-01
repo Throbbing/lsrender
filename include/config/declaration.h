@@ -66,6 +66,9 @@ namespace ls
 	//About File
 	class Path;
 
+	//About Preview
+	class Previewer;
+
 	//About Math
 	struct Vec2;
 	struct Vec3;
