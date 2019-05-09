@@ -13,7 +13,7 @@ namespace ls
 	public:
 		Frame(const Vec3& xx, const Vec3& yy, const Vec3& zz) :
 			X(xx), Y(yy), Z(zz){}
-		Frame(const Record* rec);
+		Frame(Normal n);
 		Frame(){}
 		~Frame(){}
 		
@@ -47,7 +47,7 @@ namespace ls
 
 		static f32 sinTheta2(const Vec3& v)
 		{
-			f32 cosa=v.z;
+			f32 cosa = v.z;
 			return std::max(0.f, 1.f - cosa*cosa);
 		}
 

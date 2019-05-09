@@ -1,7 +1,9 @@
 #pragma once
+#include<3rd/IMGUI/imgui.h>
 #include<previewer/previewer.h>
 #include<math/transform.h>
 #include<function/file.h>
+
 //Include for DirectX11 
 #include<d3d11.h>
 #include<DirectXMath.h>

@@ -50,6 +50,10 @@ namespace ls
 			return value;
 		return Vec4s[name];
 	}
+	std::map<std::string, std::string> ParamSet::getAllRefs()
+	{
+		return refs;
+	}
 	Spectrum ParamSet::querySpectrum(const std::string & name, Spectrum value) 
 	{
 		if (Spectrums.find(name) == Spectrums.end())

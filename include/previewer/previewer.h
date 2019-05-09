@@ -1,9 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/common.h>
-
 #include<math/vector.h>
-
 #include<thread>
 #include<mutex>
 namespace ls

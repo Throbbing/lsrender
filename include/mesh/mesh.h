@@ -1,6 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
 #include<record/record.h>
 #include<math/transform.h>
 #include<spectrum/spectrum.h>
@@ -52,6 +53,7 @@ namespace ls
 		
 		virtual void applyTransform(const Transform& transform) = 0;
 		virtual void applyAreaLight(const Spectrum& power);
+		virtual void applyMaterial(MaterialPtr material) { mMaterial = material; }
 		virtual bool isAreaLight();
 		
 		
@@ -68,7 +70,8 @@ namespace ls
 		std::shared_ptr<Scene>		mScene = nullptr;
 		Spectrum					mLightPower;
 		bool						mIsAreaLight = false;
-		
-		RTCGeometry					mEmbreeGem;
+		MaterialPtr					mMaterial;
+
+		RTCGeometry					mEmbreeGem = nullptr;
 	};
 }

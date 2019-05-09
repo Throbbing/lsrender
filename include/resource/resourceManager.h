@@ -1,7 +1,7 @@
 #pragma once
-#include<config\config.h>
-#include<config\declaration.h>
-
+#include<config/config.h>
+#include<config/declaration.h>
+#include<config/lsPtr.h>
 #include<map>
 
 namespace ls
@@ -15,6 +15,8 @@ namespace ls
 		static ls_Smart(ls::Texture) loadTextureFromFile(const Path& path,
 			const std::string& fileName);
 		static ls_Smart(ls::Scene)   createSceneObj();
+
+//		static ls_Smart(ls::Material) createMaterial(ParamSet paramSet)
 
 	private:
 		static std::map<std::string, ls_Smart(ls::Mesh)>				mMeshs;

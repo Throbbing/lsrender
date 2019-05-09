@@ -20,10 +20,11 @@ namespace ls
 
 
 
-		constexpr static f32 Infinity = std::numeric_limits<f32>::max();
+		constexpr static f32 Infinity = 3.402823466e+38F;
 		constexpr static f32 Epsilon = 1e-6;
-		constexpr static f32 PI = 3.1415926f;
-		constexpr static f32 PI_2 = 6.2831852f;
+		constexpr static f32 PI = 3.141592653589f;
+		constexpr static f32 PI_2 = 6.283185307178f;
+		constexpr static f32 PI_4 = 12.566370614356f;
 		constexpr static f32 InvPi = 0.31830988618379067154;
 		constexpr static f32 Inv2Pi = 0.15915494309189533577;
 		constexpr static f32 Inv4Pi = 0.07957747154594766788;

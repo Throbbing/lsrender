@@ -1,9 +1,11 @@
 #pragma once
 
 
-#include<function/log.h>
+
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
+#include<function/log.h>
 #include<math/vector.h>
 #include<memory>
 
@@ -109,26 +111,26 @@ namespace ls
 	struct MonteCarlo
 	{
 	public:
-		static void sampleHemisphere(ls_Param_In Vec2 uv,
+		static void sampleHemisphere(ls_Param_In Point2 uv,
 			ls_Param_Out Vec3* w,
 			ls_Param_Out f32* pdf);
 		static f32  sampleHemispherePdf(const Vec3& w);
-		static void sampleCosHemisphere(ls_Param_In Vec2 uv,
+		static void sampleCosHemisphere(ls_Param_In Point2 uv,
 			ls_Param_Out Vec3* w,
 			ls_Param_Out f32* pdf);
-		static f32 sampleCosHemisphere(const Vec3& w);
+		static f32 sampleCosHemispherePdf(const Vec3& w);
 
-		static void sampleSphere(ls_Param_In Vec2 uv,
+		static void sampleSphere(ls_Param_In Point2 uv,
 			ls_Param_Out Vec3* w,
 			ls_Param_Out f32* pdf);
 		static f32 sampleSpherePdf(const Vec3& w);
 
-		static void sampleDisk(ls_Param_In Vec2 uv,
+		static void sampleDisk(ls_Param_In Point2 uv,
 			ls_Param_Out Point2* p,
 			ls_Param_Out f32* pdf);
 		static f32 sampleDistPdf(const Point2& p);
 
-		static void sampleConcentricDisk(ls_Param_In Vec2 uv,
+		static void sampleConcentricDisk(ls_Param_In Point2 uv,
 			ls_Param_Out Point2* p,
 			ls_Param_Out f32* pdf);
 		static f32 sampleConcentricDistPdf(const Point2& p);
@@ -142,15 +144,29 @@ namespace ls
 		static f32 mis(f32 pf, f32 pg);
 		static f32 pdfW2A(f32 pdfW, f32 r, f32 cos);
 		static f32 pdfA2W(f32 pdfA, f32 r, f32 cos);
-		static bool visible(Scene* scene, Point p0, Point p1);
-		static bool globalSample(ls_Param_In Scene* scene, ls_Param_In Sampler* sampler,
+		static bool visible(ScenePtr scene, Point p0, Point p1,f32 time = 0.f);
+		static bool globalSample(ls_Param_In ScenePtr scene, ls_Param_In SamplerPtr sampler,
 			ls_Param_Out MeshSampleRecord* meshRec);
+		static bool matchScatterFlag(
+			ls_Param_In ScatteringFunctionPtr scatter,
+			ls_Param_In u32	flag);
+
+
+
+		static void surfaceBSDFValueAndPdf(
+			ls_Param_In ScatteringFunctionPtr bsdf, 
+			ls_Param_In ls_Param_Out ScatteringRecord* sr
+		);
+
+		static void sampleSurfaceBSDF(
+			ls_Param_In SamplerPtr		sampler,
+			ls_Param_In ScatteringFunctionPtr bsdf,
+			ls_Param_In ls_Param_Out ScatteringRecord * sr);
 	};
 
 	struct GeometryLib
 	{
 	public:
-
 		static RTCRay lsRay2Embree(const Ray& ray);
 	};
 	

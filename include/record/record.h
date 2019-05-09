@@ -1,6 +1,7 @@
 #pragma once
 #include<config\config.h>
 #include<config\declaration.h>
+#include<config/lsPtr.h>
 #include<function\log.h>
 #include<function\func.h>
 #include<Math\math.h>
@@ -63,12 +64,29 @@ namespace ls
 	{
 	public:
 		// $ Le = L^0_e * L^1_e $
+		
+		//@samplePosition				光源上的采样点
 		Point			samplePosition;
+		//@sampleDirection				光源采样方向 从光源方向发出
 		Vec3			sampleDirection;
+
+		//@le							光源采样得到的radiance W/(sr* m^2)
 		ls::Spectrum	le;
+
+
+		//@pdfPos						光源采样点的pdf
+		f32				pdfPos;
+		//@pdfDir						光源采样方向的pdf
+		f32				pdfDir;
+
+		//@pdfA							pdfPos * pdfDir
 		f32				pdfA;
+		//@pdfW							pdfPos * pdfDir
 		f32				pdfW;
-		Light*			light = nullptr;
+
+
+		LightPtr		light = nullptr;
+		u32				mode;
 	};
 
 	struct MeshSampleRecord 
@@ -88,14 +106,31 @@ namespace ls
 	struct ScatteringRecord 
 	{
 	public:
-		Point		position;
-		Normal		normal;
+		Point				position;
+		Normal				normal;
 
-		Vec3		wi;
-		Vec3		wo;
-		ls::Spectrum	sampleValue;
-		f32				pdfRadiance;
-		f32				pdfImportance;
+
+		//@wi					入射光线（采样方向）  
+		//Mode == Radiance		指向光源
+		//Mode == Importance	指向相机
+		Vec3				wi;
+
+		//@wo					出射光线
+		//Mode == Radiance      指向相机
+		//Mode == Importance    指向光源
+		Vec3				wo;
+
+		u32					scatterFlag;
+
+		//@transportMode       传输类型
+		//Radiance			   从相机开始传输
+		//Importance           从光源开始传输
+		u32					transportMode;
+
+		ls::Spectrum		sampleValue;
+		f32					pdfRadiance;
+		f32					pdfImportance;
+		f32					pdf;
 	};
 
 
@@ -134,7 +169,7 @@ namespace ls
 		Vec3		dndv;
 
 		Light*					areaLight = nullptr;
-		ScatteringFunction*		bsdf = nullptr;
+		MaterialPtr				material = nullptr;
 	};
 	
 }

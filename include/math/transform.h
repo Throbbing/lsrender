@@ -122,6 +122,9 @@ namespace ls
 		//Ïà»ú¾ØÕó
 		static Mat4x4   Mat4x4Camera(const Vec3& look, const Vec3& up,
 			const Point3& p);
+
+		static Mat4x4	Mat4x42WorldMTS(const Vec3& t, const Vec3& p,
+			const Vec3& up);
 		
 		static Mat4x4 Mat4x4Perspective(f32 fov, f32 near, f32 far);
 		

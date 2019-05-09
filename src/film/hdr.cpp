@@ -1,5 +1,15 @@
 #include<film\hdr.h>
 #include<function\log.h>
+#include<opencv.hpp>
+#include<opencv2/photo.hpp>
+f32 toSRGB(f32 v)
+{
+	if (v < 0.0031308f)
+		return 12.92f * v;
+
+	return 1.055 * std::powf(v, 1.0 / 2.4) - 0.055;
+}
+
 void ls::HDRFilm::commit()
 {
 	if (mWidth < 0 || mHeight < 0)
@@ -27,11 +37,35 @@ void ls::HDRFilm::addPixel(const Spectrum& color,
 
 void ls::HDRFilm::flush()
 {
+
+
+
+	int index = 0;
+	std::vector<Vec3> data;
 	for (auto& p : mRenderBuffer)
 	{
 		if (!lsMath::closeZero(p.weight))
 			p.color /= p.weight;
+		f32 rgb[3]; p.color.toRGB(rgb);
+
+		for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
+
+
+		data.push_back(Vec3(rgb[2],rgb[1],rgb[0]));
+
+		p.color = Spectrum(rgb[0],rgb[1],rgb[2]);
+		
+
+		
 	}
+
+
+	cv::Mat hdr(mWidth, mHeight, CV_32FC3,&data[0]);
+	cv::Mat ldr;
+	auto tonemap = cv::createTonemapReinhard(2.2f);
+	tonemap->process(hdr, ldr);
+
+	cv::imwrite("cvTonemap.png", hdr);
 
 	std::ofstream file;
 	file.open("Test.ppm", std::ios::out);
@@ -41,6 +75,7 @@ void ls::HDRFilm::flush()
 		std::cout << "Êä³ö´ò¿ªÊ§°Ü" << std::endl;
 		system("pause");
 	}
+	
 
 
 	file << "P3" << std::endl;

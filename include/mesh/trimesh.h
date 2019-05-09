@@ -1,4 +1,5 @@
 #pragma once
+#include<config/lsPtr.h>
 #include<mesh/mesh.h>
 #include<math/transform.h>
 #include<spectrum/spectrum.h>

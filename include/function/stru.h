@@ -10,8 +10,8 @@ namespace ls
 	{
 	public:
 		Ray() :tnear(lsMath::Epsilon), tfar(lsMath::Infinity), time(0.f) {}
-		Ray(Point3 o, Vec3 d, s32 _depth = 0,f32 _time = 0.f, f32 near = lsMath::Epsilon, f32 far = lsMath::Infinity):
-			ori(o),dir(d),depth(_depth),time(_time),tnear(near),tfar(far)
+		Ray(Point3 o, Vec3 d, s32 _depth = 0,f32 _time = 0.f, f32 _near = lsMath::Epsilon, f32 _far = lsMath::Infinity):
+			ori(o),dir(d),depth(_depth),time(_time),tnear(_near),tfar(_far)
 		{
 
 		}
@@ -35,8 +35,8 @@ namespace ls
 	{
 	public:
 		DifferentialRay() {}
-		DifferentialRay(Point3 o, Vec3 d,s32 _depth = 0, f32 _time = 0.f, f32 near = lsMath::Epsilon, f32 far = lsMath::Infinity) :
-			Ray(o, d, _depth,_time, near, far) {}
+		DifferentialRay(Point3 o, Vec3 d,s32 _depth = 0, f32 _time = 0.f, f32 _near = lsMath::Epsilon, f32 _far = lsMath::Infinity) :
+			Ray(o, d, _depth,_time, _near, _far) {}
 		DifferentialRay(const Ray& r) :Ray(r) {}
 
 		virtual ~DifferentialRay() {}

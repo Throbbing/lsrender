@@ -18,7 +18,7 @@ namespace ls
 		EParamSet_Integrator,
 		EParamSet_Medium,
 		EParamSet_Phase,
-
+		EParamSet_Invalid
 	};
 	class ParamSet
 	{
@@ -29,10 +29,11 @@ namespace ls
 			const std::string& i):
 			type(strType),name(n),id(i),varName(varn)
 		{
-			
+			valid = true;
 			
 		}
-		ParamSet(){}
+		ParamSet() { valid = false; }
+		bool isValid() { return valid; }
 		f32 queryf32(const std::string& name, f32 value = 0.f)  ;
 		s32 querys32(const std::string& name, s32 value = 0.f) ;
 		bool querybool(const std::string& name, bool value  = false) ;
@@ -40,8 +41,10 @@ namespace ls
 		Vec2 queryVec2(const std::string& name, Vec2 value = Vec2()) ;
 		Vec3 queryVec3(const std::string& name, Vec3 value = Vec3()) ;
 		Vec4 queryVec4(const std::string& name, Vec4 value = Vec4()) ;
+		std::map<std::string, std::string> getAllRefs();
 		Spectrum querySpectrum(const std::string& name, Spectrum value = Spectrum()) ;
 		Transform queryTransform(const std::string& name, Transform value = Transform()) ;
+		
 
 		ParamSet queryParamSetByType(const std::string& type);
 		ParamSet queryParamSetByName(const std::string& name);
@@ -65,6 +68,7 @@ namespace ls
 		std::string getID() { return id; }
 
 	private:
+		bool				valid;
 		std::string			type;
 		std::string			name;
 		std::string			varName;

@@ -279,14 +279,14 @@ namespace ls
 
 	inline Vec3 operator/(const Vec3& v1, f32 value)
 	{
-		assert(value == 0);
+//		assert(value == 0);
 		return Vec3(v1.x / value, v1.y / value, v1.z / value);
 	}
 
 	inline void operator/=(Vec3& v1, f32 value)
 	{
 		
-		assert(value == 0);
+//		assert(value == 0);
 		v1.x /= value;
 		v1.y /= value;
 		v1.z /= value;
@@ -467,6 +467,7 @@ namespace ls
 		Point2() { x = y = 0; }
 		Point2(f32 val) :x(val), y(val){}
 		Point2(f32 xx, f32 yy) :x(xx), y(yy) {}
+		explicit Point2(Vec2 v) :x(v.x), y(v.y) {}
 		Point2(std::initializer_list<f32> il)
 		{
 			auto p = il.begin();

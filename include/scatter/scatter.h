@@ -6,16 +6,22 @@ namespace ls
 {	
 	enum ScatteringFlag
 	{
-		EScattering_D = 0b01,
-		EScattering_S = 0b001,
-		EMeasure_SolidAngle = 0b000'1,
-		EMeasure_Area = 0b000'01,
-		EScattering_Transmission = 0b000'001,
-		EScattering_Reflection = 0b000'000'01,
+		EScattering_D				= 0b000'000'001,
+		EScattering_S				= 0b000'000'010,
+		EMeasure_SolidAngle			= 0b000'000'100,
+		EMeasure_Area				= 0b000'001'000,
+		EScattering_Transmission	= 0b000'010'000,
+		EScattering_Reflection		= 0b000'100'000,
 
-		EScattering_Surface = 0b000'000'001,
-		EScattering_Medium = 0b000'000'000'1,
+		EScattering_Surface			= 0b001'000'000,
+		EScattering_Medium			= 0b010'000'000,
 		
+	};
+
+	enum TransportMode
+	{
+		ETransport_Radiance			=0b000'000'001,
+		ETransport_Importance		=0b000'000'010
 	};
 	class ScatteringFunction
 	{
@@ -29,8 +35,13 @@ namespace ls
 
 		virtual bool isDelta() = 0;
 
-		
-		
+		//采样Scatter 方向
+		//@sampler			[in]		采样器
+		//@rec				[out]		采样记录器 
+		//Frame:						Local
+		//Note: 
+		//sample 函数填充ScatteringRecord中的 wi pdf scatterFlag
+		//并根据transportmode 填充 pdfRadiance 或 pdfImportance
 		virtual void sample(ls_Param_In Sampler* sampler,
 			ls_Param_Out ScatteringRecord* rec) = 0;
 
@@ -39,8 +50,10 @@ namespace ls
 			ls_Param_In const Record* refRec,
 			ls_Param_Out Record* rec) = 0; 
 #endif
-		virtual f32 pdf(ls_Param_In const ScatteringRecord* refRec) = 0;
-		virtual ls::Spectrum f(ls_Param_In const ScatteringRecord* refRec) = 0;
+
+		virtual f32 pdf(ls_Param_In const Vec3& wo) = 0;
+		virtual ls::Spectrum f(ls_Param_In const Vec3& wi,
+			ls_Param_In const Vec3& wo) = 0;
 
 	protected:
 		s32			mSFlag;

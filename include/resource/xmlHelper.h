@@ -20,9 +20,10 @@ namespace ls
 		std::map<std::string, size_t>		mShapes;
 		std::map<std::string, size_t>		mBSDFs;
 		std::map<std::string, size_t>		mMedium;
+		std::map<std::string, size_t>		mLights;
 
-
-		
+		ParamSet		queryRefObject(const std::map<std::string, std::string>& refs,
+			ParamSetType type);
 	};
 
 

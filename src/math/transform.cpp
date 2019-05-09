@@ -162,6 +162,19 @@ Mat4x4 Transform::Mat4x4Camera(const Vec3& look, const Vec3& up, const Point3& p
 		-dot(p, right), -dot(p, up), -dot(p, look), 1.f);
 }
 
+Mat4x4 ls::Transform::Mat4x42WorldMTS(const Vec3 & t, const Vec3 & p, const Vec3 & up)
+{
+	auto look = normalize(t - p);
+	auto left = cross(up, look);
+	Vec3 newUp = cross(look, left);
+
+	Mat4x4 m(left.x, newUp.x, look.x, 0,
+		left.y, newUp.y, look.y, 0,
+		left.z, newUp.z, look.z, 0,
+		p.x, p.y, p.z, 1.f);
+	return m;
+}
+
 Mat4x4 ls::Transform::Mat4x4Perspective(f32 fov, f32 near, f32 far)
 {
 	

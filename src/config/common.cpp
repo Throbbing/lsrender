@@ -6,6 +6,9 @@
 #include<3rd/DirectX/WICTextureLoader.h>
 #include<3rd/DirectX/dxerr.h>
 #include<3rd/DirectX/DirectXTex.h>
+
+#include<windows.h>
+#include<tchar.h>
 bool ls::lsEmbree::isInit = false;
 ls::lsEmbree::_hw ls::lsEmbree::hw;
 void ls::lsEmbree::initEmbree()
@@ -38,6 +41,7 @@ ls::lsWnd::_hw			ls::lsWnd::hw;
 
 bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 {
+#if 0
 	wnd.screenWidth = w;
 	wnd.screenHeight = h;
 
@@ -194,8 +198,9 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 	hw.d3dImmediateContext->RSSetViewports(1, &hw.viewPort);
 
 
-
+#endif
 	return true;
+
 }
 
 void ls::lsWnd::lsWndShutDown()

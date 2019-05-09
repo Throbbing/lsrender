@@ -132,6 +132,7 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	dgRec->dndv = Vec3(0.f);
 	dgRec->dndx = Vec3(0.f);
 	dgRec->dndy = Vec3(0.f);
+	dgRec->material = mMaterial;
 	return true;
 }
 
@@ -191,7 +192,8 @@ void ls::TriMesh::commit()
 		int vaCount = 0;
 		if (!mNormals.empty()) vaCount++;
 		if (!mUVs.empty()) vaCount++;
-		rtcSetGeometryVertexAttributeCount(mEmbreeGem, vaCount);
+		if (vaCount != 0)
+			rtcSetGeometryVertexAttributeCount(mEmbreeGem, vaCount);
 	}
 
 	u32 vertexAttriSlot = 0;

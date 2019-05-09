@@ -1,8 +1,10 @@
+#include<config/lsPtr.h>
 #include<algorithm/path.h>
 #include<record/record.h>
 #include<function/stru.h>
 #include<scene/scene.h>
 #include<light/light.h>
+#include<material/material.h>
 #include<sampler/sampler.h>
 #include<spectrum/spectrum.h>
 #include<scatter/scatter.h>
@@ -20,6 +22,7 @@ void ls::PathTracer::render(Scene * scene, Sampler * sampler, Camera * camera, R
 }
 
 ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
+	ls_Param_In s32 depth,
 	ls_Param_In CameraSampleRecord* csr,
 	ls_Param_In Scene* scene,
 	ls_Param_In Sampler* sampler,
@@ -29,7 +32,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 	
 	//safe cast
 	
-
+#if 0
 
 	ls::Spectrum L =  ls::Spectrum(0.f);
 	ls::Spectrum throughput = ls::Spectrum(1.f) * csr->we;
@@ -94,7 +97,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 			 However, there is no possiblity to sample bsdf which has 'S' component
 		*/
 		{
-			auto bsdf = itsRec.bsdf;
+			auto bsdf = itsRec.material->getSurfaceScattering();
 			if (!bsdf)
 				break;
 
@@ -235,4 +238,6 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 	}//end while(castRay.depth <= mPathMaxDepth)
 
 	return L;
+#endif
+	return Spectrum(0.f);
 }

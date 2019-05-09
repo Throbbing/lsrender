@@ -13,6 +13,7 @@ namespace ls
 			Camera* camera, RNG& rng) const override;
 
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
+			ls_Param_In s32	depth,
 			ls_Param_In CameraSampleRecord* cameraSampleRec,
 			ls_Param_In Scene* scene,
 			ls_Param_In Sampler* sampler,

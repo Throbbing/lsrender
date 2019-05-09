@@ -1,6 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {
@@ -10,15 +11,18 @@ namespace ls
 		RenderAlgorithm(){}
 		virtual ~RenderAlgorithm() {}
 
-		virtual void render(Scene* scene, Sampler* sampler,
-			Camera* camera, RNG& rng)const ;
+		virtual void render(ScenePtr scene, SamplerPtr sampler,
+			CameraPtr camera, RNG& rng)const ;
 
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
+			ls_Param_In s32	depth,
 			ls_Param_In CameraSampleRecord* cameraSampleRec,
-			ls_Param_In Scene* scene,
-			ls_Param_In Sampler* sampler,
+			ls_Param_In ScenePtr scene,
+			ls_Param_In SamplerPtr sampler,
 			ls_Param_In RNG& rng,
-			ls_Param_In MemoryAllocater* arena) const = 0;
+			ls_Param_In MemoryAllocaterPtr arena) const = 0;
+
+		virtual void commit() = 0;
 	};
 
 

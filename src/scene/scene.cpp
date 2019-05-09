@@ -1,19 +1,26 @@
-#include<config\common.h>
-#include<scene\scene.h>
-#include<function\func.h>
-#include<light\light.h>
-#include<record\record.h>
-#include<mesh\mesh.h>
-#include<function\stru.h>
-#include<function\file.h>
-#include<camera\pinhole.h>
-#include<algorithm\renderalgorithm.h>
-#include<algorithm\visualNormal.h>
-#include<resource\paramSet.h>
-#include<resource\xmlHelper.h>
-#include<resource\resourceManager.h>
-#include<film\hdr.h>
-#include<function\rng.h>
+#include<config/common.h>
+#include<config/declaration.h>
+#include<config/lsPtr.h>
+#include<algorithm/renderalgorithm.h>
+#include<algorithm/visualNormal.h>
+#include<algorithm/direct.h>
+#include<camera/pinhole.h>
+#include<film/hdr.h>
+#include<function/rng.h>
+#include<function/stru.h>
+#include<function/file.h>
+#include<function/func.h>
+#include<light/light.h>
+#include<light/pointLight.h>
+#include<mesh/mesh.h>
+#include<material/matte.h>
+#include<record/record.h>
+#include<resource/paramSet.h>
+#include<resource/xmlHelper.h>
+#include<resource/resourceManager.h>
+#include<scene/scene.h>
+#include<sampler/randomsampler.h>
+#include<texture/constantTexture.h>
 ls::Scene::Scene()
 {
 	
@@ -25,25 +32,43 @@ ls::Scene::~Scene()
 
 void ls::Scene::setScene(const ls::Path& path, XMLPackage & package)
 {
-	mAlgorithm = new VisualNormal();
+	mAlgorithm = new DirectTracer(10,20);
 	
 	auto cameraParamSet = package.mParamSets[package.mCamera];
 
 	for (auto & p : package.mShapes)
 	{
 		auto shapeParamSet = package.mParamSets[p.second];
-
-		
-
-		auto mesh = ResourceManager::loadMeshFromFile(path, shapeParamSet.queryString("filename"));
-		
+		auto pathStr = path.str();
+		auto mesh = ResourceManager::loadMeshFromFile(path, shapeParamSet.queryString("filename"));	
 		if (mesh)
 		{
 			auto w = shapeParamSet.queryTransform("toWorld");
-			mesh->applyTransform(w.getMat() );
-			mesh->commit();
-			addMesh(mesh.get());
+			mesh->applyTransform(w.getMat());
 		}
+		else
+			continue;
+		
+		
+
+		ParamSet bsdfSet = package.queryRefObject(shapeParamSet.getAllRefs(),
+			EParamSet_BSDF);
+		if (!bsdfSet.isValid())
+			bsdfSet = shapeParamSet.queryParamSetByType("bsdf");
+
+		if (!bsdfSet.isValid())
+			ls_AssertMsg(false, "Invalid ParamSet: No BSDF in Shape");
+
+		if (bsdfSet.getName() == "diffuse")
+		{
+			TexturePtr kr = new ConstantTexture(bsdfSet.querySpectrum("reflectance"));
+			MaterialPtr matte = NewPtr<Matte>();
+			((Matte*)matte)->applyReflectance(kr);
+			mesh->applyMaterial(matte);
+		}
+
+		mesh->commit();
+		addMesh(mesh.get());
 	}
 
 	{
@@ -69,6 +94,20 @@ void ls::Scene::setScene(const ls::Path& path, XMLPackage & package)
 		mCamera->commit();
 
 
+	}
+
+	{
+		for (auto& l : package.mLights)
+		{
+			auto lightParamSet = package.mParamSets[l.second];
+
+			Point3 position = Point3(lightParamSet.queryVec3("position"));
+			Spectrum intensity = lightParamSet.querySpectrum("intensity");
+
+			LightPtr light = new PointLight(position,intensity);
+			mSceneLights.push_back(light);
+
+		}
 	}
 
 	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
@@ -133,7 +172,8 @@ ls::Light * ls::Scene::envrionmentLight()
 
 f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out LightSampleRecord * rec)
 {
-	Unimplement;
+	rec->light = mSceneLights[0];
+	return 1.f;
 }
 
 f32 ls::Scene::sampleMesh(ls_Param_In Sampler * sampler, ls_Param_Out MeshSampleRecord * rec)
@@ -171,7 +211,8 @@ void ls::Scene::deleteLight(Light * light)
 void ls::Scene::render()
 {
 	RNG rng;
-	mAlgorithm->render(this, nullptr,
+	SamplerPtr sampler = new RandomSampler();
+	mAlgorithm->render(this, sampler,
 		mCamera, rng);
 }
 

@@ -11,11 +11,15 @@ namespace ls
 
 
 
-		virtual ls::Spectrum Li(ls_Param_In Record* cameraRec,
-			ls_Param_In Scene* scene,
-			ls_Param_In Sampler* sampler,
+		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
+			ls_Param_In s32	depth,
+			ls_Param_In CameraSampleRecord* cameraSampleRec,
+			ls_Param_In ScenePtr scene,
+			ls_Param_In SamplerPtr sampler,
 			ls_Param_In RNG& rng,
-			ls_Param_In MemoryAllocater* arena) const;
+			ls_Param_In MemoryAllocaterPtr arena) const;
+
+		virtual void commit() override {}
 
 	};
 }

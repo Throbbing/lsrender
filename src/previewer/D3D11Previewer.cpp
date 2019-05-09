@@ -7,15 +7,15 @@ LRESULT CALLBACK wndGUIProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 	{
 	case WM_LBUTTONDOWN:
 		io.MouseDown[0] = true;
-		ld = true;
+//		ld = true;
 
-		gLastMouseX = GET_X_LPARAM(lParam);
-		gLastMouseY = GET_Y_LPARAM(lParam);
+//		gLastMouseX = GET_X_LPARAM(lParam);
+//		gLastMouseY = GET_Y_LPARAM(lParam);
 		SetCapture(hwnd);
 		return true;
 	case WM_LBUTTONUP:
 		io.MouseDown[0] = false;
-		ld = false;
+//		ld = false;
 		ReleaseCapture();
 		return true;
 	case WM_RBUTTONDOWN:
@@ -37,10 +37,10 @@ LRESULT CALLBACK wndGUIProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 		io.MousePos.x = (signed short)(lParam);
 		io.MousePos.y = (signed short)(lParam >> 16);
 		//		std::cout << io.MousePos.x << "  " << io.MousePos.y << std::endl;
-		if (((wParam & MK_LBUTTON) != 0))
-			gMouseMove = true;
-		gMouseX = GET_X_LPARAM(lParam);
-		gMouseY = GET_Y_LPARAM(lParam);
+//		if (((wParam & MK_LBUTTON) != 0))
+//			gMouseMove = true;
+//		gMouseX = GET_X_LPARAM(lParam);
+//		gMouseY = GET_Y_LPARAM(lParam);
 		return true;
 	case WM_KEYDOWN:
 		if (wParam < 256)
@@ -415,13 +415,13 @@ void ls::D3D11Previewer::newFrame(f32 dt)
 
 	// Setup time step
 
-	io.DeltaTime = deltaTime;
-	totalTime += deltaTime;
+	io.DeltaTime = dt;
+	totalTime += dt;
 	frames++;
 	if (totalTime > 1.f)
 	{
 
-		jmxREX::wnd.fps = (f32)frames / totalTime;
+//		::wnd.fps = (f32)frames / totalTime;
 		totalTime = 0.f;
 		frames = 0;
 	}
@@ -519,7 +519,7 @@ void ls::D3D11Previewer::initGUI()
 	io.KeyMap[ImGuiKey_Y] = 'Y';
 	io.KeyMap[ImGuiKey_Z] = 'Z';
 
-	io.RenderDrawListsFn = std::bind(&D3D11Previewer::render, std::placeholders::_1);  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+//	io.RenderDrawListsFn = std::bind(&D3D11Previewer::render, std::placeholders::_1);  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
 	io.ImeWindowHandle = mWndHwnd;
 }
 

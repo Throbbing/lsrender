@@ -38,17 +38,17 @@ f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler,
 
 	ray = mC2W(ray);
 	ray.dir = normalize(ray.dir);
-	rec->ray = DifferentialRay(ray);
+	rec->spwanRay = DifferentialRay(ray);
 
 	return f32();
 }
 
-void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_Out Record * rec) const
+void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_Out CameraSampleRecord * rec) const
 {
 	Unimplement
 }
 
-f32 ls::Pinhole::pdf(ls_Param_In const Record * rec) const
+f32 ls::Pinhole::pdf(ls_Param_In const CameraSampleRecord * rec) const
 {
 	Unimplement
 	return f32();

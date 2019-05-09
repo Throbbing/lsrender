@@ -3,6 +3,7 @@
 #include<scatter/scatter.h>
 namespace ls
 {
+#if 0
 	Point3 ls::CameraSampleRecord::getPosition()
 	{
 		Unimplement;
@@ -118,5 +119,6 @@ namespace ls
 		Unimplement;
 		return Normal();
 	}
+#endif
 
 }

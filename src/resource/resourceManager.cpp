@@ -22,8 +22,9 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, con
 	std::string err;
 	std::string warn;
 	
+	
 	if (!tinyobj::LoadObj(&attrib, &shapes,
-		&materials, &err,&warn, (path + fileName).c_str(),nullptr,true))
+		&materials, &err,&warn, (path.str() +"\\" + fileName).c_str(),nullptr,true))
 	{
 		std::cout << err << std::endl;
 	}

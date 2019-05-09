@@ -30,6 +30,8 @@ namespace ls
 		}
 
 
+
+
 		for (u32 i = 0; i < package.mParamSets.size(); ++i)
 		{
 			if (package.mParamSets[i].type == "integrator")
@@ -42,6 +44,8 @@ namespace ls
 				package.mCamera = i;
 			else if (package.mParamSets[i].type == "medium")
 				package.mMedium[package.mParamSets[i].id] = i;
+			else if (package.mParamSets[i].type == "emitter")
+				package.mLights[package.mParamSets[i].id] = i;
 		}
 		
 
@@ -255,6 +259,8 @@ namespace ls
 		{
 			auto lookat = elem->FirstChildElement("lookat");
 			if (!lookat)
+				lookat = elem->FirstChildElement("lookAt");
+			if (!lookat)
 				ls_AssertMsg(false, "Invalid Transform !!!!");
 
 			Vec3 origin(0), target(0), up(0, 1, 0);
@@ -267,9 +273,8 @@ namespace ls
 			ls_AssertMsg(XMLOK(lookat->QueryStringAttribute("up", &v)), "Lack Up Attribute In Lookat ");
 			up = parseVec3(v);
 
-			transform = Transform::Mat4x4Camera(normalize(target - origin),
-				up,
-				Point3(origin));
+			transform = Transform::Mat4x42WorldMTS(target,origin,
+				up);
 
 			return transform;
 		}
@@ -430,6 +435,22 @@ namespace ls
 			printParamSet(p, depth + 1);
 
 		std::cout << indent << "End " << std::endl;
+	}
+
+	ParamSet XMLPackage::queryRefObject(const std::map<std::string, std::string>& refs, ParamSetType type)
+	{
+		ParamSet paramSet;
+		if (type == EParamSet_BSDF)
+		{
+			for (auto& r : refs)
+			{
+				if (mBSDFs.find(r.first) != mBSDFs.end())
+				{
+					return mParamSets[mBSDFs[r.first]];
+				}
+			}
+		}
+		return paramSet;
 	}
 
 }

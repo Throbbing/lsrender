@@ -1,7 +1,11 @@
 #pragma once
 #include<config/config.h>
 #include<string>
-
+#include<d3d11.h>
+#include<3rd/DirectX/WICTextureLoader.h>
+#include<3rd/DirectX/dxerr.h>
+#include<3rd/DirectX/DirectXTex.h>
+#include<windows.h>
 namespace ls
 {
 	class lsEmbree
@@ -23,14 +27,8 @@ namespace ls
 
 #ifndef HR
 
-#define  HR(x)																			\
-{																						\
-	HRESULT hr = (x);																	\
-if (FAILED(hr))																		\
-	{																					\
-	DXTrace(__FILEW__, (DWORD)__LINE__, hr, L#x, true);								\
-	}																					\
-}
+#define  HR(x)																
+
 #endif
 	class lsWnd
 	{

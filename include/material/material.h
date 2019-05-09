@@ -1,9 +1,11 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
 
 namespace ls
 {
+
 	class Material
 	{
 		friend Scene;
@@ -11,9 +13,14 @@ namespace ls
 		Material() {}
 		virtual ~Material() {}
 
-		virtual ScatteringFunction* getSurfaceScattering() { return nullptr; }
-		virtual ScatteringFunction* getMediumScattering()  { return nullptr; }
+		virtual ScatteringFunctionPtr getSurfaceScattering() { return nullptr; }
+		virtual ScatteringFunctionPtr getMediumScattering()  { return nullptr; }
 
+		virtual Spectrum refectance(
+			ls_Param_In const IntersectionRecord& ir) = 0;
+		virtual Spectrum transmittance(
+			ls_Param_In const IntersectionRecord& ir) = 0;
 
+		virtual void commit() = 0;
 	};
 }

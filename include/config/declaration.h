@@ -4,7 +4,7 @@
 namespace ls
 {
 	//Record
-	struct RTCRecord;
+	struct RTCRecord;					
 	struct CameraSpwanRayRecord;
 	struct CameraSampleRecord;
 	struct LightSampleRecord;

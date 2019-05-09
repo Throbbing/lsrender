@@ -8,26 +8,25 @@
 #include<scatter/scatter.h>
 
 
-ls::Spectrum ls::VisualNormal::Li(ls_Param_In Record * cameraRec, 
-	ls_Param_In Scene * scene, 
-	ls_Param_In Sampler * sampler, 
-	ls_Param_In RNG & rng, 
-	ls_Param_In MemoryAllocater * arena) const
+ls::Spectrum ls::VisualNormal::Li(
+	ls_Param_In const DifferentialRay ray,
+	ls_Param_In s32	depth,
+	ls_Param_In CameraSampleRecord* cameraSampleRec,
+	ls_Param_In ScenePtr scene,
+	ls_Param_In SamplerPtr sampler,
+	ls_Param_In RNG& rng,
+	ls_Param_In MemoryAllocaterPtr arena) const
 {
 	
-	auto cr = CameraSamplePtrCast(cameraRec);
-
-	DifferentialRay queryRay = DifferentialRay(cr->samplePosition,
-		cr->sampleDirection, 0,
-		cr->time);
+	auto queryRay = ray;
 
 	IntersectionRecord itsRec;
 	if (scene->intersect(queryRay, &itsRec))
 	{
 		auto offsetNormal = itsRec.ns * 0.5f + 0.5f;
 		return Spectrum(offsetNormal.x, offsetNormal.y, offsetNormal.z);
+//		return Spectrum(1, 0, 0);
 
 	}
-	
 	return Spectrum(0.f);
 }

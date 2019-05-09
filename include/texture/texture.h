@@ -11,6 +11,7 @@ namespace ls
 		Texture() {}
 		virtual ~Texture() {}
 
+		virtual void	 commit() = 0;
 		virtual Spectrum fetch(ls_Param_In const IntersectionRecord* rec) = 0;
 	};
 }

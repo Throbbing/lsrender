@@ -19,7 +19,7 @@ struct VertexOut
     float4 color : COLOR;
 };
 
-VertexOut main(VertexIn vin ) : SV_POSITION
+VertexOut main(VertexIn vin ) 
 {
     VertexOut vout;
     vout.posH = mul(float4(vin.pos, 1.f), wvp);

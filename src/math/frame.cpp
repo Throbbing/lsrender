@@ -2,7 +2,10 @@
 #include<record/record.h>
 
 
-ls::Frame::Frame(const Record* rec)
+
+ls::Frame::Frame(Normal n)
 {
-	Unimplement;
+	Z = Vec3(n);
+
+	constructFrame(Z, &X, &Y);
 }
