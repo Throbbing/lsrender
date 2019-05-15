@@ -1,6 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {
@@ -29,10 +30,14 @@ namespace ls
 			float xpos,float ypos) = 0;
 
 		virtual void flush() = 0;
+		virtual TexturePtr convert2Texture() const = 0;
+
 
 	protected:
 		s32				mWidth = -1;
 		s32				mHeight = -1;
+
+		
 
 	};
 }

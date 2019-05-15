@@ -21,7 +21,6 @@ BSD-style license that can be found in the LICENSE file.
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-
 #if defined(_WIN32)
 # include <windows.h>
 #else

@@ -30,6 +30,35 @@ namespace ls
 	{
 		std::memset(p, 0, size);
 	}
+	
+	ls_ForceInline std::string toString(const std::wstring& wstr)
+	{
+		using namespace std;
+		string str;
+		locale loc = locale();
+		for (auto const& c : wstr)
+		{
+			char ch = std::use_facet<ctype<wchar_t>>(loc).narrow(c);
+			str.push_back(ch);
+		}
+		return str;
+	}
+
+	ls_ForceInline std::wstring toWString(const std::string& str)
+	{
+		using namespace std;
+		wstring wstr;
+		locale loc = locale();
+		for (auto const& c : str)
+		{
+			wchar_t wchar = std::use_facet<ctype<wchar_t>>(loc).widen(c);
+			wstr.push_back(wchar);
+		}
+
+		return wstr;
+	}
+
+
 
 	template <typename Predicate>
 	int FindInterval(int size, const Predicate &pred)

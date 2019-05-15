@@ -216,5 +216,10 @@ void ls::Scene::render()
 		mCamera, rng);
 }
 
+ls::FilmPtr ls::Scene::getMainFilm() const
+{
+	return mCamera->getFilm();
+}
+
 
 

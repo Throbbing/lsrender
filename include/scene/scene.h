@@ -43,6 +43,7 @@ namespace ls
 		auto  getLightCount() { return mSceneLights.size(); }
 		auto  getMeshCount() { return mSceneMeshs.size(); }
 
+		FilmPtr getMainFilm() const;
 
 
 	protected:

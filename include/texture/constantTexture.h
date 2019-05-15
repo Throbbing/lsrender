@@ -7,7 +7,7 @@ namespace ls
 	class ConstantTexture :public Texture
 	{
 	public:
-		ConstantTexture(const Spectrum& spectrum) :Texture()
+		ConstantTexture(const Spectrum& spectrum) :Texture(ETexConstant)
 		{ 
 			applySpectrum(spectrum);
 		}

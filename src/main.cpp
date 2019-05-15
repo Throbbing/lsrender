@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<embree3/rtcore.h>
 #include<function/file.h>
+#include<film/film.h>
 #include<stdio.h>
 #include<stdarg.h>
 #include<cwchar>
@@ -15,18 +16,25 @@
 int main()
 {
 	ls::lsEmbree::initEmbree();
-	auto package = ls::XMLParser::loadXMLFromMTSFile("F://lsrender//cbox//", 
+	
+	ls::ResourceManager::loadTextureFromFileW("cbox", L"skylight-morn.exr");
+
+	auto package = ls::XMLParser::loadXMLFromMTSFile("cbox//", 
 		"cbox.xml");
 
 //	ls::XMLParser::printXMLPackage(package);
 
 	auto scene = ls::ResourceManager::createSceneObj();
 
-	scene->setScene("F://lsrender//cbox//", package);
+	scene->setScene("cbox//", package);
 	
 
 	scene->render();
 
+	ls::ResourceManager::write2File(scene->getMainFilm()->convert2Texture(),
+		"",
+		"cbox.png");
+	
 	
 
 

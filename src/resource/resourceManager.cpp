@@ -1,14 +1,24 @@
-#include<resource\resourceManager.h>
-#include<3rd\tiny_obj_loader.h>
-#include<function\log.h>
-#include<function\file.h>
-#include<mesh\mesh.h>
-#include<mesh\trimesh.h>
-#include<scene\scene.h>
+#include<resource/resourceManager.h>
+#include<3rd/tiny_obj_loader.h>
+#include<function/file.h>
+#include<3rd/FreeImage.h>
+#include<function/log.h>
+
+#include<mesh/mesh.h>
+#include<mesh/trimesh.h>
+#include<scene/scene.h>
+#include<texture/imageTexture.h>
+
+
+
 #include<cstring>
+#include<windows.h>
+
 
 std::map<std::string, ls_Smart(ls::Mesh)>	ls::ResourceManager::mMeshs;
 std::map<std::string, ls_Smart(ls::Texture)> ls::ResourceManager::mTextures;
+
+
 
 ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, const std::string & fileName)
 {
@@ -80,12 +90,179 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, con
 	return mesh;
 }
 
+ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFileW(const Path & path, const std::wstring & fileName)
+{
+	return loadMeshFromFile(path, ls::toString(fileName));
+}
+
 ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFile(const  Path& path, const std::string & fileName)
 {
-	return ls_Smart(ls::Texture)();
+	return nullptr;
+}
+
+ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFileW(const Path & path, const std::wstring & fileName)
+{
+	std::string fileNameStr = ls::toString(fileName);
+	if (mTextures.find(fileNameStr) != mTextures.end())
+		return mTextures[fileNameStr];
+
+	
+	auto fullPath = ls::Path(path.wstr() + L"\\" + fileName);
+	auto ext = fullPath.extension();
+
+	FreeImage_Initialise(true);
+	
+
+	FIBITMAP* bmpConverted = nullptr;
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+	//获取文件类型
+	fif = FreeImage_GetFileTypeU(fullPath.wstr().c_str());
+	if (fif == FIF_UNKNOWN)
+		fif = FreeImage_GetFIFFromFilenameU(fullPath.wstr().c_str());
+
+	ls_AssertMsg(fif != FIF_UNKNOWN, "Unknown Texture Format");
+	ls_AssertMsg(FreeImage_FIFSupportsReading(fif), "Unsupport Texture Format");
+
+	//创建纹理 句柄
+	FIBITMAP* dib = FreeImage_LoadU(fif, fullPath.wstr().c_str());
+	ls_AssertMsg(dib, "Fail to Load Texture from file");
+
+
+	//所以需要倒置纹理
+	FreeImage_FlipVertical(dib);
+
+	//创建纹理数据结构
+
+	//获取并填充纹理信息
+	auto width = FreeImage_GetWidth(dib);
+	auto height = FreeImage_GetHeight(dib);
+	auto bpp = FreeImage_GetBPP(dib);
+	auto colorType = FreeImage_GetColorType(dib);
+	
+	std::vector<Spectrum> data(width *height);
+
+	if (fif != FIF_EXR)
+	{
+		RGBQUAD rgb;
+		for (u32 y = 0; y < height; ++y)
+		{
+			for (u32 x = 0; x < width; ++x)
+			{
+				ls_AssertMsg(FreeImage_GetPixelColor(dib, x, y, &rgb), "Invalid FreeImage_GetPixelColor !");
+
+				//rgb中，每个分量为BYTE类型(0~255)
+				//将其转换为[0,1]的f32型，并保存在Spectrum中
+				float r, g, b;
+				r = float(rgb.rgbRed) / 255.f;
+				g = float(rgb.rgbGreen) / 255.f;
+				b = float(rgb.rgbBlue) / 255.f;
+				data[y*width + x] = Spectrum(r, g, b);
+			}
+		}
+	}
+	else
+	{
+		float maxV = 0.f;
+		FIBITMAP* rgbfBitmap = FreeImage_ConvertToRGBF(dib);
+		ls_AssertMsg(rgbfBitmap, "Invalid FreeImage_ConvertToRGBF ");
+
+		FIRGBF* image = (FIRGBF*)FreeImage_GetBits(rgbfBitmap);
+		for (u32 y = 0; y < height; ++y)
+		{
+			for (u32 x = 0; x < width; ++x)
+			{
+	
+				FIRGBF rgb = image[y*width + x];
+				if (rgb.red > maxV) maxV = rgb.red;
+				if (rgb.green > maxV) maxV = rgb.green;
+				if (rgb.blue > maxV) maxV = rgb.blue;
+				data[y*width + x] = Spectrum(rgb.red, rgb.green, rgb.blue);
+			}
+		}
+
+		std::cout << maxV << std::endl;
+	}
+
+	//释放句柄
+	FreeImage_Unload(dib);
+
+	ls_Smart(ImageTexture) texture(new ImageTexture(width, height, ls::ERGB, 24, &data[0]));
+	
+	mTextures[fileNameStr] = texture;
+	return texture;
+	
 }
 
 ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
 {
 	return ls_Smart(ls::Scene)(new ls::Scene());
+}
+
+
+
+void ls::ResourceManager::write2File(ls::Texture * texture,
+	const Path& path,
+	const std::string& fileName)
+{
+	auto fullPath = Path(path.str() + "\\" + fileName);
+
+	auto ext = fullPath.extension();
+
+	
+
+	ls_AssertMsg(texture->getType() == ETexImage, "Invalid texture type, only image texture can be written to file!");
+
+	ImageTexture* image = dynamic_cast<ImageTexture*>(texture);
+	auto width = image->getWidth();
+	auto height = image->getHeight();
+	auto channelType = image->getChannelType();
+	auto bpp = image->getBPP();
+	Spectrum* data = (Spectrum*)image->getRawData();
+
+	FIBITMAP* bitmap = FreeImage_Allocate(width,
+		height, bpp);
+
+
+	for (u32 h = 0; h < height; ++h)
+	{
+		for (u32 w = 0; w < width; ++w)
+		{
+			RGBQUAD rgbquad;
+			f32 rgb[3];
+			data[h * width + w].toRGB(rgb);
+
+			rgbquad.rgbRed = std::min(s32(rgb[0] * 255.f),s32(255));
+			rgbquad.rgbGreen = std::min(s32(rgb[1] * 255.f), s32(255));
+			rgbquad.rgbBlue = std::min(s32(rgb[2] * 255.f), s32(255));
+
+			ls_AssertMsg(FreeImage_SetPixelColor(bitmap, w, h, &rgbquad), "Invalid Set Pixel Color");
+		}
+
+	}
+	FreeImage_FlipVertical(bitmap);
+
+	if (ext == "png" || ext == "PNG")
+		FreeImage_Save(FIF_PNG, bitmap, fullPath.str().c_str());
+	else if (ext == "bmp" || ext == "BMP")
+		FreeImage_Save(FIF_BMP, bitmap, fullPath.str().c_str());
+	else if (ext == "jpeg" || ext == "JPEG")
+		FreeImage_Save(FIF_JPEG, bitmap, fullPath.str().c_str());
+	else
+		ls_AssertMsg(false, "Invalid Image Type to write!");
+
+	
+	
+	
+
+
+	
+}
+
+void ls::ResourceManager::write2FileW(ls::Texture * texture, 
+	const Path& path,
+	const std::wstring& fileName)
+{
+	auto fileNameStr = ls::toString(fileName);
+	write2File(texture, path, fileNameStr);
+
 }

@@ -1,7 +1,6 @@
-#include<film\hdr.h>
-#include<function\log.h>
-#include<opencv.hpp>
-#include<opencv2/photo.hpp>
+#include<film/hdr.h>
+#include<function/log.h>
+#include<texture/imageTexture.h>
 f32 toSRGB(f32 v)
 {
 	if (v < 0.0031308f)
@@ -37,9 +36,6 @@ void ls::HDRFilm::addPixel(const Spectrum& color,
 
 void ls::HDRFilm::flush()
 {
-
-
-
 	int index = 0;
 	std::vector<Vec3> data;
 	for (auto& p : mRenderBuffer)
@@ -54,18 +50,7 @@ void ls::HDRFilm::flush()
 		data.push_back(Vec3(rgb[2],rgb[1],rgb[0]));
 
 		p.color = Spectrum(rgb[0],rgb[1],rgb[2]);
-		
-
-		
 	}
-
-
-	cv::Mat hdr(mWidth, mHeight, CV_32FC3,&data[0]);
-	cv::Mat ldr;
-	auto tonemap = cv::createTonemapReinhard(2.2f);
-	tonemap->process(hdr, ldr);
-
-	cv::imwrite("cvTonemap.png", hdr);
 
 	std::ofstream file;
 	file.open("Test.ppm", std::ios::out);
@@ -75,7 +60,7 @@ void ls::HDRFilm::flush()
 		std::cout << "Êä³ö´ò¿ªÊ§°Ü" << std::endl;
 		system("pause");
 	}
-	
+
 
 
 	file << "P3" << std::endl;
@@ -101,4 +86,19 @@ void ls::HDRFilm::flush()
 
 	}
 	file.close();
+}
+
+ls::TexturePtr ls::HDRFilm::convert2Texture() const
+{
+	ImageTexture* image = new ImageTexture(mWidth, mHeight);
+
+	std::vector<Spectrum> data;
+	for (auto& pixel : mRenderBuffer)
+	{
+		data.push_back(pixel.color);
+	}
+
+	image->setData(&data[0]);
+	image->commit();
+	return image;
 }

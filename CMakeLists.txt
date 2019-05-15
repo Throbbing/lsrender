@@ -3,6 +3,7 @@ CMAKE_MINIMUM_REQUIRED ( VERSION 2.8.4 )
 project(LSRender)
 
 ADD_DEFINITIONS(-D _CRT_SECURE_NO_WARNINGS)
+ADD_DEFINITIONS(-D NOMINMAX)
 
 SET(LS_INCLUDE include)
 SET(LS_SRC src)
@@ -150,5 +151,5 @@ ADD_LIBRARY(lsrender STATIC
 ADD_EXECUTABLE(lsrender_exe src/main.cpp)
 
 SET_TARGET_PROPERTIES(lsrender_exe PROPERTIES OUTPUT_NAME lsrender)
-TARGET_LINK_LIBRARIES(lsrender_exe lsrender embree3)
+TARGET_LINK_LIBRARIES(lsrender_exe lsrender embree3 FreeImage)
 

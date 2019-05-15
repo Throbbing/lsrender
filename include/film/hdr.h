@@ -17,8 +17,11 @@ namespace ls
 
 		virtual void flush()	override;
 
+		virtual TexturePtr convert2Texture() const override;
+
 	protected:
 		std::vector<Pixel>				mRenderBuffer;
+		
 
 	};
 }
