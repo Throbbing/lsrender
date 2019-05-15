@@ -6,11 +6,9 @@ namespace ls
 	class PathTracer:public RenderAlgorithm
 	{
 	public:
-		PathTracer() {}
+		PathTracer(s32 maxDepth):mPathMaxDepth(maxDepth){}
 		virtual ~PathTracer() {}
 
-		virtual void render(Scene* scene, Sampler* sampler,
-			Camera* camera, RNG& rng) const override;
 
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
 			ls_Param_In s32	depth,
@@ -19,6 +17,8 @@ namespace ls
 			ls_Param_In Sampler* sampler,
 			ls_Param_In RNG& rng,
 			ls_Param_In MemoryAllocater* arena)  const override;
+
+		virtual void commit() override {}
 
 	private:
 		s32			mPathMaxDepth;

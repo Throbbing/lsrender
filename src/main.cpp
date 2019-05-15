@@ -17,7 +17,7 @@ int main()
 {
 	ls::lsEmbree::initEmbree();
 	
-	ls::ResourceManager::loadTextureFromFileW("cbox", L"skylight-morn.exr");
+//	ls::ResourceManager::loadTextureFromFileW("cbox", L"skylight-morn.exr");
 
 	auto package = ls::XMLParser::loadXMLFromMTSFile("cbox//", 
 		"cbox.xml");
@@ -26,7 +26,7 @@ int main()
 
 	auto scene = ls::ResourceManager::createSceneObj();
 
-	scene->setScene("cbox//", package);
+	scene->setSceneFromMTSXML("cbox//", package);
 	
 
 	scene->render();
@@ -36,7 +36,7 @@ int main()
 		"cbox.png");
 	
 	
-
+	std::cout << "FINISHED!" << std::endl;
 
 
 

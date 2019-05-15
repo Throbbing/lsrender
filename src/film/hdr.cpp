@@ -52,6 +52,7 @@ void ls::HDRFilm::flush()
 		p.color = Spectrum(rgb[0],rgb[1],rgb[2]);
 	}
 
+#if 0
 	std::ofstream file;
 	file.open("Test.ppm", std::ios::out);
 
@@ -86,6 +87,7 @@ void ls::HDRFilm::flush()
 
 	}
 	file.close();
+#endif
 }
 
 ls::TexturePtr ls::HDRFilm::convert2Texture() const

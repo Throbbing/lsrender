@@ -54,6 +54,39 @@ bool ls::RenderLib::matchScatterFlag(ls_Param_In ScatteringFunctionPtr scatter, 
 	return (scatter->scatteringFlag() & flag);
 }
 
+void ls::RenderLib::fillScatteringRecordForBSDFValueAndPdf(
+	ls_Param_In const Point3 & pos, 
+	ls_Param_In const Normal & normal, 
+	ls_Param_In const Vec3 & wo, 
+	ls_Param_In const Vec3 & wi, 
+	ls_Param_In u32 sf, 
+	ls_Param_In u32 mode, 
+	ls_Param_In ls_Param_Out ScatteringRecord * sr)
+{
+	sr->position = pos;
+	sr->normal = normal;
+	sr->wi = wi;
+	sr->wo = wo;
+	sr->scatterFlag = sf;
+	sr->transportMode = mode;
+
+}
+
+void ls::RenderLib::fillScatteringRecordForBSDFSample(
+	ls_Param_In const Point3 & pos, 
+	ls_Param_In const Normal & normal, 
+	ls_Param_In const Vec3 & wo, 
+	ls_Param_In u32 sf, 
+	ls_Param_In u32 mode, 
+	ls_Param_In ls_Param_Out ScatteringRecord * sr)
+{
+	sr->position = pos;
+	sr->normal = normal;
+	sr->wo = wo;
+	sr->scatterFlag = sf;
+	sr->transportMode = mode;
+}
+
 
 
 void ls::RenderLib::surfaceBSDFValueAndPdf(
@@ -73,7 +106,7 @@ void ls::RenderLib::sampleSurfaceBSDF(
 	ls_Param_In ls_Param_Out ScatteringRecord * sr)
 {
 	Frame frame(sr->normal);
-	auto localWo = sr->wo;
+	auto localWo = frame.toLocal(sr->wo);
 	bsdf->sample(sampler, sr);
 	sr->sampleValue = bsdf->f(sr->wi, localWo);
 	sr->wi = frame.toWorld(sr->wi);
@@ -141,7 +174,7 @@ f32 ls::MonteCarlo::sampleDistPdf(const Point2 & p)
 void ls::MonteCarlo::sampleConcentricDisk(ls_Param_In Point2 uv, ls_Param_Out Point2 * p, ls_Param_Out f32 * pdf)
 {
 
-	Vec2 uOffset = Vec2(2.f * uv.x, 2.f * uv.x)- Vec2(1, 1);
+	Vec2 uOffset = Vec2(2.f * uv.x, 2.f * uv.y)- Vec2(1, 1);
 	// Handle degeneracy at the origin
 	if (uOffset.x == 0 && uOffset.y == 0) 
 	{

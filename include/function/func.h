@@ -180,7 +180,22 @@ namespace ls
 			ls_Param_In ScatteringFunctionPtr scatter,
 			ls_Param_In u32	flag);
 
+		static void fillScatteringRecordForBSDFValueAndPdf(
+			ls_Param_In const Point3& pos,
+			ls_Param_In const Normal& normal,
+			ls_Param_In const Vec3& wo,
+			ls_Param_In const Vec3& wi,
+			ls_Param_In u32 sf,
+			ls_Param_In u32 mode,
+			ls_Param_In ls_Param_Out ScatteringRecord*sr);
 
+		static void fillScatteringRecordForBSDFSample(
+			ls_Param_In const Point3& pos,
+			ls_Param_In const Normal& normal,
+			ls_Param_In const Vec3& wo,
+			ls_Param_In u32 sf,
+			ls_Param_In u32 mode,
+			ls_Param_In ls_Param_Out ScatteringRecord*sr);
 
 		static void surfaceBSDFValueAndPdf(
 			ls_Param_In ScatteringFunctionPtr bsdf, 

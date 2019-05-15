@@ -16,7 +16,7 @@ namespace ls
 	public:
 		virtual ~Scene();
 
-		void setScene(const Path& path, XMLPackage& package);
+		void setSceneFromMTSXML(const Path& path, XMLPackage& package);
 
 	
 		virtual bool intersect(ls_Param_In Ray& ray,

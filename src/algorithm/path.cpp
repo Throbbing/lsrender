@@ -17,9 +17,6 @@
 
 	$$f_j(\overline{P_k}) = Le(P_k\to P_{k-1})\prod_{i=1}^{k-1}(f(p_{i+1}\to p_i \to p_{i-1})G(p_{i+1},p_i)) * G(p_1,p_0)W_e(p_0 \to p_1)d\mu(\overline{P_k})$$
 */
-void ls::PathTracer::render(Scene * scene, Sampler * sampler, Camera * camera, RNG & rng)  const
-{
-}
 
 ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 	ls_Param_In s32 depth,
@@ -30,12 +27,12 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 	ls_Param_In MemoryAllocater* arena) const
 {
 	
-	//safe cast
 	
-#if 0
+	
+#if 1
 
 	ls::Spectrum L =  ls::Spectrum(0.f);
-	ls::Spectrum throughput = ls::Spectrum(1.f) * csr->we;
+	ls::Spectrum throughput = ls::Spectrum(1.f);
 	
 	//spawn new ray
 	DifferentialRay cameraRay(ray);
@@ -55,7 +52,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 
 
 	auto castRay = cameraRay;
-	while (castRay.depth <= mPathMaxDepth)
+	while (castRay.depth < mPathMaxDepth)
 	{
 		if (throughput.isBlack())
 			break;
@@ -70,12 +67,9 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 			{
 				auto areaLight = itsRec.areaLight;
 				L += areaLight->sample(castRay);
-				break;
+				
 			}
-			else
-			{
-				break;
-			}
+			break;
 		}
 		
 		/*
@@ -119,20 +113,27 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 
 				//calculate bsdf
 				SurfaceSampleRecord surSRec;
-				surSRec.wo = -castRay.dir;
-				surSRec.wi = wi;
-				surSRec.position = itsRec.position;
-				surSRec.normal = itsRec.ns;
+				
+				RenderLib::fillScatteringRecordForBSDFValueAndPdf(
+					itsRec.position,
+					itsRec.ns,
+					-castRay.dir,
+					wi,
+					bsdf->scatteringFlag(),
+					TransportMode::ETransport_Radiance,
+					&surSRec);
 
-				auto bsdfPdfW = bsdf->pdf(&surSRec);
-				auto bsdfVal = bsdf->f(&surSRec);
+				RenderLib::surfaceBSDFValueAndPdf(bsdf, &surSRec);
+
+				auto bsdfPdfW = surSRec.pdf;
+				auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
 
 				auto visible = RenderLib::visible(scene, lightPoint, itsRec.position);
 
 				if (visible && !bsdfVal.isBlack() && dot(surSRec.normal,wi) > 0.f &&
 					!lsMath::closeZero(bsdfPdfW) &&  !lsMath::closeZero(lightPdfW))
 				{
-					L += le * throughput * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
+					L += throughput * le *bsdfVal * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
 						lightPdfW;
 				}
 
@@ -145,19 +146,23 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 			BSDF Sample
 		*/
 		{
-			auto bsdf = itsRec.bsdf;
+			auto bsdf = itsRec.material->getSurfaceScattering();
 			if (!bsdf)
 				break;
 
 			//sample direction from bsdf
 			SurfaceSampleRecord surSRec;
-			surSRec.position = itsRec.position;
-			surSRec.normal = itsRec.ns;
-			surSRec.wo = -castRay.dir;
-			bsdf->sample(sampler, &surSRec);
+			RenderLib::fillScatteringRecordForBSDFSample(itsRec.position,
+				itsRec.ns,
+				-castRay.dir,
+				bsdf->scatteringFlag(),
+				TransportMode::ETransport_Radiance,
+				&surSRec);
+
+			RenderLib::sampleSurfaceBSDF(sampler, bsdf, &surSRec);
 
 			auto bsdfPdfW = surSRec.pdfRadiance;
-			auto bsdfVal = surSRec.sampleValue;
+			auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
 			auto wi = surSRec.wi;
 
 			if (lsMath::closeZero(bsdfPdfW) || bsdfVal.isBlack())
@@ -189,6 +194,7 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 					hitLight = true;
 					light = scene->envrionmentLight();
 				}
+				break;
 			}
 
 			if (hitLight && light)
@@ -201,13 +207,13 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 
 				if (!lsMath::closeZero(lightPdfW) && !le.isBlack())
 				{
-					L = le * throughput * std::fabs(dot(surSRec.normal, wi)) * RenderLib::mis(bsdfPdfW, lightPdfW)
+					L += throughput * le * bsdfVal * std::fabs(dot(surSRec.normal, wi)) * RenderLib::mis(bsdfPdfW, lightPdfW)
 						/ bsdfPdfW;
 				}
 			}
 			
 			//update throughput
-			throughput *= std::fabs(dot(surSRec.normal, wi)) / bsdfPdfW;
+			throughput *= bsdfVal * std::fabs(dot(surSRec.normal, wi)) / bsdfPdfW;
 
 		}//end BSDF Sample
 		
@@ -218,9 +224,10 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 		
 
 		//Russian roulette
+#if 1
 		{
 			//q is the probability that the path is continued ,while 1- q represent that the path will terminate
-			f32 q = std::min(0.5f, throughput.luminance());
+			f32 q = std::min(0.95f, throughput.luminance());
 
 			if (sampler->next1D() < q)
 			{
@@ -232,12 +239,12 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 			}
 		}//russian roulette
 
-		
+#endif
 		
 		
 	}//end while(castRay.depth <= mPathMaxDepth)
 
 	return L;
 #endif
-	return Spectrum(0.f);
+	
 }

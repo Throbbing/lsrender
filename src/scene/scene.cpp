@@ -4,6 +4,7 @@
 #include<algorithm/renderalgorithm.h>
 #include<algorithm/visualNormal.h>
 #include<algorithm/direct.h>
+#include<algorithm/path.h>
 #include<camera/pinhole.h>
 #include<film/hdr.h>
 #include<function/rng.h>
@@ -30,10 +31,12 @@ ls::Scene::~Scene()
 {
 }
 
-void ls::Scene::setScene(const ls::Path& path, XMLPackage & package)
+void ls::Scene::setSceneFromMTSXML(const ls::Path& path, XMLPackage & package)
 {
-	mAlgorithm = new DirectTracer(10,20);
 	
+	{
+		mAlgorithm = new PathTracer(10);
+	}
 	auto cameraParamSet = package.mParamSets[package.mCamera];
 
 	for (auto & p : package.mShapes)
