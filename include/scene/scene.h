@@ -3,9 +3,10 @@
 
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/module.h>
 namespace ls
 {
-	class Scene
+	class Scene :public Module
 	{
 		friend ResourceManager;
 	private:
@@ -44,6 +45,10 @@ namespace ls
 		auto  getMeshCount() { return mSceneMeshs.size(); }
 
 		FilmPtr getMainFilm() const;
+
+		virtual void commit() override {}
+		virtual std::string strOut() const override;
+
 
 
 	protected:

@@ -46,10 +46,12 @@ namespace ls
 				package.mMedium[package.mParamSets[i].id] = i;
 			else if (package.mParamSets[i].type == "emitter")
 				package.mLights[package.mParamSets[i].id] = i;
+			else if (package.mParamSets[i].type == "texture")
+				package.mTextures[package.mParamSets[i].id] = i;
 		}
 		
 
-		return package;
+		return mts2ls(package);
 	}
 
 	s32 ls::XMLParser::parses32(tinyxml2::XMLElement * elem)
@@ -354,14 +356,16 @@ namespace ls
 			else if (nodeTypeName == "transform")
 			{
 				auto v = parseTransform(attri);
-				paramSet.addTransoform(name, v);
+				paramSet.addTransform(name, v);
 			}
 			else if (nodeTypeName == "ref")
 			{
 				const char* id = "id";
+				const char* name = "name";
 				attri->QueryStringAttribute("id", &id);
+				attri->QueryStringAttribute("name", &name);
 
-				paramSet.addRef(id, id);
+				paramSet.addRef(name, id);
 			}
 			else
 			{
@@ -388,6 +392,10 @@ namespace ls
 		}
 
 	}
+
+	
+
+
 
 	void XMLParser::printParamSet(ParamSet & paramSet, int depth)
 	{
@@ -437,6 +445,276 @@ namespace ls
 		std::cout << indent << "End " << std::endl;
 	}
 
+	XMLPackage XMLParser::mts2ls(XMLPackage src)
+	{
+		XMLPackage dest;
+
+		//S
+		ParamSet sampleInfo = ParamSet("sampleInfo",
+			"sampleInfo",
+			"sampleInfo",
+			"sampleInfo");
+		//Convert Camera
+		dest.mCamera = dest.mParamSets.size();
+		dest.mParamSets.push_back(mts2lsCamera(src,src.mParamSets[src.mCamera]));
+
+		//Convert Integrator
+		dest.mIntegrator = dest.mParamSets.size();
+		dest.mParamSets.push_back(mts2lsAlgorithm(src, src.mParamSets[src.mIntegrator]));
+
+		//Convert Sampler
+		dest.mParamSets.push_back(mts2lsSampler(src, src.queryParamSetByType("sampler")));
+
+		//Convert BSDF
+		for (auto& mtsBSDFIndex : src.mBSDFs)
+		{
+			auto mtsBSDF = src.mParamSets[mtsBSDFIndex.second];
+			dest.mBSDFs[mtsBSDFIndex.first] = dest.mParamSets.size();
+			dest.mParamSets.push_back(mts2lsMaterial(src, mtsBSDF));
+		}
+
+		//Convert Light
+		for(auto& mtsLightIndex :src.mLights)
+		{
+			auto mtsLight = src.mParamSets[mtsLightIndex.second];
+			dest.mLights[mtsLightIndex.first] = dest.mParamSets.size();
+			dest.mParamSets.push_back(mts2lsLight(src, mtsLight));
+		}
+
+		//Convert Texture
+		for (auto& mtsTextureIndex : src.mTextures)
+		{
+			auto mtsTexture = src.mParamSets[mtsTextureIndex.second];
+			dest.mTextures[mtsTextureIndex.first] = dest.mParamSets.size();
+			dest.mParamSets.push_back(mts2lsTexture(src, mtsTexture));
+		}
+
+		//Convert Shape
+		for (auto& mtsShapeIndex : src.mShapes)
+		{
+			auto mtsShape = src.mParamSets[mtsShapeIndex.second];
+			dest.mShapes[mtsShapeIndex.first] - dest.mParamSets.size();
+			dest.mParamSets.push_back(mts2lsMesh(src, mtsShape));
+		}
+
+		
+
+		//update SampleInfo
+		s32 spp = dest.queryParamSetByType("sampler").querys32("spp", 1);
+		sampleInfo.adds32("spp", spp);
+		sampleInfo.adds32("iterations", spp);
+		sampleInfo.adds32("directSample", dest.mParamSets[dest.mIntegrator].querys32("directSample", spp));
+
+		dest.mSampleInfo = sampleInfo;
+		return dest;
+
+
+	}
+	ParamSet XMLParser::mts2lsCamera(XMLPackage & src, ParamSet & mtsCamera)
+	{
+		
+		
+
+		ParamSet lsCamera = ParamSet("camera", "pinhole", "pinhole", "pinhole");
+		if (mtsCamera.getName() == "perspective")
+		{
+
+			lsCamera.addTransform("c2w", mtsCamera.queryTransform("toWorld"));
+			lsCamera.addf32("focalLength", mtsCamera.queryf32("flocalLength"));
+			lsCamera.addf32("fov", mtsCamera.queryf32("fov"));
+			lsCamera.addf32("shutterStart", mtsCamera.queryf32("shutterOpen"));
+			lsCamera.addf32("shutterEnd", mtsCamera.queryf32("shutterClose"));
+			lsCamera.addf32("nearZ", mtsCamera.queryf32("nearClip"));
+			lsCamera.addf32("farZ", mtsCamera.queryf32("farClip"));
+		}
+		else
+		{
+			ls_AssertMsg(false, "Only support mitsuba'perspective sensor");
+		}
+
+		auto& mtsFilm = mtsCamera.queryParamSetByType("film");
+		auto lsFilm = mts2lsFilm(src, mtsFilm);
+		lsCamera.addParamSet("hdr", lsFilm);
+
+		return lsCamera;
+		
+		
+	}
+
+	ParamSet XMLParser::mts2lsAlgorithm(XMLPackage & src, ParamSet & mtsIntegrator)
+	{
+		
+		auto& mtsIntegrator = src.mParamSets[src.mIntegrator];
+		auto integratorName = mtsIntegrator.getName();
+		ParamSet lsAlgorithm;
+		if (integratorName == "direct")
+		{
+			lsAlgorithm = ParamSet("algorithm",
+				"direct", "direct", "direct");
+			lsAlgorithm.adds32("maxDepth", 10);
+			
+		}
+		else if (integratorName == "path")
+		{
+			lsAlgorithm = ParamSet("algorithm",
+				"path", "path", "path");
+			lsAlgorithm.adds32("maxDepth", mtsIntegrator.querys32("maxDepth"));
+		}
+		else
+		{
+			auto t = integratorName + " in mitsuba has not been support in lsrender! ";
+			ls_AssertMsg(false, t.c_str());
+		}
+		return lsAlgorithm;
+		
+	}
+
+	ParamSet XMLParser::mts2lsFilm(XMLPackage & src, ParamSet & mtsFilm)
+	{
+		ParamSet lsFilm = ParamSet("film", "hdr", mtsFilm.getVarName(), mtsFilm.getID());
+		lsFilm.adds32("width", mtsFilm.querys32("width"));
+		lsFilm.adds32("height", mtsFilm.querys32("height"));
+		
+		return lsFilm;
+	}
+
+	ParamSet XMLParser::mts2lsMaterial(XMLPackage & src, ParamSet & mtsBSDF)
+	{
+		
+		auto mtsBSDFName = mtsBSDF.getName();
+
+		ParamSet lsMaterial;
+		if (mtsBSDFName == "diffuse")
+		{
+			lsMaterial = ParamSet("material", "matte", mtsBSDF.getVarName(), mtsBSDF.getID());
+
+			auto lsReflectance = mts2lsTextureParameter(src, "reflectance", mtsBSDF);
+
+			lsMaterial.addParamSet("reflectance", lsReflectance);
+			
+		}
+		else
+		{
+			auto t = mtsBSDFName + " in mitsuba has not been supported in lsrender! ";
+			ls_AssertMsg(false, t);
+		}
+	}
+
+	ParamSet XMLParser::mts2lsTextureParameter(XMLPackage& src, const std::string & parameter, ParamSet & srcParam)
+	{
+		//由于在lsrender中，纯色也会被当成一种纹理处理（constantImage）
+		//所以对于mitsuba中，可以使用颜色或纹理的参数，进行特殊处理
+		//首先判断是否是ref
+		
+		auto parameterRefId = srcParam.queryRefByName(parameter);
+		if (!parameterRefId.empty())
+		{
+			//该参数是ref
+			return src.mParamSets[src.mTextures[parameterRefId]];
+		}
+
+		//当不是ref时，进行Constant 和Image判定
+		if (!srcParam.querySpectrum(parameter).isBlack())
+		{
+			return mts2lsTexture(src, srcParam.querySpectrum(parameter));
+		}
+		else
+		{
+			return mts2lsTexture(src, srcParam.queryParamSetByName(parameter));
+		}
+	}
+
+	ParamSet XMLParser::mts2lsTexture(XMLPackage & src, ParamSet & mtsTexture)
+	{
+		ParamSet lsTexture;
+		
+		auto mtsTextureName = mtsTexture.getName();
+
+		if (mtsTextureName == "bitmap")
+		{
+			lsTexture = ParamSet("texture", "imageTexture", mtsTexture.getVarName(), mtsTexture.getID());
+			lsTexture.addString("filename", mtsTexture.queryString("filename"));
+			lsTexture.addString("wrapU", mtsTexture.queryString("wrapModeU"));
+			lsTexture.addString("wrapV", mtsTexture.queryString("wrapModeV"));
+		}
+		else
+		{
+			auto t = mtsTextureName + " in mitsuba has not been supported in lsrender!";
+			ls_AssertMsg(false, t.c_str());
+		}
+		return lsTexture;
+
+
+	}
+
+	ParamSet XMLParser::mts2lsTexture(XMLPackage & src, Spectrum mtsTexture)
+	{
+		ParamSet lsTexture("texture", "constantTexture", "constant", "constant");
+		lsTexture.addSpectrum("color", mtsTexture);
+		return lsTexture;
+	}
+
+	ParamSet XMLParser::mts2lsMesh(XMLPackage & src, ParamSet & mtsShape)
+	{
+		ParamSet lsMesh;
+		auto mtsShapeName = mtsShape.getName();
+
+		if (mtsShapeName == "obj")
+		{
+			lsMesh = ParamSet("mesh", "triMesh", mtsShape.getVarName(), mtsShape.getID());
+			lsMesh.addString("filename", mtsShape.queryString("filename"));
+			lsMesh.addTransform("world", mtsShape.queryTransform("toWorld"));
+		}
+		else
+		{
+			auto t = mtsShapeName + " in mitsuba has not been supported in lsrender!";
+			ls_AssertMsg(false, t.c_str());
+		}
+
+		//读取BSDF
+		ParamSet bsdfSet = src.queryRefObject(mtsShape.getAllRefs(),
+			EParamSet_BSDF);
+		if (!bsdfSet.isValid())
+			bsdfSet = src.queryParamSetByType("bsdf");
+
+		if (!bsdfSet.isValid())
+			ls_AssertMsg(false, "Invalid bsdf in mitsuba shape!");
+
+		lsMesh.addParamSet("bsdf", bsdfSet);
+
+		return lsMesh;
+	}
+
+	ParamSet XMLParser::mts2lsSampler(XMLPackage & src, ParamSet & mtsSampler)
+	{
+		auto& mtsSampler = src.queryParamSetByType("sampler");
+		auto& lsSampler = ParamSet("sampler", "randomSampler",
+			"randomSampler",
+			"randomSampler");
+		lsSampler.adds32("spp", mtsSampler.querys32("sampleCount"));
+		return lsSampler;
+	}
+
+	ParamSet XMLParser::mts2lsLight(XMLPackage & src, ParamSet & mtsLight)
+	{
+		ParamSet lsLight;
+		auto mtsLightName = mtsLight.getName();
+
+		if (mtsLightName == "point")
+		{
+			lsLight = ParamSet("light", "pointLihgt", mtsLight.getVarName(), mtsLight.getID());
+			lsLight.addSpectrum("intensity", mtsLight.querySpectrum("intensity"));
+			lsLight.addVec3("position", mtsLight.queryVec3("position"));
+		}
+		else
+		{
+			auto t = mtsLightName + " in mitsuba has not been supported in lsrender!";
+			ls_AssertMsg(false, t);
+		}
+		return lsLight;
+		
+	}
+
 	ParamSet XMLPackage::queryRefObject(const std::map<std::string, std::string>& refs, ParamSetType type)
 	{
 		ParamSet paramSet;
@@ -444,13 +722,47 @@ namespace ls
 		{
 			for (auto& r : refs)
 			{
-				if (mBSDFs.find(r.first) != mBSDFs.end())
+				if (mBSDFs.find(r.second) != mBSDFs.end())
 				{
-					return mParamSets[mBSDFs[r.first]];
+					return mParamSets[mBSDFs[r.second]];
+				}
+			}
+		}
+		else if (type == EParamSet_Texture)
+		{
+			for (auto& r : refs)
+			{
+				if (mTextures.find(r.second) != mTextures.end())
+				{
+					return mParamSets[mTextures[r.second]];
 				}
 			}
 		}
 		return paramSet;
+	}
+
+	ParamSet XMLPackage::queryParamSetByType(const std::string & type)
+	{
+		for (auto& p : mParamSets)
+		{
+			if (p.getType() == type)
+			{
+				return p;
+			}
+		}
+		return ParamSet();
+	}
+
+	ParamSet XMLPackage::queryParamSetByName(const std::string & name)
+	{
+		for (auto& p : mParamSets)
+		{
+			if (p.getName() == name)
+			{
+				return p;
+			}
+		}
+		return ParamSet();
 	}
 
 }

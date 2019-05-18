@@ -3,10 +3,11 @@
 #include<config/config.h>
 #include<config/declaration.h>
 #include<config/lsPtr.h>
+#include<config/module.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {
-	class Light
+	class Light:public Module
 	{
 		friend Scene;
 	public:
@@ -52,6 +53,7 @@ namespace ls
 
 
 		virtual void commit() = 0;
+		
 
 	protected:
 		MeshPtr					mAttachedMesh = nullptr;

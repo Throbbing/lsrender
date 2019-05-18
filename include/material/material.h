@@ -2,13 +2,14 @@
 #include<config/config.h>
 #include<config/declaration.h>
 #include<config/lsPtr.h>
-
+#include<config/module.h>
 namespace ls
 {
 
-	class Material
+	class Material:public Module
 	{
 		friend Scene;
+		friend ResourceManager;
 	public:
 		Material() {}
 		virtual ~Material() {}
@@ -22,5 +23,8 @@ namespace ls
 			ls_Param_In const IntersectionRecord& ir) = 0;
 
 		virtual void commit() = 0;
+
+
+		
 	};
 }

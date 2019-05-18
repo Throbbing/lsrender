@@ -2,6 +2,7 @@
 #include<config/config.h>
 #include<config/declaration.h>
 #include<config/lsPtr.h>
+#include<config/module.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {
@@ -12,7 +13,7 @@ namespace ls
 		Spectrum color;
 		float weight = 0.f;
 	};
-	class Film
+	class Film:public Module
 	{
 	public:
 		Film() {}

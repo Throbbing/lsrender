@@ -6,6 +6,7 @@ namespace ls
 {
 	class ConstantTexture :public Texture
 	{
+		friend ResourceManager;
 	public:
 		ConstantTexture(const Spectrum& spectrum) :Texture(ETexConstant)
 		{ 
@@ -16,8 +17,11 @@ namespace ls
 		
 
 		virtual void commit() override;
+		virtual std::string strOut() const override;
 		virtual Spectrum fetch(ls_Param_In const IntersectionRecord* rec) override;
 
+	protected:
+		ConstantTexture(ParamSet& paramSet);
 
 	protected:
 		Spectrum			mColor;

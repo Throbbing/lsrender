@@ -16,6 +16,7 @@ namespace ls
 		EParamSet_Mesh,
 		EParamSet_Light,
 		EParamSet_Integrator,
+		EParamSet_Texture,
 		EParamSet_Medium,
 		EParamSet_Phase,
 		EParamSet_Invalid
@@ -33,21 +34,23 @@ namespace ls
 			
 		}
 		ParamSet() { valid = false; }
-		bool isValid() { return valid; }
-		f32 queryf32(const std::string& name, f32 value = 0.f)  ;
+		bool isValid() const { return valid; }
+		f32 queryf32(const std::string& name, f32 value = 0.f) ;
 		s32 querys32(const std::string& name, s32 value = 0.f) ;
 		bool querybool(const std::string& name, bool value  = false) ;
-		std::string queryString(const std::string& name, std::string value = "");
+		std::string queryString(const std::string& name, std::string value = "") ;
 		Vec2 queryVec2(const std::string& name, Vec2 value = Vec2()) ;
 		Vec3 queryVec3(const std::string& name, Vec3 value = Vec3()) ;
 		Vec4 queryVec4(const std::string& name, Vec4 value = Vec4()) ;
-		std::map<std::string, std::string> getAllRefs();
+
+		std::string queryRefByName(const std::string& name, std::string value = "");
+		std::map<std::string, std::string> getAllRefs() ;
 		Spectrum querySpectrum(const std::string& name, Spectrum value = Spectrum()) ;
 		Transform queryTransform(const std::string& name, Transform value = Transform()) ;
 		
 
-		ParamSet queryParamSetByType(const std::string& type);
-		ParamSet queryParamSetByName(const std::string& name);
+		ParamSet queryParamSetByType(const std::string& type) ;
+		ParamSet queryParamSetByName(const std::string& name) ;
 
 		void addf32(const std::string& name, f32 value) ;
 		void adds32(const std::string& name, s32 value);
@@ -57,9 +60,9 @@ namespace ls
 		void addVec3(const std::string& name, Vec3 value);
 		void addVec4(const std::string& name, Vec4 value);
 		void addSpectrum(const std::string& name, Spectrum value);
-		void addTransoform(const std::string& name, Transform value);
+		void addTransform(const std::string& name, Transform value);
 		void addParamSet(const std::string& name, ParamSet value);
-		void addRef(const std::string& id, const std::string value);
+		void addRef(const std::string& name, const std::string id);
 
 
 		std::string getType() { return type; }

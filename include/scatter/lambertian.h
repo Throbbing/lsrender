@@ -22,6 +22,9 @@ namespace ls
 		virtual ls::Spectrum f(ls_Param_In const Vec3& wi,
 			ls_Param_In const Vec3& wo);
 
+		virtual void commit() override {};
+		virtual std::string strOut() const override;
+
 	private:
 
 		

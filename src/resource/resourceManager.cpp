@@ -4,9 +4,20 @@
 #include<3rd/FreeImage.h>
 #include<function/log.h>
 
+#include<camera/pinhole.h>
+
+#include<film/hdr.h>
+#include<light/pointLight.h>
+
+#include<material/matte.h>
 #include<mesh/mesh.h>
 #include<mesh/trimesh.h>
+#include<sampler/randomsampler.h>
+#include<scatter/lambertian.h>
 #include<scene/scene.h>
+
+#include<resource/xmlHelper.h>
+#include<texture/constantTexture.h>
 #include<texture/imageTexture.h>
 
 
@@ -15,15 +26,24 @@
 #include<windows.h>
 
 
-std::map<std::string, ls_Smart(ls::Mesh)>	ls::ResourceManager::mMeshs;
+std::map<std::string, ls::ResourceManager::MeshIndex> ls::ResourceManager::mMeshIndices;
+std::vector<ls::MeshPtr>	ls::ResourceManager::mMeshs;
 std::map<std::string, ls_Smart(ls::Texture)> ls::ResourceManager::mTextures;
 
 
 
-ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, const std::string & fileName)
+std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(const  Path&  path, const std::string & fileName)
 {
-	if (mMeshs.find(fileName) != mMeshs.end())
-		return mMeshs[fileName];
+	if (mMeshIndices.find(fileName) != mMeshIndices.end())
+	{
+		auto index = mMeshIndices[fileName];
+		std::vector<ls::MeshPtr> meshs;
+		for (s32 i = index.start; i < index.end; ++i)
+		{
+			meshs.push_back(mMeshs[i]);
+			return meshs;
+		}
+	}
 
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -39,13 +59,17 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, con
 		std::cout << err << std::endl;
 	}
 
-	std::vector<Point3> positions;
-	std::vector<Normal> normals;
-	std::vector<Point2>	texs;
-	std::vector<u32>	indices;
+	MeshIndex meshIndex;
+	meshIndex.start = mMeshs.size();
+
 	for (size_t s = 0; s < shapes.size(); ++s)
 	{
+		std::vector<Point3> positions;
+		std::vector<Normal> normals;
+		std::vector<Point2>	texs;
+		std::vector<u32>	indices;
 		size_t indexOffset = 0;
+
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); ++f)
 		{
 			auto fv = shapes[s].mesh.num_face_vertices[f];
@@ -53,6 +77,7 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, con
 			Point3 p;
 			Normal n;
 			Point2 t;
+
 			for (size_t v = 0; v < fv; ++v)
 			{
 				auto idx = shapes[s].mesh.indices[indexOffset + v];
@@ -82,15 +107,23 @@ ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFile(const  Path&  path, con
 			}
 			indexOffset += fv;
 		}
-		
+		auto mesh = new TriMesh(positions, normals, texs, indices);
+		mMeshs.push_back(mesh);
 	}
+	meshIndex.end = mMeshs.size();
 
-	auto mesh = ls_MakeSmart(TriMesh)(positions, normals, texs, indices);
-	mMeshs[fileName] = mesh;
-	return mesh;
+	mMeshIndices[fileName] = meshIndex;
+
+	std::vector<MeshPtr> meshs;
+	for (s32 i = meshIndex.start; i < meshIndex.end; ++i)
+	{
+		meshs.push_back(mMeshs[i]);
+	}
+	
+	return meshs;
 }
 
-ls_Smart(ls::Mesh) ls::ResourceManager::loadMeshFromFileW(const Path & path, const std::wstring & fileName)
+std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFileW(const Path & path, const std::wstring & fileName)
 {
 	return loadMeshFromFile(path, ls::toString(fileName));
 }
@@ -196,6 +229,131 @@ ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFileW(const Path & pat
 ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
 {
 	return ls_Smart(ls::Scene)(new ls::Scene());
+}
+
+ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "camera");
+
+	CameraPtr camera = nullptr;
+
+	if (paramSet.getName() == "pinhole" || paramSet.getName() == "pinholeCamera")
+	{
+		camera = new Pinhole(paramSet);
+	}
+
+
+	if(camera)
+		mModules.push_back(camera);
+
+	return camera;
+}
+
+ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "scatteringFunction");
+
+	ScatteringFunctionPtr scatter = nullptr;
+
+	if (paramSet.getName() == "lambertian")
+	{
+		scatter = new Lambertian();
+	}
+
+	if (scatter)
+		mModules.push_back(scatter);
+
+	return scatter;
+}
+
+ls::FilmPtr ls::ResourceManager::createFilm(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "film");
+	
+	FilmPtr film = nullptr;
+	
+	if (paramSet.getName() == "hdr")
+	{
+		film = new HDRFilm(paramSet);
+	}
+
+	if (film)
+		mModules.push_back(film);
+
+	return film;
+}
+
+ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "light");
+	LightPtr light = nullptr;
+
+	if (paramSet.getName() == "pointLight" || paramSet.getName() == "point")
+	{
+		light = new PointLight(paramSet);
+	}
+	if (light)
+		mModules.push_back(light);
+
+	return light;
+}
+
+ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "material");
+
+	MaterialPtr material = nullptr;
+
+	if (paramSet.getName() == "matte")
+	{
+		material = new Matte(paramSet);
+	}
+	if (material)
+		mModules.push_back(material);
+
+	return material;
+}
+
+ls::SamplerPtr ls::ResourceManager::createSampler(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "sampler");
+
+	SamplerPtr sampler = nullptr;
+
+	sampler = new RandomSampler();
+
+	if (sampler)
+		mModules.push_back(sampler);
+
+	return sampler;
+
+}
+
+ls::TexturePtr ls::ResourceManager::createTexture(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "texture");
+
+	TexturePtr texture = nullptr;
+
+	if (paramSet.getName() == "constantTexture" || paramSet.getName() == "constant")
+	{
+		texture = new ConstantTexture(paramSet);
+	}
+	else if (paramSet.getName() == "imageTexture" || paramSet.getName() == "image")
+	{
+		texture = new ImageTexture(paramSet);
+	}
+
+	if (texture)
+		mModules.push_back(texture);
+
+	return texture;
+	
+}
+
+ls::MeshPtr ls::ResourceManager::createMesh(ParamSet & paramSet)
+{
+	return MeshPtr();
 }
 
 

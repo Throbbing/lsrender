@@ -1,10 +1,11 @@
 #pragma once
-#include<algorithm\renderalgorithm.h>
+#include<algorithm/renderalgorithm.h>
 
 namespace ls
 {
 	class VisualNormal :public RenderAlgorithm
 	{
+		friend ResourceManager;
 	public:
 		VisualNormal() {}
 		virtual ~VisualNormal(){}
@@ -20,6 +21,10 @@ namespace ls
 			ls_Param_In MemoryAllocaterPtr arena) const;
 
 		virtual void commit() override {}
+		virtual std::string strOut() const override;
+
+	protected:
+		VisualNormal(ParamSet& paramSet);
 
 	};
 }

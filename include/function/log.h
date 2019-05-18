@@ -70,11 +70,11 @@ namespace ls
 
 #else
 
-#define ls_Log(format,...) 0
+#define ls_Log(format,...) ;
 
-#define ls_AssertMsg(e,msg) 0
+#define ls_AssertMsg(e,msg) ;
 
-#define ls_CheckMsg(e,msg) 0
+#define ls_CheckMsg(e,msg) ;
 
 #define ls_FCheckNZero(v) ls_CheckMsg(v == 0.f,"Invalid zero encoutered")
 

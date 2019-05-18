@@ -3,6 +3,7 @@
 #include<function/stru.h>
 #include<scene/scene.h>
 #include<light/light.h>
+#include<resource/resourceManager.h>
 #include<sampler/sampler.h>
 #include<spectrum/spectrum.h>
 #include<scatter/scatter.h>
@@ -29,4 +30,17 @@ ls::Spectrum ls::VisualNormal::Li(
 
 	}
 	return Spectrum(0.f);
+}
+
+std::string ls::VisualNormal::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Render Algorithm: " << "Visual Normal" << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
+}
+
+ls::VisualNormal::VisualNormal(ParamSet & paramSet)
+{
 }

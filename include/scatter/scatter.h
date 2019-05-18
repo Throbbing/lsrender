@@ -1,6 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/module.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {	
@@ -23,7 +24,7 @@ namespace ls
 		ETransport_Radiance			=0b000'000'001,
 		ETransport_Importance		=0b000'000'010
 	};
-	class ScatteringFunction
+	class ScatteringFunction:public Module
 	{
 
 		friend Scene;

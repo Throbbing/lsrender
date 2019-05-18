@@ -8,6 +8,7 @@ namespace ls
 {
 	class Pinhole:public Camera
 	{
+		friend ResourceManager;
 	public:
 		Pinhole(const Transform& c2w,
 			f32 shutterStart, f32 shutterEnd,
@@ -28,8 +29,10 @@ namespace ls
 
 		//commit changes into camera
 		virtual void commit()  override;
+		virtual std::string strOut() const override;
 		
-
+	protected:
+		Pinhole(ParamSet& paramSet);
 
 	protected:
 		Transform			mW2C, mC2W;

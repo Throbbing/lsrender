@@ -26,3 +26,12 @@ ls::Spectrum ls::Lambertian::f(ls_Param_In const Vec3& wi,
 {
 	return lsMath::InvPi;
 }
+
+std::string ls::Lambertian::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Scatter: " << "Lambertian" << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
+}

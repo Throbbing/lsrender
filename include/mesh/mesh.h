@@ -2,6 +2,7 @@
 #include<config/config.h>
 #include<config/declaration.h>
 #include<config/lsPtr.h>
+#include<config/module.h>
 #include<record/record.h>
 #include<math/transform.h>
 #include<spectrum/spectrum.h>
@@ -20,7 +21,7 @@ namespace ls
 		EMesh_Bezier,
 		EMesh_TypeCount
 	};
-	class Mesh
+	class Mesh:public Module
 	{
 		friend Scene;
 

@@ -5,6 +5,7 @@
 #include<scene/scene.h>
 #include<light/light.h>
 #include<material/material.h>
+#include<resource/xmlHelper.h>
 #include<sampler/sampler.h>
 #include<spectrum/spectrum.h>
 #include<scatter/scatter.h>
@@ -247,4 +248,20 @@ ls::Spectrum ls::PathTracer::Li(ls_Param_In const DifferentialRay ray,
 	return L;
 #endif
 	
+}
+
+std::string ls::PathTracer::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Render Algorithm: " << "Path" << std::endl;
+	oss << "MaxDepth        : " << mPathMaxDepth << std::endl;
+	oss << "RouletteDepth   : " << mPathMaxDepth << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
+}
+
+ls::PathTracer::PathTracer(ParamSet & paramSet)
+{
+	mPathMaxDepth = paramSet.querys32("maxDepth", 1);
 }

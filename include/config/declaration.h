@@ -3,6 +3,8 @@
 
 namespace ls
 {
+	
+	
 	//Record
 	struct RTCRecord;					
 	struct CameraSpwanRayRecord;
@@ -13,6 +15,12 @@ namespace ls
 	struct SurfaceSampleRecord;
 	struct MediumSampleRecord;
 	struct IntersectionRecord;
+
+
+
+
+	//Module
+	class Module;
 
 	//About object
 	class Light;
@@ -41,6 +49,7 @@ namespace ls
 	class ResourceManager;
 	class XMLPackage;
 	class XMLParser;
+	class ParamSet;
 
 	//About Random
 	class RNG;

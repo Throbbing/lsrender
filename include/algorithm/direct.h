@@ -10,6 +10,8 @@ namespace ls
 {
 	class DirectTracer :public RenderAlgorithm
 	{
+		friend ResourceManager;
+
 	public:
 		DirectTracer(s32 maxDepth,
 			s32 rouletteDepth):
@@ -18,6 +20,8 @@ namespace ls
 		{
 
 		}
+
+		
 		virtual ~DirectTracer() {}
 
 
@@ -31,6 +35,10 @@ namespace ls
 
 
 		virtual void commit() override {}
+		virtual std::string strOut() const override;
+
+	protected:
+		DirectTracer(ParamSet& paramSet);
 		
 
 	protected:

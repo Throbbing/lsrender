@@ -5,8 +5,15 @@
 
 namespace ls
 {
+	enum WrapMode
+	{
+		EWrap_Repeat = 0,
+		EWrap_Clamp,
+		EWrap_Mirror
+	};
 	class ImageTexture :public Texture
 	{
+		friend ResourceManager;
 	public:
 		ImageTexture():Texture(ETexImage){}
 		ImageTexture(u32 width, u32 height,
@@ -29,12 +36,14 @@ namespace ls
 		virtual void		setRes(u32 w, u32 h) override;
 		virtual void		setData(Spectrum* data);
 		virtual void		commit() override;
+		virtual std::string strOut() const override;
 		virtual Spectrum	fetch(ls_Param_In const IntersectionRecord* rec) override;
 
 		
 
 		
-
+	protected:
+		ImageTexture(ParamSet& paramSet);
 
 	protected:
 		TextureChannelType			mChannelType;
@@ -43,6 +52,8 @@ namespace ls
 		std::vector<Spectrum>		mData;
 		u32							mWidth;
 		u32							mHeight;
+		WrapMode					mWrapU;
+		WrapMode					mWrapV;
 	};
 }
 

@@ -10,7 +10,7 @@ namespace ls
 
 		return f32s[name];
 	}
-	s32 ParamSet::querys32(const std::string & name, s32 value)
+	s32 ParamSet::querys32(const std::string & name, s32 value) 
 	{
 		if (s32s.find(name) == s32s.end())
 			return value;
@@ -49,6 +49,13 @@ namespace ls
 		if (Vec4s.find(name) == Vec4s.end())
 			return value;
 		return Vec4s[name];
+	}
+	std::string ParamSet::queryRefByName(const std::string & name, std::string value)
+	{
+		if (refs.find(name) == refs.end())
+			return value;
+
+		return refs[name];
 	}
 	std::map<std::string, std::string> ParamSet::getAllRefs()
 	{
@@ -118,7 +125,7 @@ namespace ls
 	{
 		Spectrums[name] = value;
 	}
-	void ParamSet::addTransoform(const std::string & name, Transform value)
+	void ParamSet::addTransform(const std::string & name, Transform value)
 	{
 		Transforms[name] = value;
 	}
@@ -126,8 +133,8 @@ namespace ls
 	{
 		childParamSets.push_back(value);
 	}
-	void ParamSet::addRef(const std::string & id, const std::string value)
+	void ParamSet::addRef(const std::string & name, const std::string id)
 	{
-		refs[id] = value;
+		refs[name] = id;
 	}
 }

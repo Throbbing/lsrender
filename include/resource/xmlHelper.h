@@ -15,17 +15,23 @@ namespace ls
 		
 		std::vector<ParamSet>				mParamSets;
 
+		ParamSet							mSampleInfo;
 		u32									mIntegrator;
 		u32									mCamera;
 		std::map<std::string, size_t>		mShapes;
 		std::map<std::string, size_t>		mBSDFs;
 		std::map<std::string, size_t>		mMedium;
 		std::map<std::string, size_t>		mLights;
+		std::map<std::string, size_t>		mTextures;
 
 		ParamSet		queryRefObject(const std::map<std::string, std::string>& refs,
 			ParamSetType type);
+
+		ParamSet		queryParamSetByType(const std::string& type);
+		ParamSet		queryParamSetByName(const std::string& name);
 	};
 
+	
 
 	class XMLParser
 	{
@@ -51,9 +57,22 @@ namespace ls
 		static ParamSet			parseParam(tinyxml2::XMLElement* elem);
 		static std::string      parseRef(tinyxml2::XMLElement* elem);
 
-
+		
 		
 		static void printParamSet(ParamSet& paramSet,int depth);
 
+
+		//convert Mitsuba XMLPackage to lsrender XMLPackage
+		static ParamSet			mts2lsCamera(XMLPackage& src, ParamSet& mtsCamera);
+		static ParamSet			mts2lsAlgorithm(XMLPackage& src, ParamSet& mtsIntegrator);
+		static ParamSet			mts2lsFilm(XMLPackage& src, ParamSet& mtsFilm);
+		static ParamSet			mts2lsMaterial(XMLPackage& src, ParamSet& mtsBSDF);
+		static ParamSet			mts2lsTextureParameter(XMLPackage& src, const std::string& parameter, ParamSet& param);
+		static ParamSet			mts2lsTexture(XMLPackage& src, ParamSet& mtsTexture);
+		static ParamSet			mts2lsTexture(XMLPackage& src, Spectrum mtsTexture);
+		static ParamSet			mts2lsMesh(XMLPackage& src, ParamSet& mtsShape);
+		static ParamSet			mts2lsSampler(XMLPackage& src, ParamSet& mtsSampler);
+		static ParamSet			mts2lsLight(XMLPackage& src, ParamSet& mtsLight);
+		static XMLPackage		mts2ls(XMLPackage src);
 	};
 }

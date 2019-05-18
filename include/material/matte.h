@@ -9,6 +9,7 @@ namespace ls
 {
 	class Matte :public Material
 	{
+		friend ResourceManager;
 	public:
 		Matte()
 		{
@@ -31,7 +32,10 @@ namespace ls
 		void applyReflectance(TexturePtr reflectance) { mReflectance = reflectance;}
 
 		virtual void commit() override;
+		virtual std::string strOut() const override;
 
+	protected:
+		Matte(ParamSet& paramSet);
 
 	protected:
 		TexturePtr						mReflectance;

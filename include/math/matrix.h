@@ -148,7 +148,7 @@ namespace ls
 
 		
 
-		std::string toString()
+		std::string toString() const
 		{
 			std::ostringstream ss;
 			ss << "Matrix: " << std::endl;

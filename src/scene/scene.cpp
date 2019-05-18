@@ -33,9 +33,9 @@ ls::Scene::~Scene()
 
 void ls::Scene::setSceneFromMTSXML(const ls::Path& path, XMLPackage & package)
 {
-	
+	//¶ÁÈ¡äÖÈ¾Ëã·¨
 	{
-		mAlgorithm = new PathTracer(10);
+		
 	}
 	auto cameraParamSet = package.mParamSets[package.mCamera];
 
@@ -222,6 +222,11 @@ void ls::Scene::render()
 ls::FilmPtr ls::Scene::getMainFilm() const
 {
 	return mCamera->getFilm();
+}
+
+std::string ls::Scene::strOut() const
+{
+	return "Scene";
 }
 
 

@@ -144,7 +144,7 @@ namespace ls
 		}
 
 		//调试函数，将Spectrum转换为可读的String
-		std::string toString()
+		std::string toString() const 
 		{
 			std::ostringstream ss;
 			ss << "Spectrum: " << c[0] << " " << c[1] << " " << c[2] << std::endl;

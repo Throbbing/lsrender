@@ -5,6 +5,7 @@ namespace ls
 {
 	class PointLight :public Light
 	{
+		friend ResourceManager;
 	public:
 		PointLight(const Point3& position,
 			const Spectrum& intensity = Spectrum(0.f)):
@@ -33,7 +34,10 @@ namespace ls
 
 
 		virtual void commit() {};
+		virtual std::string strOut() const override;
 
+	protected:
+		PointLight(ParamSet& paramSet);
 	protected:
 		Point3			mPosition;
 		Spectrum		mIntensity;

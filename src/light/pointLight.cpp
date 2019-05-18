@@ -1,6 +1,7 @@
 #include<function/func.h>
 #include<light/pointLight.h>
 #include<record/record.h>
+#include<resource/xmlHelper.h>
 #include<sampler/sampler.h>
 #include<scatter/scatter.h>
 
@@ -40,4 +41,23 @@ void ls::PointLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const In
 f32 ls::PointLight::pdf(ls_Param_In const LightSampleRecord * refRec)
 {
 	return 1.f;
+}
+
+std::string ls::PointLight::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Light: " << "Point" << std::endl;
+	oss << "Intensity: " << std::endl;
+    oss << mIntensity.toString() << std::endl;
+	oss << "Position: " << std::endl;
+	oss << mPosition.toString() << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
+}
+
+ls::PointLight::PointLight(ParamSet & paramSet)
+{
+	mPosition = Point3(paramSet.queryVec3("position"));
+	mIntensity = paramSet.querySpectrum("intensity");
 }

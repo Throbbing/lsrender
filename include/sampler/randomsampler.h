@@ -13,6 +13,9 @@ namespace ls
 		f32 next1D() override;
 		Point2 next2D() override;
 
+		virtual void commit() override {};
+		virtual std::string strOut() const override;
+
 	private:
 		RNG			rng;
 	};

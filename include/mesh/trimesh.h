@@ -41,6 +41,7 @@ namespace ls
 
 
 		virtual void commit() override;
+		virtual std::string strOut() const override;
 		
 
 		virtual bool sample(ls_Param_In Sampler* sampler,

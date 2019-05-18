@@ -1,10 +1,10 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
-
+#include<config/module.h>
 namespace ls
 {
-	class Camera
+	class Camera:public Module
 	{
 	public:
 		Camera() {}

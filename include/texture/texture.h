@@ -1,6 +1,7 @@
 #pragma once
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/module.h>
 #include<spectrum/spectrum.h>
 namespace ls
 {
@@ -20,7 +21,7 @@ namespace ls
 		ETexImage,
 		ETextureTypeCount
 	};
-	class Texture
+	class Texture:public Module
 	{
 		friend Scene;
 	public:

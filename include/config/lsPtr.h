@@ -4,6 +4,8 @@
 
 namespace ls
 {
+	//Module
+	using ModulePtr				= Module*;
 	//About object
 	using LightPtr				= Light*;
 	using MeshPtr				= Mesh*;

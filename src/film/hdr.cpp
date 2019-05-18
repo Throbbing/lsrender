@@ -1,6 +1,7 @@
 #include<film/hdr.h>
 #include<function/log.h>
 #include<texture/imageTexture.h>
+#include<resource/xmlHelper.h>
 f32 toSRGB(f32 v)
 {
 	if (v < 0.0031308f)
@@ -17,6 +18,17 @@ void ls::HDRFilm::commit()
 	mRenderBuffer.clear();
 
 	mRenderBuffer.resize(mWidth * mHeight);
+}
+
+std::string ls::HDRFilm::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Film: " << "HDR" << std::endl;
+	oss << "Width: " << mWidth << std::endl;
+	oss << "Height: " << mHeight << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
 }
 
 void ls::HDRFilm::addPixel(const Spectrum& color,
@@ -103,4 +115,12 @@ ls::TexturePtr ls::HDRFilm::convert2Texture() const
 	image->setData(&data[0]);
 	image->commit();
 	return image;
+}
+
+ls::HDRFilm::HDRFilm(ParamSet & paramSet)
+{
+	mWidth = paramSet.querys32("width");
+	mHeight = paramSet.querys32("height");
+
+
 }

@@ -5,6 +5,7 @@ namespace ls
 {
 	class PathTracer:public RenderAlgorithm
 	{
+		friend ResourceManager;
 	public:
 		PathTracer(s32 maxDepth):mPathMaxDepth(maxDepth){}
 		virtual ~PathTracer() {}
@@ -20,6 +21,10 @@ namespace ls
 
 		virtual void commit() override {}
 
+		virtual std::string strOut() const override;
+
+	protected:
+		PathTracer(ParamSet& paramSet);
 	private:
 		s32			mPathMaxDepth;
 	};

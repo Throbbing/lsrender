@@ -96,6 +96,8 @@ namespace ls
 			return r;
 #endif
 		}
+
+		std::string toString() const { return matrix.toString(); }
 		Ray operator()(const Ray& r) const;
 		DifferentialRay operator()(const DifferentialRay& r) const;
 		AABB operator()(const AABB& bbox) const;

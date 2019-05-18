@@ -73,6 +73,10 @@
 
 #endif 
 
+#ifndef ls_Separator
+#define ls_Separator "-----------------------------------------------------------"
+#endif // !ls_Separator
+
 
 using s8 = __int8;
 using s16 = __int16;

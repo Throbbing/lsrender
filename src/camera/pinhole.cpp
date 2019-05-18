@@ -1,9 +1,10 @@
-#include<camera\pinhole.h>
-#include<function\log.h>
-#include<film\film.h>
-#include<record\record.h>
-#include<sampler\sampler.h>
-#include<function\stru.h>
+#include<camera/pinhole.h>
+#include<function/log.h>
+#include<film/film.h>
+#include<record/record.h>
+#include<resource/xmlHelper.h>
+#include<sampler/sampler.h>
+#include<function/stru.h>
 ls::Pinhole::Pinhole(const Transform & c2w, f32 shutterStart, f32 shutterEnd, f32 fov,
 	f32 near,f32 far)
 {
@@ -106,4 +107,36 @@ void ls::Pinhole::commit()
 			-(1 - 2 * relOffset.y) / relSize.y + 1, 0.0f)) *
 		Transform::scale(Vector(1.0f / relSize.x, 1.0f / relSize.y, 1.0f));
 #endif
+}
+
+std::string ls::Pinhole::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Camera: " << "Pinhole" << std::endl;
+	oss << "ShutterStart: " << mShutterStart << std::endl;
+	oss << "ShutterEnd: " << mShutterEnd << std::endl;
+	oss << "Fov: " << mFov << std::endl;
+	oss << "Near: " << mNear << std::endl;
+	oss << "Far: " << mFar << std::endl;
+	
+	oss << "Film:" << std::endl;
+	oss << mFilm->strOut();
+
+	oss << "World:" << std::endl;
+	oss << mW2C.toString() << std::endl;
+	
+	oss << ls_Separator << std::endl;
+	return oss.str();
+}
+
+ls::Pinhole::Pinhole(ParamSet & paramSet)
+{
+	mFov = paramSet.queryf32("fov");
+	mC2W = paramSet.queryTransform("toWorld");
+	mNear = paramSet.queryf32("nearClip", 1e-2);
+	mFar = paramSet.queryf32("farClip", 1e4);
+	mW2C = mC2W.inverse();
+	mShutterStart = 0;
+	mShutterEnd = 0;
 }

@@ -2,6 +2,7 @@
 
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/module.h>
 #include<function/log.h>
 #include<math/vector.h>
 namespace ls
@@ -15,7 +16,7 @@ namespace ls
 		Point2 pos;
 	};
 
-	class Sampler
+	class Sampler:public Module
 	{
 	public:
 		Sampler() {}

@@ -234,6 +234,16 @@ void ls::TriMesh::commit()
 
 }
 
+std::string ls::TriMesh::strOut() const
+{
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Mesh: " << "TriMesh" << std::endl;
+	oss << ls_Separator << std::endl;
+
+	return oss.str();
+}
+
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	ls_Param_Out MeshSampleRecord * rec) const
 {
