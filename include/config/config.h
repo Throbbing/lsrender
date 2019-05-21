@@ -73,6 +73,9 @@
 
 #endif 
 
+#ifdef _OPENMP
+#endif
+
 #ifndef ls_Separator
 #define ls_Separator "-----------------------------------------------------------"
 #endif // !ls_Separator

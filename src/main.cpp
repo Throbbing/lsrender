@@ -23,16 +23,15 @@ int main()
 		"cbox.xml");
 
 //	ls::XMLParser::printXMLPackage(package);
-
+	ls::ResourceManager::setPath("cbox//");
 	auto scene = ls::ResourceManager::createSceneObj();
 
-	scene->setSceneFromMTSXML("cbox//", package);
+	scene->setSceneFromXML("cbox//", package);
 	
 
 	scene->render();
 
 	ls::ResourceManager::write2File(scene->getMainFilm()->convert2Texture(),
-		"",
 		"cbox.png");
 	
 	

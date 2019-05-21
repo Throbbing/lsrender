@@ -67,10 +67,17 @@ namespace ls
 	
 	//About Scene
 	class Scene;
+	struct SceneRenderBlock;
 
 
 	//About Spectrum
 	class Spectrum;
+
+
+	//About Thread
+	class ThreadWaker;
+	class ThreadTask;
+	class ThreadPool;
 
 	//About File
 	class Path;

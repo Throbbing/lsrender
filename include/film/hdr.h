@@ -12,6 +12,7 @@ namespace ls
 		HDRFilm() {}
 		virtual ~HDRFilm() {}
 
+		virtual FilmPtr copy() const override;
 		virtual void commit() override;
 		virtual std::string strOut() const override;
 

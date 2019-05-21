@@ -10,8 +10,17 @@
 #include<spectrum/spectrum.h>
 #include<scatter/scatter.h>
 #include<resource/xmlHelper.h>
+#include<resource/resourceManager.h>
 
-ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray, 
+ls::RenderAlgorithmPtr ls::DirectTracer::copy() const
+{
+	ParamSet paramSet = ParamSet("renderAlgorithm", "direct", "direct", "direct");
+
+	paramSet.adds32("maxDepth", mMaxDepth);
+	return ResourceManager::createAlgorithm(paramSet);
+}
+
+ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 	ls_Param_In	s32					 depth,
 	ls_Param_In CameraSampleRecord * cameraSampleRec, 
 	ls_Param_In ScenePtr scene, 
@@ -205,7 +214,6 @@ std::string ls::DirectTracer::strOut() const
 	oss << ls_Separator << std::endl;
 	oss << "Render Algorithm: " << "Direct" << std::endl;
 	oss << "MaxDepth        : " << mMaxDepth << std::endl;
-	oss << "RouletteDepth   : " << mRouletteDepth << std::endl;
 	oss << ls_Separator << std::endl;
 	return oss.str();
 }
@@ -213,5 +221,5 @@ std::string ls::DirectTracer::strOut() const
 ls::DirectTracer::DirectTracer(ls::ParamSet& paramSet)
 {
 	mMaxDepth = paramSet.querys32("maxDepth", 1);
-	mRouletteDepth = paramSet.querys32("rouletteDepth", 1);
+	
 }

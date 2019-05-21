@@ -11,6 +11,15 @@ namespace ls
 		EWrap_Clamp,
 		EWrap_Mirror
 	};
+
+	struct ImageData
+	{
+	public:
+		s32							width;
+		s32							height;
+
+		std::vector<Spectrum>		data;
+	};
 	class ImageTexture :public Texture
 	{
 		friend ResourceManager;

@@ -1,4 +1,12 @@
 #include<sampler/randomsampler.h>
+#include<resource/xmlHelper.h>
+#include<resource/resourceManager.h>
+ls::SamplerPtr ls::RandomSampler::copy() const
+{
+	ParamSet paramSet = ParamSet("sampler", "randomSampler", "1", "1");
+	return ResourceManager::createSampler(paramSet);
+
+}
 
 f32 ls::RandomSampler::next1D()
 {

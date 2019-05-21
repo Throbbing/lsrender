@@ -4,6 +4,8 @@
 #include<3rd/FreeImage.h>
 #include<function/log.h>
 
+#include<algorithm/direct.h>
+#include<algorithm/path.h>
 #include<camera/pinhole.h>
 
 #include<film/hdr.h>
@@ -28,12 +30,17 @@
 
 std::map<std::string, ls::ResourceManager::MeshIndex> ls::ResourceManager::mMeshIndices;
 std::vector<ls::MeshPtr>	ls::ResourceManager::mMeshs;
-std::map<std::string, ls_Smart(ls::Texture)> ls::ResourceManager::mTextures;
+std::map<std::string, ls::ImageData> ls::ResourceManager::mImageDatas;
+std::vector<ls::ModulePtr> ls::ResourceManager::mModules;
+std::string					ls::ResourceManager::mPath;
 
-
-
-std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(const  Path&  path, const std::string & fileName)
+std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(Path fullPath)
 {
+	if (!fullPath.isAbsolute())
+	{
+		fullPath = mPath + fullPath.str();
+	}
+	auto fileName = fullPath.filename();
 	if (mMeshIndices.find(fileName) != mMeshIndices.end())
 	{
 		auto index = mMeshIndices[fileName];
@@ -54,7 +61,7 @@ std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(const  Path&  pat
 	
 	
 	if (!tinyobj::LoadObj(&attrib, &shapes,
-		&materials, &err,&warn, (path.str() +"\\" + fileName).c_str(),nullptr,true))
+		&materials, &err,&warn, fullPath.str().c_str(),nullptr,true))
 	{
 		std::cout << err << std::endl;
 	}
@@ -118,29 +125,24 @@ std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(const  Path&  pat
 	for (s32 i = meshIndex.start; i < meshIndex.end; ++i)
 	{
 		meshs.push_back(mMeshs[i]);
+		mModules.push_back(mMeshs[i]);
 	}
 	
 	return meshs;
 }
 
-std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFileW(const Path & path, const std::wstring & fileName)
-{
-	return loadMeshFromFile(path, ls::toString(fileName));
-}
 
-ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFile(const  Path& path, const std::string & fileName)
+ls::ImageData ls::ResourceManager::loadTextureFromFile(Path  fullPath)
 {
-	return nullptr;
-}
-
-ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFileW(const Path & path, const std::wstring & fileName)
-{
-	std::string fileNameStr = ls::toString(fileName);
-	if (mTextures.find(fileNameStr) != mTextures.end())
-		return mTextures[fileNameStr];
+	if (!fullPath.isAbsolute())
+	{
+		fullPath = mPath + fullPath.str();
+	}
+	std::string fileNameStr = fullPath.filename();
+	if (mImageDatas.find(fileNameStr) != mImageDatas.end())
+		return mImageDatas[fileNameStr];
 
 	
-	auto fullPath = ls::Path(path.wstr() + L"\\" + fileName);
 	auto ext = fullPath.extension();
 
 	FreeImage_Initialise(true);
@@ -219,16 +221,41 @@ ls_Smart(ls::Texture) ls::ResourceManager::loadTextureFromFileW(const Path & pat
 	//ÊÍ·Å¾ä±ú
 	FreeImage_Unload(dib);
 
-	ls_Smart(ImageTexture) texture(new ImageTexture(width, height, ls::ERGB, 24, &data[0]));
+	ImageData imageData;
+	imageData.width = width;
+	imageData.height = height;
+	imageData.data = std::move(data);
 	
-	mTextures[fileNameStr] = texture;
-	return texture;
-	
+	mImageDatas[fileNameStr] = imageData;
+
+	return imageData;
 }
+
 
 ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
 {
 	return ls_Smart(ls::Scene)(new ls::Scene());
+}
+
+ls::RenderAlgorithmPtr ls::ResourceManager::createAlgorithm(ParamSet & paramSet)
+{
+	ls_Assert(paramSet.getType() == "renderAlgorithm");
+
+	RenderAlgorithmPtr renderAlgorithm = nullptr;
+
+	if (paramSet.getName() == "direct")
+	{
+		renderAlgorithm = new DirectTracer(paramSet);
+	}
+	else if (paramSet.getName() == "path")
+	{
+		renderAlgorithm = new PathTracer(paramSet);
+	}
+
+	if (renderAlgorithm)
+		mModules.push_back(renderAlgorithm);
+
+	return renderAlgorithm;
 }
 
 ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
@@ -240,6 +267,7 @@ ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
 	if (paramSet.getName() == "pinhole" || paramSet.getName() == "pinholeCamera")
 	{
 		camera = new Pinhole(paramSet);
+		camera->addFilm(createFilm(paramSet.queryParamSetByType("film")));
 	}
 
 
@@ -291,6 +319,11 @@ ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
 	if (paramSet.getName() == "pointLight" || paramSet.getName() == "point")
 	{
 		light = new PointLight(paramSet);
+	}
+	else
+	{
+		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		ls_AssertMsg(false, t);
 	}
 	if (light)
 		mModules.push_back(light);
@@ -351,18 +384,42 @@ ls::TexturePtr ls::ResourceManager::createTexture(ParamSet & paramSet)
 	
 }
 
-ls::MeshPtr ls::ResourceManager::createMesh(ParamSet & paramSet)
+std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 {
-	return MeshPtr();
+	ls_Assert(paramSet.getType() == "mesh");
+
+	MeshPtr mesh = nullptr;
+
+	if (paramSet.getName() == "triMesh" || paramSet.getName() == "tri")
+	{
+		auto fullPath = paramSet.queryString("filename");
+		auto t = loadMeshFromFile(fullPath);
+
+		for (auto& p : t)
+		{
+			p->applyMaterial(createMaterial(paramSet.queryParamSetByType("material")));
+			p->applyTransform(paramSet.queryTransform("world"));
+		}
+
+		return t;
+	}
+	else
+	{
+		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		ls_AssertMsg(false, t);
+	}
+
+	return std::vector<ls::MeshPtr>();
+
+
+
 }
 
 
 
 void ls::ResourceManager::write2File(ls::Texture * texture,
-	const Path& path,
-	const std::string& fileName)
+	const Path& fullPath)
 {
-	auto fullPath = Path(path.str() + "\\" + fileName);
 
 	auto ext = fullPath.extension();
 
@@ -374,7 +431,7 @@ void ls::ResourceManager::write2File(ls::Texture * texture,
 	auto width = image->getWidth();
 	auto height = image->getHeight();
 	auto channelType = image->getChannelType();
-	auto bpp = image->getBPP();
+	auto bpp = 24;
 	Spectrum* data = (Spectrum*)image->getRawData();
 
 	FIBITMAP* bitmap = FreeImage_Allocate(width,
@@ -416,11 +473,4 @@ void ls::ResourceManager::write2File(ls::Texture * texture,
 	
 }
 
-void ls::ResourceManager::write2FileW(ls::Texture * texture, 
-	const Path& path,
-	const std::wstring& fileName)
-{
-	auto fileNameStr = ls::toString(fileName);
-	write2File(texture, path, fileNameStr);
 
-}

@@ -9,10 +9,13 @@ namespace ls
 	class RenderAlgorithm :public Module
 	{
 	public:
-		RenderAlgorithm(){}
+		RenderAlgorithm(const std::string& id = "RenderAlgorithm"):Module(id){}
 		virtual ~RenderAlgorithm() {}
 
-		virtual void render(ScenePtr scene, SamplerPtr sampler,
+		virtual RenderAlgorithmPtr copy() const { return nullptr; }
+		virtual void render(ScenePtr scene, 
+			SceneRenderBlock renderBlock,
+			SamplerPtr sampler,
 			CameraPtr camera, RNG& rng) const ;
 
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,

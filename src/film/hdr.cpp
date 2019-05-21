@@ -2,12 +2,21 @@
 #include<function/log.h>
 #include<texture/imageTexture.h>
 #include<resource/xmlHelper.h>
+#include<resource/resourceManager.h>
 f32 toSRGB(f32 v)
 {
 	if (v < 0.0031308f)
 		return 12.92f * v;
 
 	return 1.055 * std::powf(v, 1.0 / 2.4) - 0.055;
+}
+
+ls::FilmPtr ls::HDRFilm::copy() const
+{
+	ParamSet paramSet = ParamSet("film", "hdr", "hdr", "hdr");
+	paramSet.adds32("width", mWidth);
+	paramSet.adds32("height", mHeight);
+	return ResourceManager::createFilm(paramSet);
 }
 
 void ls::HDRFilm::commit()
@@ -50,8 +59,14 @@ void ls::HDRFilm::flush()
 {
 	int index = 0;
 	std::vector<Vec3> data;
-	for (auto& p : mRenderBuffer)
+
+#ifdef ls_OPENMP
+#pragma omp parallel for
+#endif
+	for (int i = 0; i < mRenderBuffer.size(); ++i)
 	{
+		auto& p = mRenderBuffer[i];
+
 		if (!lsMath::closeZero(p.weight))
 			p.color /= p.weight;
 		f32 rgb[3]; p.color.toRGB(rgb);
@@ -59,10 +74,11 @@ void ls::HDRFilm::flush()
 		for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
 
 
-		data.push_back(Vec3(rgb[2],rgb[1],rgb[0]));
+		data.push_back(Vec3(rgb[2], rgb[1], rgb[0]));
 
-		p.color = Spectrum(rgb[0],rgb[1],rgb[2]);
+		p.color = Spectrum(rgb[0], rgb[1], rgb[2]);
 	}
+}
 
 #if 0
 	std::ofstream file;
@@ -100,7 +116,7 @@ void ls::HDRFilm::flush()
 	}
 	file.close();
 #endif
-}
+
 
 ls::TexturePtr ls::HDRFilm::convert2Texture() const
 {

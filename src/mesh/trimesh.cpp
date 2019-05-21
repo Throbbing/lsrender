@@ -266,4 +266,8 @@ void ls::TriMesh::subdivide(ESubdivision_Type type, u32 count) const
 {
 }
 
+ls::TriMesh::TriMesh(ParamSet & paramSet):Mesh(EMesh_TriMesh)
+{
+}
+
 

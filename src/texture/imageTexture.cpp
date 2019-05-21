@@ -72,15 +72,47 @@ ls::ImageTexture::ImageTexture(ParamSet & paramSet):Texture(ETexImage)
 {
 	Path fullPath = paramSet.queryString("filename");
 
-	std::string name = fullPath.filename();
-	std::string path = fullPath.parentPath().str();
-
-	auto t = ResourceManager::loadTextureFromFile(path, name);
-	auto ttex = (ImageTexture*)t.get();
 
 
-	setRes(ttex->mWidth, ttex->mHeight);
-	setData(&ttex->mData[0]);
+	auto imageData = ResourceManager::loadTextureFromFile(fullPath);
+
+	mChannelType = ESpectrum;
+	mBPP = 32;
+
+	mWrapU = EWrap_Repeat;
+	mWrapV = EWrap_Repeat;
+
+	std::string mtsWrapModeU = paramSet.queryString("wrapModeU");
+	std::string mtsWrapModeV = paramSet.queryString("wrapModeV");
+	if (mtsWrapModeU == "repeat")
+	{
+		mWrapU = EWrap_Repeat;
+	}
+	else if (mtsWrapModeU == "mirror")
+	{
+		mWrapU = EWrap_Mirror;
+	}
+	else if (mtsWrapModeU == "clamp")
+	{
+		mWrapU = EWrap_Clamp;
+	}
+
+
+	if (mtsWrapModeV == "repeat")
+	{
+		mWrapV = EWrap_Repeat;
+	}
+	else if (mtsWrapModeV == "mirror")
+	{
+		mWrapV = EWrap_Mirror;
+	}
+	else if (mtsWrapModeV == "clamp")
+	{
+		mWrapV = EWrap_Clamp;
+	}
+
+	setRes(imageData.width, imageData.height);
+	setData(&imageData.data[0]);
 
 }
 

@@ -11,7 +11,7 @@ namespace ls
 		friend Scene;
 		friend ResourceManager;
 	public:
-		Material() {}
+		Material(const std::string& id = "material"):Module(id){}
 		virtual ~Material() {}
 
 		virtual ScatteringFunctionPtr getSurfaceScattering() { return nullptr; }

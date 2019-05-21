@@ -463,7 +463,7 @@ namespace ls
 		dest.mParamSets.push_back(mts2lsAlgorithm(src, src.mParamSets[src.mIntegrator]));
 
 		//Convert Sampler
-		dest.mParamSets.push_back(mts2lsSampler(src, src.queryParamSetByType("sampler")));
+		dest.mParamSets.push_back(mts2lsSampler(src, src.mParamSets[src.mCamera].queryParamSetByType("sampler")));
 
 		//Convert BSDF
 		for (auto& mtsBSDFIndex : src.mBSDFs)
@@ -493,7 +493,7 @@ namespace ls
 		for (auto& mtsShapeIndex : src.mShapes)
 		{
 			auto mtsShape = src.mParamSets[mtsShapeIndex.second];
-			dest.mShapes[mtsShapeIndex.first] - dest.mParamSets.size();
+			dest.mShapes[mtsShapeIndex.first] = dest.mParamSets.size();
 			dest.mParamSets.push_back(mts2lsMesh(src, mtsShape));
 		}
 
@@ -503,7 +503,7 @@ namespace ls
 		s32 spp = dest.queryParamSetByType("sampler").querys32("spp", 1);
 		sampleInfo.adds32("spp", spp);
 		sampleInfo.adds32("iterations", spp);
-		sampleInfo.adds32("directSample", dest.mParamSets[dest.mIntegrator].querys32("directSample", spp));
+		sampleInfo.adds32("directSamples", dest.mParamSets[dest.mIntegrator].querys32("directSample", spp));
 
 		dest.mSampleInfo = sampleInfo;
 		return dest;
@@ -544,19 +544,18 @@ namespace ls
 	ParamSet XMLParser::mts2lsAlgorithm(XMLPackage & src, ParamSet & mtsIntegrator)
 	{
 		
-		auto& mtsIntegrator = src.mParamSets[src.mIntegrator];
 		auto integratorName = mtsIntegrator.getName();
 		ParamSet lsAlgorithm;
 		if (integratorName == "direct")
 		{
-			lsAlgorithm = ParamSet("algorithm",
+			lsAlgorithm = ParamSet("renderAlgorithm",
 				"direct", "direct", "direct");
 			lsAlgorithm.adds32("maxDepth", 10);
 			
 		}
 		else if (integratorName == "path")
 		{
-			lsAlgorithm = ParamSet("algorithm",
+			lsAlgorithm = ParamSet("renderAlgorithm",
 				"path", "path", "path");
 			lsAlgorithm.adds32("maxDepth", mtsIntegrator.querys32("maxDepth"));
 		}
@@ -598,6 +597,7 @@ namespace ls
 			auto t = mtsBSDFName + " in mitsuba has not been supported in lsrender! ";
 			ls_AssertMsg(false, t);
 		}
+		return lsMaterial;
 	}
 
 	ParamSet XMLParser::mts2lsTextureParameter(XMLPackage& src, const std::string & parameter, ParamSet & srcParam)
@@ -680,14 +680,13 @@ namespace ls
 		if (!bsdfSet.isValid())
 			ls_AssertMsg(false, "Invalid bsdf in mitsuba shape!");
 
-		lsMesh.addParamSet("bsdf", bsdfSet);
+		lsMesh.addParamSet("bsdf", mts2lsMaterial(src,bsdfSet));
 
 		return lsMesh;
 	}
 
 	ParamSet XMLParser::mts2lsSampler(XMLPackage & src, ParamSet & mtsSampler)
 	{
-		auto& mtsSampler = src.queryParamSetByType("sampler");
 		auto& lsSampler = ParamSet("sampler", "randomSampler",
 			"randomSampler",
 			"randomSampler");
@@ -702,7 +701,7 @@ namespace ls
 
 		if (mtsLightName == "point")
 		{
-			lsLight = ParamSet("light", "pointLihgt", mtsLight.getVarName(), mtsLight.getID());
+			lsLight = ParamSet("light", "pointLight", mtsLight.getVarName(), mtsLight.getID());
 			lsLight.addSpectrum("intensity", mtsLight.querySpectrum("intensity"));
 			lsLight.addVec3("position", mtsLight.queryVec3("position"));
 		}

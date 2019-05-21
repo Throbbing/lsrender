@@ -11,7 +11,7 @@ namespace ls
 	class Module
 	{
 	public:
-		Module() {}
+		Module(const std::string& _ID):ID(_ID) {}
 		virtual ~Module() {}
 
 		
@@ -43,5 +43,8 @@ namespace ls
 		*/
 		virtual void suspend() {}
 		virtual bool isSuspend() { return false; }
+
+	protected:
+		std::string						ID;
 	};
 }

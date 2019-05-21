@@ -22,7 +22,8 @@
 #include<scene/scene.h>
 #include<sampler/randomsampler.h>
 #include<texture/constantTexture.h>
-ls::Scene::Scene()
+#include<thread/thread.h>
+ls::Scene::Scene(const std::string& id):Module(id)
 {
 	
 }
@@ -31,86 +32,52 @@ ls::Scene::~Scene()
 {
 }
 
-void ls::Scene::setSceneFromMTSXML(const ls::Path& path, XMLPackage & package)
+void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 {
 	//读取渲染算法
 	{
-		
-	}
-	auto cameraParamSet = package.mParamSets[package.mCamera];
-
-	for (auto & p : package.mShapes)
-	{
-		auto shapeParamSet = package.mParamSets[p.second];
-		auto pathStr = path.str();
-		auto mesh = ResourceManager::loadMeshFromFile(path, shapeParamSet.queryString("filename"));	
-		if (mesh)
-		{
-			auto w = shapeParamSet.queryTransform("toWorld");
-			mesh->applyTransform(w.getMat());
-		}
-		else
-			continue;
-		
-		
-
-		ParamSet bsdfSet = package.queryRefObject(shapeParamSet.getAllRefs(),
-			EParamSet_BSDF);
-		if (!bsdfSet.isValid())
-			bsdfSet = shapeParamSet.queryParamSetByType("bsdf");
-
-		if (!bsdfSet.isValid())
-			ls_AssertMsg(false, "Invalid ParamSet: No BSDF in Shape");
-
-		if (bsdfSet.getName() == "diffuse")
-		{
-			TexturePtr kr = new ConstantTexture(bsdfSet.querySpectrum("reflectance"));
-			MaterialPtr matte = NewPtr<Matte>();
-			((Matte*)matte)->applyReflectance(kr);
-			mesh->applyMaterial(matte);
-		}
-
-		mesh->commit();
-		addMesh(mesh.get());
+		mAlgorithm = ResourceManager::createAlgorithm(package.mParamSets[package.mIntegrator]);
+		mAlgorithm->commit();
 	}
 
+	//读取采样器
 	{
-		auto fov = cameraParamSet.queryf32("fov");
-		auto world = cameraParamSet.queryTransform("toWorld");
-		auto zNear = cameraParamSet.queryf32("nearClip",1e-2);
-		auto zFar = cameraParamSet.queryf32("farClip",1e4);
-		mCamera = new Pinhole(world.getMat()  ,
-			0, 0, fov, zNear, zFar);
+		mSampler = ResourceManager::createSampler(package.queryParamSetByType("sampler"));
+		mSampler->commit();
+	}
 
-		
-		
-
-		auto filmParamSet = cameraParamSet.queryParamSetByType("film");
-		auto width = filmParamSet.querys32("width");
-		auto height = filmParamSet.querys32("height");
-
-		auto film = new HDRFilm();
-		film->setResolution(width, height);
-		film->commit();
-
-		mCamera->addFilm(film);
+	//相机
+	{
+		mCamera = ResourceManager::createCamera(package.mParamSets[package.mCamera]);
 		mCamera->commit();
-
-
 	}
 
+	//光源
+	for(auto& lightIndex:package.mLights)
 	{
-		for (auto& l : package.mLights)
+		auto t = ResourceManager::createLight(package.mParamSets[lightIndex.second]);
+		t->commit();
+
+		addLight(t);
+	}
+
+	//模型
+	for (auto& meshIndex : package.mShapes)
+	{
+		auto meshs = ResourceManager::createMesh(package.mParamSets[meshIndex.second]);
+		for (auto t : meshs)
 		{
-			auto lightParamSet = package.mParamSets[l.second];
-
-			Point3 position = Point3(lightParamSet.queryVec3("position"));
-			Spectrum intensity = lightParamSet.querySpectrum("intensity");
-
-			LightPtr light = new PointLight(position,intensity);
-			mSceneLights.push_back(light);
-
+			t->commit();
+			addMesh(t);
 		}
+		
+	}
+
+	//采样信息
+	{
+		lsRender::sampleInfo.spp = package.mSampleInfo.querys32("spp",1);
+		lsRender::sampleInfo.iterations = package.mSampleInfo.querys32("iterations", 1);
+		lsRender::sampleInfo.directSamples = package.mSampleInfo.querys32("direcSamples", 1);
 	}
 
 	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
@@ -201,8 +168,9 @@ void ls::Scene::deleteMesh(Mesh * mesh)
 
 s32 ls::Scene::addLight(Light * light)
 {
-	Unimplement;
-	return s32();
+	s32 id = mSceneLights.size();
+	mSceneLights.push_back(light);
+	return id;
 }
 
 void ls::Scene::deleteLight(Light * light)
@@ -213,10 +181,21 @@ void ls::Scene::deleteLight(Light * light)
 
 void ls::Scene::render()
 {
+	auto threadUsedCount = std::thread::hardware_concurrency();
+
+	std::vector<RenderAlgorithmPtr> renderAlgorithms(threadUsedCount);
+	std::vector<FilmPtr>		    films(threadUsedCount);
+	std::vector<SamplerPtr>			samplers(threadUsedCount);
+
+	renderAlgorithms[0] = mAlgorithm;
+	films[0] = mCamera->getFilm();
+	samplers[0] = mSampler;
+
+	
+	
+	
 	RNG rng;
-	SamplerPtr sampler = new RandomSampler();
-	mAlgorithm->render(this, sampler,
-		mCamera, rng);
+	
 }
 
 ls::FilmPtr ls::Scene::getMainFilm() const

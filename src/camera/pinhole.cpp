@@ -60,6 +60,7 @@ void ls::Pinhole::commit()
 	if (!mFilm)
 		ls_AssertMsg(false, "Lack Film in Pinhole");
 
+	mFilm->commit();
 	f32 w = mFilm->getWidth();
 	f32 h = mFilm->getHeight();
 
@@ -133,9 +134,9 @@ std::string ls::Pinhole::strOut() const
 ls::Pinhole::Pinhole(ParamSet & paramSet)
 {
 	mFov = paramSet.queryf32("fov");
-	mC2W = paramSet.queryTransform("toWorld");
-	mNear = paramSet.queryf32("nearClip", 1e-2);
-	mFar = paramSet.queryf32("farClip", 1e4);
+	mC2W = paramSet.queryTransform("c2w");
+	mNear = paramSet.queryf32("nearZ", 1e-2);
+	mFar = paramSet.queryf32("farZ", 1e4);
 	mW2C = mC2W.inverse();
 	mShutterStart = 0;
 	mShutterEnd = 0;

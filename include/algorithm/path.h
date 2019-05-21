@@ -7,10 +7,11 @@ namespace ls
 	{
 		friend ResourceManager;
 	public:
-		PathTracer(s32 maxDepth):mPathMaxDepth(maxDepth){}
+		PathTracer(s32 maxDepth,
+			const std::string& id = "PathTracer"):RenderAlgorithm(id),mPathMaxDepth(maxDepth){}
 		virtual ~PathTracer() {}
 
-
+		virtual RenderAlgorithmPtr copy() const override;
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
 			ls_Param_In s32	depth,
 			ls_Param_In CameraSampleRecord* cameraSampleRec,

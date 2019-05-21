@@ -66,6 +66,18 @@ namespace ls
 		static
 			void										lsWndShutDown();
 
+	};
+
+	class lsRender
+	{
+	public:
+		static
+			struct _sampleInfo
+		{
+			s32 spp = 1;
+			s32 iterations = 1;
+			s32 directSamples = 1;
+		}sampleInfo;
 
 	};
 

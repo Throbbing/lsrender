@@ -56,6 +56,8 @@ namespace ls
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const override;
 
+	protected:
+		TriMesh(ParamSet& paramSet);
 
 	protected:
 		bool						mIsValid = false;

@@ -11,7 +11,7 @@ namespace ls
 	{
 		friend Scene;
 	public:
-		Light() {}
+		Light(const std::string& id = "Light"):Module(id){}
 		virtual ~Light() {}
 
 		virtual bool		isDelta() = 0;

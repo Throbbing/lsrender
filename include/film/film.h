@@ -16,10 +16,11 @@ namespace ls
 	class Film:public Module
 	{
 	public:
-		Film() {}
+		Film(const std::string& id = "film"):Module(id){}
 		virtual ~Film() {}
 
 
+		virtual FilmPtr copy() const = 0;
 		virtual void setResolution(s32 w, s32 h) { mWidth = w; mHeight = h; }
 
 		virtual s32 getWidth() { return mWidth; }

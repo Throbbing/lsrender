@@ -29,14 +29,14 @@ std::string ls::Matte::strOut() const
 ls::Matte::Matte(ParamSet & paramSet)
 {
 	ParamSet texSet = paramSet.queryParamSetByName("bitmap");
-	if (texSet.isValid)
+	if (texSet.isValid())
 	{
 		mReflectance = ResourceManager::createTexture(texSet);
 	}
 	else
 	{
 		texSet = ParamSet("texture", "constant", "constant", "");
-		texSet.addSpectrum("color", paramSet.querySpectrum("reflectance"));
+		texSet.addSpectrum("color", paramSet.queryParamSetByType("texture").querySpectrum("color"));
 		mReflectance = ResourceManager::createTexture(texSet);
 	}
 

@@ -29,7 +29,8 @@ namespace ls
 
 		friend Scene;
 	public:
-		ScatteringFunction(s32 flag) { mSFlag = flag; }
+		ScatteringFunction(s32 flag,
+			const std::string& id = "scatteringFunction"):Module(id) { mSFlag = flag; }
 		virtual ~ScatteringFunction() {}
 
 		virtual s32 scatteringFlag() { return mSFlag; }

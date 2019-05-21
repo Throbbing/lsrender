@@ -7,7 +7,7 @@ namespace ls
 	{
 		friend ResourceManager;
 	public:
-		VisualNormal() {}
+		VisualNormal():RenderAlgorithm("VisualNormal"){}
 		virtual ~VisualNormal(){}
 
 

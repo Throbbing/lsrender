@@ -215,3 +215,6 @@ void ls::lsWnd::lsWndShutDown()
 
 
 }
+
+
+ls::lsRender::_sampleInfo  ls::lsRender::sampleInfo;

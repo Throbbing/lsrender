@@ -10,6 +10,7 @@ namespace ls
 		RandomSampler() {}
 		virtual ~RandomSampler() {}
 
+		virtual SamplerPtr copy() const override;
 		f32 next1D() override;
 		Point2 next2D() override;
 

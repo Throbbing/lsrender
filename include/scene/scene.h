@@ -6,18 +6,34 @@
 #include<config/module.h>
 namespace ls
 {
+	struct SceneRenderBlock
+	{
+		s32 xStart;
+		s32 yStart;
+		s32 xEnd;
+		s32 yEnd;
+	};
+
 	class Scene :public Module
 	{
 		friend ResourceManager;
+
+	public:
+		struct SampleInfo
+		{
+			s32 spp;
+			s32 iterations;
+			s32 directSample;
+		};
 	private:
 
 		
-		Scene();
+		Scene(const std::string& id = "scene");
 
 	public:
 		virtual ~Scene();
 
-		void setSceneFromMTSXML(const Path& path, XMLPackage& package);
+		void setSceneFromXML(const Path& path, XMLPackage& package);
 
 	
 		virtual bool intersect(ls_Param_In Ray& ray,
@@ -52,11 +68,13 @@ namespace ls
 
 
 	protected:
-		std::vector<Light*>  mSceneLights;
-		std::vector<Mesh*>	 mSceneMeshs;
-		Camera*				 mCamera;
-		RenderAlgorithm*	 mAlgorithm;
-
+		
+		std::vector<LightPtr>	 mSceneLights;
+		std::vector<MeshPtr>	 mSceneMeshs;
+		CameraPtr				 mCamera;
+		RenderAlgorithmPtr	     mAlgorithm;
+		SamplerPtr				 mSampler;
+		
 		
 
 

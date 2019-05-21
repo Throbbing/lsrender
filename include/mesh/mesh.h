@@ -24,10 +24,11 @@ namespace ls
 	class Mesh:public Module
 	{
 		friend Scene;
-
+		
 		
 	public:
-		Mesh(const EMesh_Type& type):mMeshType(type) {}
+		Mesh(const EMesh_Type& type,
+			const std::string& id = "mesh"):Module(id),mMeshType(type) {}
 		virtual ~Mesh() {}
 
 

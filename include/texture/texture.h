@@ -25,7 +25,8 @@ namespace ls
 	{
 		friend Scene;
 	public:
-		Texture(TextureType type):mTextureType(type){}
+		Texture(TextureType type,
+			const std::string& id = "texture"):Module(id),mTextureType(type){}
 		virtual ~Texture() {}
 
 		virtual TextureType getType() const { return mTextureType; }

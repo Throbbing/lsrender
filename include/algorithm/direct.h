@@ -14,9 +14,9 @@ namespace ls
 
 	public:
 		DirectTracer(s32 maxDepth,
-			s32 rouletteDepth):
-			mMaxDepth(maxDepth),
-			mRouletteDepth(rouletteDepth)
+			const std::string& id = "DirectTracer"):
+			RenderAlgorithm(id),
+			mMaxDepth(maxDepth)
 		{
 
 		}
@@ -24,7 +24,7 @@ namespace ls
 		
 		virtual ~DirectTracer() {}
 
-
+		virtual RenderAlgorithmPtr copy() const override;
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
 			ls_Param_In s32					depth,
 			ls_Param_In CameraSampleRecord* cameraSampleRec,
@@ -43,6 +43,5 @@ namespace ls
 
 	protected:
 		s32					mMaxDepth;
-		s32					mRouletteDepth;
 	};
 }

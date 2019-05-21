@@ -7,7 +7,7 @@ namespace ls
 	class Camera:public Module
 	{
 	public:
-		Camera() {}
+		Camera(const std::string& id = "camera"):Module(id){}
 		virtual ~Camera() {}
 
 		virtual f32 spawnRay(ls_Param_In const Sampler* sampler,
