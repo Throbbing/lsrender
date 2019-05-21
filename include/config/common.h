@@ -79,6 +79,13 @@ namespace ls
 			s32 directSamples = 1;
 		}sampleInfo;
 
+		static 
+			struct _sceneRenderBlockInfo
+		{
+			s32 blockSizeX = 40;
+			s32 blockSizeY = 40;
+		}sceneRenderBlockInfo;
+
 	};
 
 	

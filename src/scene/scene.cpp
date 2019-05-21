@@ -191,6 +191,44 @@ void ls::Scene::render()
 	films[0] = mCamera->getFilm();
 	samplers[0] = mSampler;
 
+	for (s32 i = 1; i < threadUsedCount; ++i)
+	{
+		renderAlgorithms[i] = renderAlgorithms[0]->copy();
+		films[i] = films[0]->copy();
+		samplers[i] = samplers[0]->copy();
+	}
+
+	std::vector<SceneRenderBlock> renderBlocks;
+	auto screenWidth = films[0]->getWidth();
+	auto screenHeight = films[0]->getHeight();
+
+	int blockResX = screenWidth / lsRender::sceneRenderBlockInfo.blockSizeX;
+	int blockResY = screenHeight / lsRender::sceneRenderBlockInfo.blockSizeY;
+	if (blockResX * lsRender::sceneRenderBlockInfo.blockSizeX <
+		screenWidth)
+		blockResX += 1;
+	if (blockResY * lsRender::sceneRenderBlockInfo.blockSizeY <
+		screenHeight)
+		blockResY += 1;
+
+	for (s32 blockY = 0; blockY < blockResY; ++blockY)
+	{
+		for (s32 blockX = 0; blockX < blockResX; ++blockX)
+		{
+			SceneRenderBlock scr;
+			scr.xStart = blockX * lsRender::sceneRenderBlockInfo.blockSizeX;
+			scr.xEnd = std::min(scr.xStart + lsRender::sceneRenderBlockInfo.blockSizeX,
+				screenWidth);
+
+			scr.yStart = blockY * lsRender::sceneRenderBlockInfo.blockSizeY;
+			scr.yEnd = std::min(scr.yStart + lsRender::sceneRenderBlockInfo.blockSizeY,
+				screenHeight);
+
+			renderBlocks.push_back(scr);
+		}
+	}
+	
+
 	
 	
 	
