@@ -9,19 +9,17 @@
 #include<record\record.h>
 #include<function\rng.h>
 void ls::RenderAlgorithm::render(ScenePtr scene,
-	SceneRenderBlock sceneRenderBlock,
+	SceneRenderBlock* sceneRenderBlock,
 	SamplerPtr sampler, 
 	CameraPtr camera, RNG & rng) const
 {
 		
 	auto film = camera->getFilm();
-	s32 width = film->getWidth();
-	s32 height = film->getHeight();
 	s32 spp = lsRender::sampleInfo.spp;
 
-	for (s32 h = sceneRenderBlock.yStart; h < sceneRenderBlock.yEnd ; ++h)
+	for (s32 h = sceneRenderBlock->yStart; h < sceneRenderBlock->yEnd ; ++h)
 	{
-		for (s32 w = sceneRenderBlock.xStart; w < sceneRenderBlock.xEnd ; ++w)
+		for (s32 w = sceneRenderBlock->xStart; w < sceneRenderBlock->xEnd ; ++w)
 		{
 
 			for (s32 i = 0; i < spp; ++i)
@@ -46,7 +44,6 @@ void ls::RenderAlgorithm::render(ScenePtr scene,
 		}
 	}
 	
-	film->flush();
 
 }
 

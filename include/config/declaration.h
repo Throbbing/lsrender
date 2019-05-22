@@ -67,7 +67,7 @@ namespace ls
 	
 	//About Scene
 	class Scene;
-	struct SceneRenderBlock;
+	class SceneRenderBlock;
 
 
 	//About Spectrum
@@ -81,6 +81,9 @@ namespace ls
 
 	//About File
 	class Path;
+
+	//About Timer
+	class Timer;
 
 	//About Preview
 	class Previewer;

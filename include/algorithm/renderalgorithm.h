@@ -14,7 +14,7 @@ namespace ls
 
 		virtual RenderAlgorithmPtr copy() const { return nullptr; }
 		virtual void render(ScenePtr scene, 
-			SceneRenderBlock renderBlock,
+			SceneRenderBlock* renderBlock,
 			SamplerPtr sampler,
 			CameraPtr camera, RNG& rng) const ;
 

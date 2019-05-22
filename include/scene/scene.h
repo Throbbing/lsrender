@@ -3,15 +3,25 @@
 
 #include<config/config.h>
 #include<config/declaration.h>
+#include<config/lsPtr.h>
 #include<config/module.h>
 namespace ls
 {
-	struct SceneRenderBlock
+	class SceneRenderBlock
 	{
+	public:
 		s32 xStart;
 		s32 yStart;
 		s32 xEnd;
 		s32 yEnd;
+		SamplerPtr sampler;
+		CameraPtr  camera;
+		RenderAlgorithmPtr algorithm;
+		ScenePtr   scene;
+		void run();
+
+	private:
+		
 	};
 
 	class Scene :public Module

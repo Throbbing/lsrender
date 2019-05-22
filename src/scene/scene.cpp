@@ -11,6 +11,7 @@
 #include<function/stru.h>
 #include<function/file.h>
 #include<function/func.h>
+#include<function/timer.h>
 #include<light/light.h>
 #include<light/pointLight.h>
 #include<mesh/mesh.h>
@@ -23,6 +24,13 @@
 #include<sampler/randomsampler.h>
 #include<texture/constantTexture.h>
 #include<thread/thread.h>
+
+void ls::SceneRenderBlock::run()
+{
+	RNG rng;
+	algorithm->render(scene, this, sampler, camera, rng);
+}
+
 ls::Scene::Scene(const std::string& id):Module(id)
 {
 	
@@ -182,25 +190,15 @@ void ls::Scene::deleteLight(Light * light)
 void ls::Scene::render()
 {
 	auto threadUsedCount = std::thread::hardware_concurrency();
+	u32 hasProcess = 0;
+	u32 allProcess = mCamera->getFilm()->getWidth() * mCamera->getFilm()->getHeight() * lsRender::sampleInfo.iterations;
 
-	std::vector<RenderAlgorithmPtr> renderAlgorithms(threadUsedCount);
-	std::vector<FilmPtr>		    films(threadUsedCount);
-	std::vector<SamplerPtr>			samplers(threadUsedCount);
 
-	renderAlgorithms[0] = mAlgorithm;
-	films[0] = mCamera->getFilm();
-	samplers[0] = mSampler;
-
-	for (s32 i = 1; i < threadUsedCount; ++i)
-	{
-		renderAlgorithms[i] = renderAlgorithms[0]->copy();
-		films[i] = films[0]->copy();
-		samplers[i] = samplers[0]->copy();
-	}
+	
 
 	std::vector<SceneRenderBlock> renderBlocks;
-	auto screenWidth = films[0]->getWidth();
-	auto screenHeight = films[0]->getHeight();
+	auto screenWidth = mCamera->getFilm()->getWidth();
+	auto screenHeight = mCamera->getFilm()->getHeight();
 
 	int blockResX = screenWidth / lsRender::sceneRenderBlockInfo.blockSizeX;
 	int blockResY = screenHeight / lsRender::sceneRenderBlockInfo.blockSizeY;
@@ -224,15 +222,129 @@ void ls::Scene::render()
 			scr.yEnd = std::min(scr.yStart + lsRender::sceneRenderBlockInfo.blockSizeY,
 				screenHeight);
 
+			scr.scene = this;
+			
+
+
+			
 			renderBlocks.push_back(scr);
 		}
 	}
+
+	std::vector<RenderAlgorithmPtr> renderAlgorithms(renderBlocks.size());
+	std::vector<FilmPtr>		    films(renderBlocks.size());
+	std::vector<SamplerPtr>			samplers(renderBlocks.size());
+
+	renderAlgorithms[0] = mAlgorithm;
+	films[0] = mCamera->getFilm();
+	samplers[0] = mSampler;
+	renderBlocks[0].algorithm = mAlgorithm;
+	renderBlocks[0].sampler = mSampler;
+	renderBlocks[0].camera = mCamera;
+	renderBlocks[0].scene = this;
+	for (s32 i = 1; i < renderBlocks.size(); ++i)
+	{
+		renderAlgorithms[i] = renderAlgorithms[0]->copy();
+		films[i] = films[0]->copy();
+		samplers[i] = samplers[0]->copy();
+
+		renderBlocks[i].algorithm = renderAlgorithms[i];
+		renderBlocks[i].sampler = samplers[i];
+		renderBlocks[i].camera = mCamera;
+		renderBlocks[i].scene = this;
+
+	}
+
+	Timer timer;
+	timer.tick();
+
+#ifdef ls_OPENMP
+#pragma omp parallel for
+#endif
+	for (s32 i = 0; i < renderBlocks.size(); ++i)
+	{
+		renderBlocks[i].run();
+	}
 	
+	timer.tick();
+
+	auto renderTime = timer.deltaTime();
+
+	ls::Log::log("Render Time: %f s !", renderTime);
+
+#if 0
+	u32 startThread = std::min(threadUsedCount, (u32)renderBlocks.size());
+	u32 taskIndex = startThread;
+	u32 taskCount = renderBlocks.size();
+
+	ThreadPool threadPool;
+	std::vector<std::shared_ptr<ls::ThreadWaker>> wakers;
+
+	for (u32 i = 0; i < startThread; ++i)
+	{
+		renderBlocks[i].sampler = samplers[i];
+		renderBlocks[i].algorithm = renderAlgorithms[i];
+		renderBlocks[i].camera = mCamera;
+		renderBlocks[i].scene = this;
+		wakers.push_back(threadPool.addTask(std::bind(&SceneRenderBlock::run, &renderBlocks[i])));
+		wakers.back()->wake();
+	}
+
+	//遍历所有线程，如果有线程完成工作，就分配给其一个新的任务
+	
+	while (taskIndex < taskCount)
+	{
+		for (u32 i = 0; i < threadUsedCount; ++i)
+		{
+			auto& taskThread = threadPool.mTasks[i];
+			if (taskThread->go())
+			{
+				if (taskIndex >= taskCount)
+					continue;
+				//赋予新任务
+				renderBlocks[taskIndex].sampler = renderBlocks[i].sampler;
+				renderBlocks[taskIndex].algorithm = renderBlocks[i].algorithm;
+				renderBlocks[taskIndex].camera = renderBlocks[i].camera;
+				renderBlocks[taskIndex].scene = renderBlocks[i].scene;
+
+
+				taskThread->mTask = std::bind(&SceneRenderBlock::run, &renderBlocks[taskIndex]);
+
+				//再次唤醒线程
+				wakers[i]->wake();
+				//任务数+1
+				++taskIndex;
+
+				hasProcess += (renderBlocks[i].xEnd - renderBlocks[i].xStart) *
+					(renderBlocks[i].yEnd - renderBlocks[i].yStart) *
+					lsRender::sampleInfo.iterations;
+
+				f32 renderPercent = (f32)hasProcess / (f32)allProcess;
+
+				std::cout << renderPercent << std::endl;
+				
+			}
+			else
+			{
+				Sleep(50);
+			}
+		}
+	}
+
+	//所有任务都分配完成，等待最后线程任务完成
+	for (u32 i = 0; i < startThread; ++i)
+	{
+		while (!threadPool.go(i))
+		{
+			Sleep(50);
+
+		}
+	}
+#endif
+
+	mCamera->getFilm()->flush();
 
 	
-	
-	
-	RNG rng;
 	
 }
 
@@ -245,6 +357,5 @@ std::string ls::Scene::strOut() const
 {
 	return "Scene";
 }
-
 
 

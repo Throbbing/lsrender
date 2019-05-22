@@ -58,7 +58,6 @@ void ls::HDRFilm::addPixel(const Spectrum& color,
 void ls::HDRFilm::flush()
 {
 	int index = 0;
-	std::vector<Vec3> data;
 
 #ifdef ls_OPENMP
 #pragma omp parallel for
@@ -74,7 +73,6 @@ void ls::HDRFilm::flush()
 		for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
 
 
-		data.push_back(Vec3(rgb[2], rgb[1], rgb[0]));
 
 		p.color = Spectrum(rgb[0], rgb[1], rgb[2]);
 	}
