@@ -11,11 +11,14 @@
 #include<film/hdr.h>
 #include<light/pointLight.h>
 
+#include<material/glass.h>
 #include<material/matte.h>
+
 #include<mesh/mesh.h>
 #include<mesh/trimesh.h>
 #include<sampler/randomsampler.h>
 #include<scatter/lambertian.h>
+#include<scatter/dielectric.h>
 #include<scene/scene.h>
 
 #include<resource/xmlHelper.h>
@@ -287,6 +290,12 @@ ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet
 	{
 		scatter = new Lambertian();
 	}
+	else if (paramSet.getName() == "dielectric")
+	{
+		
+		scatter = new Dielectric(paramSet);
+	}
+	
 
 	if (scatter)
 		mModules.push_back(scatter);
@@ -340,6 +349,15 @@ ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
 	if (paramSet.getName() == "matte")
 	{
 		material = new Matte(paramSet);
+	}
+	else if (paramSet.getName() == "glass")
+	{
+		material = new Glass(paramSet);
+	}
+	else
+	{
+		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		ls_AssertMsg(false, t);
 	}
 	if (material)
 		mModules.push_back(material);

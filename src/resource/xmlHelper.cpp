@@ -592,6 +592,18 @@ namespace ls
 			lsMaterial.addParamSet("reflectance", lsReflectance);
 			
 		}
+		else if (mtsBSDFName == "dielectric")
+		{
+			lsMaterial = ParamSet("material", "glass", mtsBSDF.getVarName(), mtsBSDF.getID());
+			auto lsReflectance = mtsBSDF.querySpectrum("specularReflectance", 1.f);
+			auto lsTransmittance = mtsBSDF.querySpectrum("specularTransmittance", 1.f);
+			auto etaI = mtsBSDF.queryf32("extIOR", 1.f);
+			auto etaT = mtsBSDF.queryf32("intIOR", 1.414f);
+			lsMaterial.addSpectrum("reflectance", lsReflectance);
+			lsMaterial.addSpectrum("transmittance", lsTransmittance);
+			lsMaterial.addf32("etaI", etaI);
+			lsMaterial.addf32("etaT", etaT);
+		}
 		else
 		{
 			auto t = mtsBSDFName + " in mitsuba has not been supported in lsrender! ";
