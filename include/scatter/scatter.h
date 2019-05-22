@@ -7,9 +7,13 @@ namespace ls
 {	
 	enum ScatteringFlag
 	{
+		//Diffuse
 		EScattering_D				= 0b000'000'001,
+		//Specular
 		EScattering_S				= 0b000'000'010,
-		EMeasure_SolidAngle			= 0b000'000'100,
+		//Glossy
+		EScattering_G				= 0b100'000'000,
+		EMeasure_SolidAngle			= 0b000'000'100, 
 		EMeasure_Area				= 0b000'001'000,
 		EScattering_Transmission	= 0b000'010'000,
 		EScattering_Reflection		= 0b000'100'000,
@@ -42,7 +46,7 @@ namespace ls
 		//@rec				[out]		采样记录器 
 		//Frame:						Local
 		//Note: 
-		//sample 函数填充ScatteringRecord中的 wi pdf scatterFlag
+		//sample 函数填充ScatteringRecord中的 wi pdf scatterFlag sampledValue
 		//并根据transportmode 填充 pdfRadiance 或 pdfImportance
 		virtual void sample(ls_Param_In Sampler* sampler,
 			ls_Param_Out ScatteringRecord* rec) = 0;

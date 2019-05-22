@@ -90,7 +90,7 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 		RenderLib::surfaceBSDFValueAndPdf(bsdf, &surSRec);
 
 		auto bsdfPdfW = surSRec.pdf;
-		auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
+		auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec,itsRec);
 
 		auto visible = RenderLib::visible(scene, itsRec.position, lightPoint);
 
@@ -123,7 +123,7 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 			&surSRec);
 
 		auto bsdfPdfW = surSRec.pdf;
-		auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
+		auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec,itsRec);
 
 		auto wi = surSRec.wi;
 
@@ -138,7 +138,7 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 		//cast a new ray to detect whether hitting the light source or not
 		//we dont have to consider the singular light source since such lights have delta distributions
 		
-		//直接光照中，含有Scattering_S材质由递归来处理
+		//直接光照中，不处理有Scattering_S材质由递归来处理
 		if (!RenderLib::matchScatterFlag(bsdf,
 			EScattering_S | EScattering_Surface)
 			&& scene->intersect(castRay, &itsRec))
@@ -174,19 +174,15 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 			}
 		}
 
-		if (RenderLib::matchScatterFlag(bsdf, EScattering_S | EScattering_Surface))
-		{
-			specularSurfaceRec = surSRec;
-			cameraRay = castRay;
-		}
 	}//end !lsRec.light->isDelta()
 
+#if 0
 	//处理EScattering_S
 	if (RenderLib::matchScatterFlag(bsdf, EScattering_S | EScattering_Surface))
 	{
 		if (specularSurfaceRec.scatterFlag & EScattering_Reflection)
 		{
-			L += itsRec.material->refectance(itsRec) *
+			L += itsRec.material->reflectance(itsRec) *
 				specularSurfaceRec.sampleValue * Li(cameraRay, depth + 1,
 				cameraSampleRec,
 				scene,
@@ -203,6 +199,7 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 					rng, arena) / specularSurfaceRec.pdf;
 		}
 	}
+#endif 
 	return L;
 
 

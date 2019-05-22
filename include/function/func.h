@@ -185,7 +185,6 @@ namespace ls
 			ls_Param_In const Normal& normal,
 			ls_Param_In const Vec3& wo,
 			ls_Param_In const Vec3& wi,
-			ls_Param_In u32 sf,
 			ls_Param_In u32 mode,
 			ls_Param_In ls_Param_Out ScatteringRecord*sr);
 
@@ -193,7 +192,6 @@ namespace ls
 			ls_Param_In const Point3& pos,
 			ls_Param_In const Normal& normal,
 			ls_Param_In const Vec3& wo,
-			ls_Param_In u32 sf,
 			ls_Param_In u32 mode,
 			ls_Param_In ls_Param_Out ScatteringRecord*sr);
 
@@ -206,6 +204,18 @@ namespace ls
 			ls_Param_In SamplerPtr		sampler,
 			ls_Param_In ScatteringFunctionPtr bsdf,
 			ls_Param_In ls_Param_Out ScatteringRecord * sr);
+
+		static f32 snellLaw(
+			ls_Param_In f32 etaI,
+			ls_Param_In f32 cosThetaI,
+			ls_Param_In f32 etaT);
+
+
+		static f32 fresnelDielectric(f32 cosThetaI, f32 etaI,
+			f32 cosThetaT, f32 etaT);
+
+		
+		
 	};
 
 	struct GeometryLib

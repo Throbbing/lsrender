@@ -9,6 +9,7 @@ namespace ls
 {
 	struct Point3;
 	struct Vec3;
+	struct Normal;
 
 	struct lsMath
 	{
@@ -61,6 +62,12 @@ namespace ls
 
 		static f32 radian2Degree(float radian);
 		static f32 degree2Radian(float degree);
+
+		static bool refract(ls_Param_In const Normal& n,
+			ls_Param_In const Vec3& wi,
+			ls_Param_In f32 etaI,
+			ls_Param_In f32 etaT,
+			ls_Param_Out Vec3* wt);
 
 #define Mat2XMMATRIX(m) DirectX::XMLoadFloat4x4((const DirectX::XMFLOAT4X4*)(m))
 #define XMMATRIX2Mat(dest,xm) DirectX::XMStoreFloat4x4((DirectX::XMFLOAT4X4*)dest,xm)

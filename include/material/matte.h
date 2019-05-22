@@ -24,7 +24,7 @@ namespace ls
 		virtual ScatteringFunctionPtr	getSurfaceScattering()	{ return mLambertian; }
 		virtual ScatteringFunctionPtr	getMediumScattering()	{ return nullptr; }
 
-		virtual Spectrum refectance(
+		virtual Spectrum reflectance(
 			ls_Param_In const IntersectionRecord& ir) override;
 		virtual Spectrum transmittance(
 			ls_Param_In const IntersectionRecord& ir) override;

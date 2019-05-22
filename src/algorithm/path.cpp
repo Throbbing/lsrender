@@ -130,14 +130,13 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 					itsRec.ns,
 					-castRay.dir,
 					wi,
-					bsdf->scatteringFlag(),
 					TransportMode::ETransport_Radiance,
 					&surSRec);
 
 				RenderLib::surfaceBSDFValueAndPdf(bsdf, &surSRec);
 
 				auto bsdfPdfW = surSRec.pdf;
-				auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
+				auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec,itsRec);
 
 				auto visible = RenderLib::visible(scene, lightPoint, itsRec.position);
 
@@ -166,14 +165,13 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			RenderLib::fillScatteringRecordForBSDFSample(itsRec.position,
 				itsRec.ns,
 				-castRay.dir,
-				bsdf->scatteringFlag(),
 				TransportMode::ETransport_Radiance,
 				&surSRec);
 
 			RenderLib::sampleSurfaceBSDF(sampler, bsdf, &surSRec);
 
 			auto bsdfPdfW = surSRec.pdfRadiance;
-			auto bsdfVal = surSRec.sampleValue * itsRec.material->refectance(itsRec);
+			auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec,itsRec);
 			auto wi = surSRec.wi;
 
 			if (lsMath::closeZero(bsdfPdfW) || bsdfVal.isBlack())

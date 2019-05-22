@@ -17,10 +17,14 @@ namespace ls
 		virtual ScatteringFunctionPtr getSurfaceScattering() { return nullptr; }
 		virtual ScatteringFunctionPtr getMediumScattering()  { return nullptr; }
 
-		virtual Spectrum refectance(
+		virtual Spectrum reflectance(
 			ls_Param_In const IntersectionRecord& ir) = 0;
 		virtual Spectrum transmittance(
 			ls_Param_In const IntersectionRecord& ir) = 0;
+
+		virtual Spectrum scatteringFactor(
+			ls_Param_In const ScatteringRecord& sr,
+			ls_Param_In const IntersectionRecord& ir);
 
 		virtual void commit() = 0;
 

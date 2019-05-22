@@ -2,6 +2,7 @@
 #include<sampler/sampler.h>
 #include<function/func.h>
 #include<record/record.h>
+#include<resource/xmlHelper.h>
 void ls::Lambertian::sample(ls_Param_In Sampler * sampler, ls_Param_Out ScatteringRecord * rec)
 {
 	auto uv = sampler->next2D();
@@ -12,7 +13,9 @@ void ls::Lambertian::sample(ls_Param_In Sampler * sampler, ls_Param_Out Scatteri
 	else
 		rec->pdfImportance = rec->pdf;
 
+
 	rec->scatterFlag = mSFlag;
+	rec->sampledValue = lsMath::InvPi;
 
 }
 
@@ -34,4 +37,13 @@ std::string ls::Lambertian::strOut() const
 	oss << "Scatter: " << "Lambertian" << std::endl;
 	oss << ls_Separator << std::endl;
 	return oss.str();
+}
+
+
+
+ls::Lambertian::Lambertian(ParamSet& paramSet) :ScatteringFunction(ScatteringFlag::EScattering_D
+	| ScatteringFlag::EScattering_Reflection
+	| ScatteringFlag::EScattering_Surface)
+{
+
 }

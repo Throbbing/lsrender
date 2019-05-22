@@ -35,7 +35,7 @@ bool ls::RenderLib::visible(ScenePtr scene, Point p0, Point p1,f32 time)
 	auto dist = dir.length();
 	dir /= dist;
 
-	Ray ray = Ray(p0, dir, 0, time, 1.f, dist - 0.1f);
+	Ray ray = Ray(p0, dir, 0, time, 0.1f, dist - 0.1f);
 
 	return !scene->occlude(ray);
 }
@@ -59,7 +59,6 @@ void ls::RenderLib::fillScatteringRecordForBSDFValueAndPdf(
 	ls_Param_In const Normal & normal, 
 	ls_Param_In const Vec3 & wo, 
 	ls_Param_In const Vec3 & wi, 
-	ls_Param_In u32 sf, 
 	ls_Param_In u32 mode, 
 	ls_Param_In ls_Param_Out ScatteringRecord * sr)
 {
@@ -67,7 +66,6 @@ void ls::RenderLib::fillScatteringRecordForBSDFValueAndPdf(
 	sr->normal = normal;
 	sr->wi = wi;
 	sr->wo = wo;
-	sr->scatterFlag = sf;
 	sr->transportMode = mode;
 
 }
@@ -76,14 +74,12 @@ void ls::RenderLib::fillScatteringRecordForBSDFSample(
 	ls_Param_In const Point3 & pos, 
 	ls_Param_In const Normal & normal, 
 	ls_Param_In const Vec3 & wo, 
-	ls_Param_In u32 sf, 
 	ls_Param_In u32 mode, 
 	ls_Param_In ls_Param_Out ScatteringRecord * sr)
 {
 	sr->position = pos;
 	sr->normal = normal;
 	sr->wo = wo;
-	sr->scatterFlag = sf;
 	sr->transportMode = mode;
 }
 
@@ -96,7 +92,7 @@ void ls::RenderLib::surfaceBSDFValueAndPdf(
 	Frame frame(sr->normal);
 	auto wi = frame.toLocal(sr->wi);
 	auto wo = frame.toLocal(sr->wo);
-	sr->sampleValue = bsdf->f(wi, wo);
+	sr->sampledValue = bsdf->f(wi, wo);
 	sr->pdf = bsdf->pdf(wi);
 }
 
@@ -107,11 +103,33 @@ void ls::RenderLib::sampleSurfaceBSDF(
 {
 	Frame frame(sr->normal);
 	auto localWo = frame.toLocal(sr->wo);
+	auto globalWo = sr->wo;
+	sr->wo = localWo;
+
 	bsdf->sample(sampler, sr);
-	sr->sampleValue = bsdf->f(sr->wi, localWo);
 	sr->wi = frame.toWorld(sr->wi);
+	sr->wo = globalWo;
 	
-	
+}
+
+f32 ls::RenderLib::snellLaw(ls_Param_In f32 etaI, ls_Param_In f32 cosThetaI, ls_Param_In f32 etaT)
+{
+	f32 sinThetaI = std::sqrtf(std::max(0.f, 1.f - cosThetaI * cosThetaI));
+
+	f32 sinThetaT = etaI / etaT * sinThetaI;
+
+	f32 cosThetaT = std::sqrtf(std::max(0.f, 1.f - cosThetaT * cosThetaT));
+	return cosThetaT;
+}
+
+f32 ls::RenderLib::fresnelDielectric(f32 cosThetaI, f32 etaI, f32 cosThetaT, f32 etaT)
+{
+	f32 temp1 = ((etaT * cosThetaI) - (etaI * cosThetaT)) /
+		((etaT * cosThetaI) + (etaI * cosThetaT));
+	f32 temp2 = ((etaI * cosThetaI) - (etaT* cosThetaT)) /
+		((etaI * cosThetaI) + (etaT*cosThetaT));
+
+	return (temp1* temp2 + temp2 *temp2) *0.5f;
 }
 
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)

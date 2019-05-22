@@ -2,20 +2,26 @@
 #include<scatter/scatter.h>
 #include<config/declaration.h>
 #include<config/lsPtr.h>
+
 namespace ls
 {
-	
-	class Lambertian :public ScatteringFunction
+
+	class Dielectric :public ScatteringFunction
 	{
 		friend ResourceManager;
 	public:
-		Lambertian() :
-			ScatteringFunction(ScatteringFlag::EScattering_D
-				| ScatteringFlag::EScattering_Reflection 
-				| ScatteringFlag::EScattering_Surface) {}
+		Dielectric(f32 etaI,f32 etaT) :
+			ScatteringFunction(ScatteringFlag::EScattering_S
+				| ScatteringFlag::EScattering_Reflection
+				| ScatteringFlag::EScattering_Transmission
+				| ScatteringFlag::EScattering_Surface) 
+		{
+			mEtaI = etaI;
+			mEtaT = etaT;
+		}
 
 
-		virtual bool isDelta() { return false; }
+		virtual bool isDelta() { return true; }
 
 		virtual void sample(ls_Param_In Sampler* sampler,
 			ls_Param_Out ScatteringRecord* rec) override;
@@ -28,11 +34,12 @@ namespace ls
 		virtual std::string strOut() const override;
 
 	protected:
-		Lambertian(ParamSet& paramSet);
+		Dielectric(ParamSet& paramSet);
 
 	private:
+		f32			mEtaI;
+		f32			mEtaT;
 
-		
 
 
 

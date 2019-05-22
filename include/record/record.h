@@ -120,14 +120,24 @@ namespace ls
 		//Mode == Importance    指向光源
 		Vec3				wo;
 
+		//@scatterFlag			scatteringFunction 采样类型
 		u32					scatterFlag;
+
+#if 0
+		//@sampledRayFlag		采样得到类型
+		//Note:					有些BSDF（例如Glass）即包含反射又包含折射
+		//						该标签用来判断 采样后BSDF的方向，属于折射还是反射
+		//EScattering_Reflection   反射
+		//EScattering_Transmission 折射
+		u32					sampledFlag;
+#endif
 
 		//@transportMode       传输类型
 		//Radiance			   从相机开始传输
 		//Importance           从光源开始传输
 		u32					transportMode;
 
-		ls::Spectrum		sampleValue;
+		ls::Spectrum		sampledValue;
 		f32					pdfRadiance;
 		f32					pdfImportance;
 		f32					pdf;

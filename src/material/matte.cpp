@@ -3,7 +3,7 @@
 #include<resource/xmlHelper.h>
 #include<texture/texture.h>
 #include<texture/constantTexture.h>
-ls::Spectrum ls::Matte::refectance(ls_Param_In const IntersectionRecord& ir)
+ls::Spectrum ls::Matte::reflectance(ls_Param_In const IntersectionRecord& ir)
 {
 	return mReflectance->fetch(&ir);
 }
