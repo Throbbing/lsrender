@@ -36,6 +36,7 @@ namespace ls
 		virtual u32			getHeight() const	{ return mHeight; }
 		virtual void*		getRawData() override	{ return &mData[0]; }
 		virtual const void* getRawData() const  override	{ return &mData[0]; }
+
 		virtual TextureChannelType
 			getChannelType() const { return mChannelType; }
 		virtual	u32			getBPP() const { return mBPP;}
@@ -48,7 +49,10 @@ namespace ls
 		virtual std::string strOut() const override;
 		virtual Spectrum	fetch(ls_Param_In const IntersectionRecord* rec) override;
 
-		
+		s32 inline fetch(s32 x, s32 y)
+		{
+			return y *mWidth + x;
+		}
 
 		
 	protected:

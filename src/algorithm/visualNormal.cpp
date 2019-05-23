@@ -29,7 +29,7 @@ ls::Spectrum ls::VisualNormal::Li(
 //		return Spectrum(1, 0, 0);
 
 	}
-	return Spectrum(0.f);
+	return Spectrum(1.f,0.f,0.f);
 }
 
 std::string ls::VisualNormal::strOut() const

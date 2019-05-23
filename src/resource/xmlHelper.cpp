@@ -278,7 +278,7 @@ namespace ls
 			transform = Transform::Mat4x42WorldMTS(target,origin,
 				up);
 
-			return transform;
+			return transform.getMat().transpose();
 		}
 
 
@@ -521,11 +521,11 @@ namespace ls
 
 			lsCamera.addTransform("c2w", mtsCamera.queryTransform("toWorld"));
 			lsCamera.addf32("focalLength", mtsCamera.queryf32("flocalLength"));
-			lsCamera.addf32("fov", mtsCamera.queryf32("fov"));
-			lsCamera.addf32("shutterStart", mtsCamera.queryf32("shutterOpen"));
-			lsCamera.addf32("shutterEnd", mtsCamera.queryf32("shutterClose"));
-			lsCamera.addf32("nearZ", mtsCamera.queryf32("nearClip"));
-			lsCamera.addf32("farZ", mtsCamera.queryf32("farClip"));
+			lsCamera.addf32("fov", mtsCamera.queryf32("fov",45.f));
+			lsCamera.addf32("shutterStart", mtsCamera.queryf32("shutterOpen",0.f));
+			lsCamera.addf32("shutterEnd", mtsCamera.queryf32("shutterClose",0.f));
+			lsCamera.addf32("nearZ", mtsCamera.queryf32("nearClip",0.01f));
+			lsCamera.addf32("farZ", mtsCamera.queryf32("farClip",10000.f));
 		}
 		else
 		{
@@ -661,7 +661,7 @@ namespace ls
 
 	ParamSet XMLParser::mts2lsTexture(XMLPackage & src, Spectrum mtsTexture)
 	{
-		ParamSet lsTexture("texture", "constantTexture", "constant", "constant");
+		ParamSet lsTexture("texture", "constantTexture", "", "constant");
 		lsTexture.addSpectrum("color", mtsTexture);
 		return lsTexture;
 	}

@@ -81,6 +81,12 @@ namespace ls
 			return phi < 0.f ? phi + 2 * lsMath::PI: phi;
 		}
 
+		static bool hemisphere(const Vec3& v0,
+			const Vec3& v1)
+		{
+			return v0.z * v1.z > 0.f;
+		}
+
 		static void constructFrame(ls_Param_In const Vec3& v1,
 			ls_Param_Out Vec3* v2,
 			ls_Param_Out Vec3* v3)

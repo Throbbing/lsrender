@@ -92,8 +92,21 @@ void ls::RenderLib::surfaceBSDFValueAndPdf(
 	Frame frame(sr->normal);
 	auto wi = frame.toLocal(sr->wi);
 	auto wo = frame.toLocal(sr->wo);
+
 	sr->sampledValue = bsdf->f(wi, wo);
 	sr->pdf = bsdf->pdf(wi);
+
+	//Í¬°ëÇò£¬·´Éä
+	if (Frame::hemisphere(wi, wo))
+	{
+		sr->scatterFlag = (bsdf->scatteringFlag() & (~EScattering_Transmission));
+	}
+	//Òì°ëÇò£¬ÕÛÉä
+	else
+	{
+		sr->scatterFlag = (bsdf->scatteringFlag() & (~EScattering_Reflection));
+	}
+
 }
 
 void ls::RenderLib::sampleSurfaceBSDF(

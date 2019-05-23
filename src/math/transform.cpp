@@ -168,10 +168,10 @@ Mat4x4 ls::Transform::Mat4x42WorldMTS(const Vec3 & t, const Vec3 & p, const Vec3
 	auto left = cross(up, look);
 	Vec3 newUp = cross(look, left);
 
-	Mat4x4 m(left.x, newUp.x, look.x, 0,
-		left.y, newUp.y, look.y, 0,
-		left.z, newUp.z, look.z, 0,
-		p.x, p.y, p.z, 1.f);
+	Mat4x4 m(left.x, newUp.x, look.x, p.x,
+		left.y, newUp.y, look.y, p.y,
+		left.z, newUp.z, look.z, p.z,
+		0.f, 0.f, 0.f, 1.f);
 	return m;
 }
 

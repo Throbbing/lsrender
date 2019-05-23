@@ -45,6 +45,7 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 	//¶ÁÈ¡äÖÈ¾Ëã·¨
 	{
 		mAlgorithm = ResourceManager::createAlgorithm(package.mParamSets[package.mIntegrator]);
+//		mAlgorithm = new VisualNormal();
 		mAlgorithm->commit();
 	}
 
@@ -189,6 +190,7 @@ void ls::Scene::deleteLight(Light * light)
 
 void ls::Scene::render()
 {
+	ls::Log::log("Start Render ! \n");
 	auto threadUsedCount = std::thread::hardware_concurrency();
 	u32 hasProcess = 0;
 	u32 allProcess = mCamera->getFilm()->getWidth() * mCamera->getFilm()->getHeight() * lsRender::sampleInfo.iterations;
@@ -270,7 +272,7 @@ void ls::Scene::render()
 
 	auto renderTime = timer.deltaTime();
 
-	ls::Log::log("Render Time: %f s !", renderTime);
+	ls::Log::log("Render Time: %f s ! \n", renderTime);
 
 #if 0
 	u32 startThread = std::min(threadUsedCount, (u32)renderBlocks.size());

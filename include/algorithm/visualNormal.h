@@ -10,7 +10,7 @@ namespace ls
 		VisualNormal():RenderAlgorithm("VisualNormal"){}
 		virtual ~VisualNormal(){}
 
-
+		virtual RenderAlgorithmPtr copy() const override { return new VisualNormal(); }
 
 		virtual ls::Spectrum Li(ls_Param_In const DifferentialRay ray,
 			ls_Param_In s32	depth,

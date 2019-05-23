@@ -12,27 +12,29 @@
 #include<resource\resourceManager.h>
 #include<config\common.h>
 
-
+#define PrePath "dragon//"
+#define FileName "dragon.xml"
+#define OutName "dragon.png"
 int main()
 {
 	ls::lsEmbree::initEmbree();
 	
 //	ls::ResourceManager::loadTextureFromFileW("cbox", L"skylight-morn.exr");
 
-	auto package = ls::XMLParser::loadXMLFromMTSFile("cbox//", 
-		"cbox.xml");
+	auto package = ls::XMLParser::loadXMLFromMTSFile(PrePath, 
+		FileName);
 
 //	ls::XMLParser::printXMLPackage(package);
-	ls::ResourceManager::setPath("cbox//");
+	ls::ResourceManager::setPath(PrePath);
 	auto scene = ls::ResourceManager::createSceneObj();
 
-	scene->setSceneFromXML("cbox//", package);
+	scene->setSceneFromXML(PrePath, package);
 	
 
 	scene->render();
 
 	ls::ResourceManager::write2File(scene->getMainFilm()->convert2Texture(),
-		"cbox.png");
+		OutName);
 	
 	
 	std::cout << "FINISHED!" << std::endl;

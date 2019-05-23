@@ -59,15 +59,20 @@ namespace ls
 			return r;
 #endif
 		}
-		Point3 operator()(const Point3& p) const
+		Point3  operator()(const Point3& p) const
 		{
 
-			auto xmp = DirectX::XMLoadFloat3((DirectX::XMFLOAT3*)(&p));
-			auto xmm = DirectX::XMLoadFloat4x4((DirectX::XMFLOAT4X4*)(&matrix));
-			auto xmr = DirectX::XMVector3TransformCoord(xmp, xmm);
-			Point3 r;
-			DirectX::XMStoreFloat3((DirectX::XMFLOAT3*)(&r), xmr);
-			return r;
+			Vec3 r;
+			r.x = p.x*matrix(0, 0) + p.y*matrix(1, 0) + p.z*matrix(2, 0) + matrix(3, 0);
+			r.y = p.x*matrix(0, 1) + p.y*matrix(1, 1) + p.z*matrix(2, 1) + matrix(3, 1);
+			r.z = p.x*matrix(0, 2) + p.y*matrix(1, 2) + p.z*matrix(2, 2) + matrix(3, 2);
+
+			f32 w = p.x*matrix(0, 3) + p.y*matrix(1, 3) + p.z*matrix(2, 3) + matrix(3, 3);
+
+			if (w != 1.f)
+				r /= w;
+
+			return Point3(r);
 
 		}
 		Normal operator()(const Normal& n) const 
