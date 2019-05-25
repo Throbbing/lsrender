@@ -35,6 +35,13 @@ namespace ls
 	const f32 BtoZWeight[3] = { 0.019334f, 0.119193f, 0.950227f };
 
 
+	inline f32 toSRGB(f32 v)
+	{
+		if (v < 0.0031308f)
+			return 12.92f * v;
+
+		return 1.055 * std::powf(v, 1.0 / 2.4) - 0.055;
+	}
 	//光谱
 	//RGBSpectrum
 	class Spectrum
@@ -70,6 +77,13 @@ namespace ls
 			rgb[0] = c[0];
 			rgb[1] = c[1];
 			rgb[2] = c[2];
+		}
+
+		void toSRGB(f32 srgb[3]) const
+		{
+			srgb[0] = ls::toSRGB(c[0]);
+			srgb[1] = ls::toSRGB(c[1]);
+			srgb[2] = ls::toSRGB(c[2]);
 		}
 
 		u32 capRGBA() const
@@ -144,7 +158,7 @@ namespace ls
 		}
 
 		//调试函数，将Spectrum转换为可读的String
-		std::string toString() const 
+		std::string toString() const
 		{
 			std::ostringstream ss;
 			ss << "Spectrum: " << c[0] << " " << c[1] << " " << c[2] << std::endl;
@@ -156,7 +170,7 @@ namespace ls
 		friend Spectrum operator * (f32 v, const Spectrum& s);
 
 
-		
+
 	private:
 		//RGB
 		f32 c[3];
@@ -177,4 +191,7 @@ namespace ls
 	{
 		return Spectrum(std::expf(s[0]), std::expf(s[1]), std::expf(s[2]));
 	}
+
+
+
 }

@@ -3,13 +3,7 @@
 #include<texture/imageTexture.h>
 #include<resource/xmlHelper.h>
 #include<resource/resourceManager.h>
-f32 toSRGB(f32 v)
-{
-	if (v < 0.0031308f)
-		return 12.92f * v;
 
-	return 1.055 * std::powf(v, 1.0 / 2.4) - 0.055;
-}
 
 ls::FilmPtr ls::HDRFilm::copy() const
 {

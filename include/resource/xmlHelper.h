@@ -27,8 +27,9 @@ namespace ls
 		ParamSet		queryRefObject(const std::map<std::string, std::string>& refs,
 			ParamSetType type);
 
-		ParamSet		queryParamSetByType(const std::string& type);
-		ParamSet		queryParamSetByName(const std::string& name);
+		std::vector<ParamSet>	queryParamSetByClass(const std::string& varClass);
+		std::vector<ParamSet>	queryParamSetByType(const std::string& varType);
+		ParamSet				queryParamSetByName(const std::string& name);
 	};
 
 	
@@ -69,7 +70,7 @@ namespace ls
 		static ParamSet			mts2lsMaterial(XMLPackage& src, ParamSet& mtsBSDF);
 		static ParamSet			mts2lsTextureParameter(XMLPackage& src, const std::string& parameter, ParamSet& param);
 		static ParamSet			mts2lsTexture(XMLPackage& src, ParamSet& mtsTexture);
-		static ParamSet			mts2lsTexture(XMLPackage& src, Spectrum mtsTexture);
+		static ParamSet			mts2lsTexture(XMLPackage& src, Spectrum mtsTexture,const std::string& name,const std::string& id);
 		static ParamSet			mts2lsMesh(XMLPackage& src, ParamSet& mtsShape);
 		static ParamSet			mts2lsSampler(XMLPackage& src, ParamSet& mtsSampler);
 		static ParamSet			mts2lsLight(XMLPackage& src, ParamSet& mtsLight);

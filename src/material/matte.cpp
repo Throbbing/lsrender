@@ -28,17 +28,9 @@ std::string ls::Matte::strOut() const
 
 ls::Matte::Matte(ParamSet & paramSet)
 {
-	ParamSet texSet = paramSet.queryParamSetByName("bitmap");
-	if (texSet.isValid())
-	{
-		mReflectance = ResourceManager::createTexture(texSet);
-	}
-	else
-	{
-		texSet = ParamSet("texture", "constant", "constant", "");
-		texSet.addSpectrum("color", paramSet.queryParamSetByType("texture").querySpectrum("color"));
-		mReflectance = ResourceManager::createTexture(texSet);
-	}
+	auto tex = paramSet.queryParamSetByName("reflectance");
+
+	mReflectance = ResourceManager::createTexture(tex);
 
 	ParamSet lambertian = ParamSet("scatteringFunction", "lambertian", "lambertian", "");
 	mLambertian = ResourceManager::createScatteringFunction(lambertian);

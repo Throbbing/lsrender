@@ -75,20 +75,33 @@ namespace ls
 
 		return Transforms[name];
 	}
-	ParamSet ParamSet::queryParamSetByType(const std::string & type)
+
+	std::vector<ParamSet> ParamSet::queryParamSetByClass(const std::string & varClass)
 	{
+		std::vector<ParamSet> paramSets;
 		for (auto& p : childParamSets)
 		{
-			if (p.type == type)
-				return p;
+			if (p.varClass == varClass)
+				paramSets.push_back(p);
 		}
-		return ParamSet();
+		return paramSets;
+	}
+
+	std::vector<ParamSet> ParamSet::queryParamSetByType(const std::string & type)
+	{
+		std::vector<ParamSet> paramSets;
+		for (auto& p : childParamSets)
+		{
+			if (p.varType == type)
+				paramSets.push_back(p);
+		}
+		return paramSets;
 	}
 	ParamSet ParamSet::queryParamSetByName(const std::string & name)
 	{
 		for (auto& p : childParamSets)
 		{
-			if (p.name == name)
+			if (p.varName == name)
 				return p;
 		}
 		return ParamSet();
@@ -129,7 +142,7 @@ namespace ls
 	{
 		Transforms[name] = value;
 	}
-	void ParamSet::addParamSet(const std::string & name, ParamSet value)
+	void ParamSet::addParamSet(ParamSet value)
 	{
 		childParamSets.push_back(value);
 	}

@@ -167,7 +167,7 @@ ls::ImageData ls::ResourceManager::loadTextureFromFile(Path  fullPath)
 
 
 	//所以需要倒置纹理
-	FreeImage_FlipVertical(dib);
+//	FreeImage_FlipVertical(dib);
 
 	//创建纹理数据结构
 
@@ -177,11 +177,15 @@ ls::ImageData ls::ResourceManager::loadTextureFromFile(Path  fullPath)
 	auto bpp = FreeImage_GetBPP(dib);
 	auto colorType = FreeImage_GetColorType(dib);
 	
+	
+
 	std::vector<Spectrum> data(width *height);
 
 	if (fif != FIF_EXR)
 	{
 		RGBQUAD rgb;
+		if (bpp != 24)
+			dib = FreeImage_ConvertTo24Bits(dib);
 		for (u32 y = 0; y < height; ++y)
 		{
 			for (u32 x = 0; x < width; ++x)
@@ -242,15 +246,15 @@ ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
 
 ls::RenderAlgorithmPtr ls::ResourceManager::createAlgorithm(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "renderAlgorithm");
+	ls_Assert(paramSet.getClass() == "renderAlgorithm");
 
 	RenderAlgorithmPtr renderAlgorithm = nullptr;
 
-	if (paramSet.getName() == "direct")
+	if (paramSet.getType() == "direct")
 	{
 		renderAlgorithm = new DirectTracer(paramSet);
 	}
-	else if (paramSet.getName() == "path")
+	else if (paramSet.getType() == "path")
 	{
 		renderAlgorithm = new PathTracer(paramSet);
 	}
@@ -263,14 +267,14 @@ ls::RenderAlgorithmPtr ls::ResourceManager::createAlgorithm(ParamSet & paramSet)
 
 ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "camera");
+	ls_Assert(paramSet.getClass() == "camera");
 
 	CameraPtr camera = nullptr;
 
-	if (paramSet.getName() == "pinhole" || paramSet.getName() == "pinholeCamera")
+	if (paramSet.getType() == "pinhole" || paramSet.getType() == "pinholeCamera")
 	{
 		camera = new Pinhole(paramSet);
-		camera->addFilm(createFilm(paramSet.queryParamSetByType("film")));
+		camera->addFilm(createFilm(paramSet.queryParamSetByClass("film")[0]));
 	}
 
 
@@ -282,15 +286,15 @@ ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
 
 ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "scatteringFunction");
+	ls_Assert(paramSet.getClass() == "scatteringFunction");
 
 	ScatteringFunctionPtr scatter = nullptr;
 
-	if (paramSet.getName() == "lambertian")
+	if (paramSet.getType() == "lambertian")
 	{
 		scatter = new Lambertian();
 	}
-	else if (paramSet.getName() == "dielectric")
+	else if (paramSet.getType() == "dielectric")
 	{
 		
 		scatter = new Dielectric(paramSet);
@@ -305,11 +309,11 @@ ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet
 
 ls::FilmPtr ls::ResourceManager::createFilm(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "film");
+	ls_Assert(paramSet.getClass() == "film");
 	
 	FilmPtr film = nullptr;
 	
-	if (paramSet.getName() == "hdr")
+	if (paramSet.getType() == "hdr")
 	{
 		film = new HDRFilm(paramSet);
 	}
@@ -322,16 +326,16 @@ ls::FilmPtr ls::ResourceManager::createFilm(ParamSet & paramSet)
 
 ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "light");
+	ls_Assert(paramSet.getClass() == "light");
 	LightPtr light = nullptr;
 
-	if (paramSet.getName() == "pointLight" || paramSet.getName() == "point")
+	if (paramSet.getType() == "pointLight" || paramSet.getType() == "point")
 	{
 		light = new PointLight(paramSet);
 	}
 	else
 	{
-		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		auto t = paramSet.getType() + " in mitsuba has not been supported in lsrender!";
 		ls_AssertMsg(false, t);
 	}
 	if (light)
@@ -342,21 +346,21 @@ ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
 
 ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "material");
+	ls_Assert(paramSet.getClass() == "material");
 
 	MaterialPtr material = nullptr;
 
-	if (paramSet.getName() == "matte")
+	if (paramSet.getType() == "matte")
 	{
 		material = new Matte(paramSet);
 	}
-	else if (paramSet.getName() == "glass")
+	else if (paramSet.getType() == "glass")
 	{
 		material = new Glass(paramSet);
 	}
 	else
 	{
-		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		auto t = paramSet.getType() + " in mitsuba has not been supported in lsrender!";
 		ls_AssertMsg(false, t);
 	}
 	if (material)
@@ -367,7 +371,7 @@ ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
 
 ls::SamplerPtr ls::ResourceManager::createSampler(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "sampler");
+	ls_Assert(paramSet.getClass() == "sampler");
 
 	SamplerPtr sampler = nullptr;
 
@@ -382,15 +386,15 @@ ls::SamplerPtr ls::ResourceManager::createSampler(ParamSet & paramSet)
 
 ls::TexturePtr ls::ResourceManager::createTexture(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "texture");
+	ls_Assert(paramSet.getClass() == "texture");
 
 	TexturePtr texture = nullptr;
 
-	if (paramSet.getName() == "constantTexture" || paramSet.getName() == "constant")
+	if (paramSet.getType() == "constantTexture" || paramSet.getType() == "constant")
 	{
 		texture = new ConstantTexture(paramSet);
 	}
-	else if (paramSet.getName() == "imageTexture" || paramSet.getName() == "image")
+	else if (paramSet.getType() == "imageTexture" || paramSet.getType() == "image")
 	{
 		texture = new ImageTexture(paramSet);
 	}
@@ -404,18 +408,18 @@ ls::TexturePtr ls::ResourceManager::createTexture(ParamSet & paramSet)
 
 std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 {
-	ls_Assert(paramSet.getType() == "mesh");
+	ls_Assert(paramSet.getClass() == "mesh");
 
 	MeshPtr mesh = nullptr;
 
-	if (paramSet.getName() == "triMesh" || paramSet.getName() == "tri")
+	if (paramSet.getType() == "triMesh" || paramSet.getType() == "tri")
 	{
 		auto fullPath = paramSet.queryString("filename");
 		auto t = loadMeshFromFile(fullPath);
 
 		for (auto& p : t)
 		{
-			p->applyMaterial(createMaterial(paramSet.queryParamSetByType("material")));
+			p->applyMaterial(createMaterial(paramSet.queryParamSetByClass("material")[0]));
 			p->applyTransform(paramSet.queryTransform("world"));
 		}
 
@@ -423,7 +427,7 @@ std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 	}
 	else
 	{
-		auto t = paramSet.getName() + " in mitsuba has not been supported in lsrender!";
+		auto t = paramSet.getType() + " in mitsuba has not been supported in lsrender!";
 		ls_AssertMsg(false, t);
 	}
 
@@ -438,7 +442,7 @@ std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 void ls::ResourceManager::write2File(ls::Texture * texture,
 	const Path& fullPath)
 {
-
+	
 	auto ext = fullPath.extension();
 
 	

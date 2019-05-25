@@ -51,7 +51,7 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 
 	//¶ÁÈ¡²ÉÑùÆ÷
 	{
-		mSampler = ResourceManager::createSampler(package.queryParamSetByType("sampler"));
+		mSampler = ResourceManager::createSampler(package.queryParamSetByClass("sampler")[0]);
 		mSampler->commit();
 	}
 

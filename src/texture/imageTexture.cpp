@@ -24,7 +24,8 @@ ls::ImageTexture::ImageTexture(u32 width,
 		{
 			for (u32 w = 0; w < mWidth; ++w)
 			{
-				mData[h * mWidth + w] = data[h* mWidth + w];
+//				f32 srgb[3]; data[h*mWidth + w].toSRGB(srgb);
+				mData[h * mWidth + w] = data[h*mWidth + w];
 			}
 		}
 	}
@@ -45,7 +46,8 @@ void ls::ImageTexture::setData(Spectrum * data)
 	{
 		for (u32 w = 0; w < mWidth; ++w)
 		{
-			mData[h* mWidth + w] = data[h*mWidth + w];
+//			f32 srgb[3]; data[h*mWidth + w].toSRGB(srgb);
+			mData[h * mWidth + w] = data[h*mWidth + w];
 		}
 	}
 }
@@ -116,6 +118,7 @@ ls::Spectrum ls::ImageTexture::fetch(ls_Param_In const IntersectionRecord * rec)
 #if 0
 	//µã²ÉÑù
 	{
+		auto v = mData[s32(uv.y) * mWidth + s32(uv.x)];
 		return mData[s32(uv.y) * mWidth + s32(uv.x)];
 	}
 #else

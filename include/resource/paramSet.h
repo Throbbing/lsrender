@@ -25,14 +25,15 @@ namespace ls
 	{
 		friend XMLParser;
 	public:
-		ParamSet(const std::string& strType,const std::string& n,
-			const std::string& varn,
-			const std::string& i):
-			type(strType),name(n),id(i),varName(varn)
+		ParamSet(const std::string& strClass,const std::string& type,
+			const std::string& name,
+			const std::string& id):
+			varClass(strClass),varType(type),varName(name),varID(id)
 		{
 			valid = true;
 			
 		}
+
 		ParamSet() { valid = false; }
 		bool isValid() const { return valid; }
 		f32 queryf32(const std::string& name, f32 value = 0.f) ;
@@ -48,8 +49,8 @@ namespace ls
 		Spectrum querySpectrum(const std::string& name, Spectrum value = Spectrum()) ;
 		Transform queryTransform(const std::string& name, Transform value = Transform()) ;
 		
-
-		ParamSet queryParamSetByType(const std::string& type) ;
+		std::vector<ParamSet> queryParamSetByClass(const std::string& varClass);
+		std::vector<ParamSet> queryParamSetByType(const std::string& type) ;
 		ParamSet queryParamSetByName(const std::string& name) ;
 
 		void addf32(const std::string& name, f32 value) ;
@@ -61,21 +62,21 @@ namespace ls
 		void addVec4(const std::string& name, Vec4 value);
 		void addSpectrum(const std::string& name, Spectrum value);
 		void addTransform(const std::string& name, Transform value);
-		void addParamSet(const std::string& name, ParamSet value);
+		void addParamSet(ParamSet value);
 		void addRef(const std::string& name, const std::string id);
 
 
-		std::string getType() { return type; }
-		std::string getName() { return name; }
-		std::string getVarName() { return varName; }
-		std::string getID() { return id; }
+		std::string getClass() { return varClass; }
+		std::string getType() { return varType; }
+		std::string getName() { return varName; }
+		std::string getID() { return varID; }
 
 	private:
 		bool				valid;
-		std::string			type;
-		std::string			name;
+		std::string			varClass;
+		std::string			varType;
 		std::string			varName;
-		std::string			id;
+		std::string			varID;
 		std::map<std::string, f32>			f32s;
 		std::map<std::string, s32>			s32s;
 		std::map<std::string, bool>			bools;

@@ -131,7 +131,7 @@ f32 ls::RenderLib::snellLaw(ls_Param_In f32 etaI, ls_Param_In f32 cosThetaI, ls_
 
 	f32 sinThetaT = etaI / etaT * sinThetaI;
 
-	f32 cosThetaT = std::sqrtf(std::max(0.f, 1.f - cosThetaT * cosThetaT));
+	f32 cosThetaT = std::sqrtf(std::max(0.f, 1.f - sinThetaT * sinThetaT));
 	return cosThetaT;
 }
 

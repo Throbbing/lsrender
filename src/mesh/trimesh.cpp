@@ -124,6 +124,7 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	dgRec->position = position;
 	dgRec->ng = ng;
 	dgRec->ns = ns;
+	dgRec->uv = uv;
 	dgRec->dpdu = mO2W(dpdu);
 	dgRec->dpdv = mO2W(dpdv);
 	dgRec->dpdx = Vec3(0.f);
