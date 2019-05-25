@@ -94,11 +94,12 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 
 		auto visible = RenderLib::visible(scene, itsRec.position, lightPoint);
 
+		if (light->isDelta()) bsdfPdfW = 0.f;
 
-
-		if (visible && !bsdfVal.isBlack() && dot(surSRec.normal, wi) > 0.f &&
-			!lsMath::closeZero(bsdfPdfW) && !lsMath::closeZero(lightPdfW))
+		if (visible && !bsdfVal.isBlack() && dot(surSRec.normal, wi) > 0.f 
+			&& !lsMath::closeZero(lightPdfW))
 		{
+
 			L += le  * bsdfVal * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
 				lightPdfW;
 		}
@@ -165,9 +166,9 @@ ls::Spectrum ls::DirectTracer::Li(ls_Param_In const DifferentialRay ray,
 		{
 			LightSampleRecord lsRec;
 			auto le = light->sample(cameraRay);
-			auto lightPdfW = light->pdf(cameraRay);
+			auto lightPdfW = !bsdf->isDelta() ? light->pdf(cameraRay) : 0.f;
 
-			if (!lsMath::closeZero(lightPdfW) && !le.isBlack())
+			if (!le.isBlack())
 			{
 				L += le * bsdfVal * std::fabs(dot(surSRec.normal, wi)) * RenderLib::mis(bsdfPdfW, lightPdfW)
 					/ bsdfPdfW;

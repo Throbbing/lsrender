@@ -140,8 +140,10 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 
 				auto visible = RenderLib::visible(scene, lightPoint, itsRec.position);
 
+				if (light->isDelta()) bsdfPdfW = 0.f;
+
 				if (visible && !bsdfVal.isBlack() && dot(surSRec.normal,wi) > 0.f &&
-					!lsMath::closeZero(bsdfPdfW) &&  !lsMath::closeZero(lightPdfW))
+					 !lsMath::closeZero(lightPdfW))
 				{
 					L += throughput * le *bsdfVal * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
 						lightPdfW;
@@ -210,7 +212,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			{
 				LightSampleRecord lsRec;
 				auto le = light->sample(castRay);
-				auto lightPdfW = light->pdf(castRay);
+				auto lightPdfW = !(bsdf->isDelta()) ? light->pdf(castRay) : 0.f;
 
 				
 
@@ -233,7 +235,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 		
 
 		//Russian roulette
-#if 1
+#if 0
 		{
 			//q is the probability that the path is continued ,while 1- q represent that the path will terminate
 			f32 q = std::min(0.95f, throughput.luminance());

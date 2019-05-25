@@ -35,7 +35,7 @@ bool ls::RenderLib::visible(ScenePtr scene, Point p0, Point p1,f32 time)
 	auto dist = dir.length();
 	dir /= dist;
 
-	Ray ray = Ray(p0, dir, 0, time, 0.1f, dist - 0.1f);
+	Ray ray = Ray(p0, dir, 0, time, 1e-4f, dist * (1.f - 1e-3f));
 
 	return !scene->occlude(ray);
 }
