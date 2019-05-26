@@ -1,4 +1,5 @@
- #include<config\common.h>
+#include<config/common.h>
+#include<scene/scene.h>
 #include<d3d11.h>
 #include<DirectXMath.h>
 #include<D3dcsx.h>
@@ -219,3 +220,4 @@ void ls::lsWnd::lsWndShutDown()
 
 ls::lsRender::_sampleInfo  ls::lsRender::sampleInfo;
 ls::lsRender::_sceneRenderBlockInfo ls::lsRender::sceneRenderBlockInfo;
+ls::ScenePtr ls::lsRender::scene = nullptr;

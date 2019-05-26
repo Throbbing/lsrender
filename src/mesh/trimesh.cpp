@@ -167,13 +167,16 @@ void ls::TriMesh::commit()
 	ls_AssertMsg(mEmbreeGem, "New Geometry Failed ");
 
 	{
+		mAABB = AABB();
 		auto vertices = (Point3*)rtcSetNewGeometryBuffer(mEmbreeGem, RTC_BUFFER_TYPE_VERTEX,
 			0, RTC_FORMAT_FLOAT3, sizeof(Point3), mVertices.size());
 		ls_AssertMsg(vertices, "Invalid Set Vertex Geometry Buffer");
 
 		for (int i = 0; i < mVertices.size(); ++i)
 		{
-			vertices[i] = mO2W(mVertices[i]);
+			auto v = mO2W(mVertices[i]);
+			vertices[i] = v;
+			mAABB.unionPoint(v);
 		}
 	}
 	

@@ -77,6 +77,10 @@ namespace ls
 		return lsMath::clamp(first - 1, 0, size - 2);
 	}
 
+	/*
+		Distribution1D & Distribution2D are both from PBRT-V3
+	*/
+
 	class Distribution1D 
 	{
 
@@ -135,6 +139,32 @@ namespace ls
 		// Distribution1D Public Data
 		std::vector<float> func, cdf;
 		float funcInt;
+	};
+
+	class Distribution2D {
+	public:
+		// Distribution2D Public Methods
+		Distribution2D(const f32 *data, int nu, int nv);
+		Point2 SampleContinuous(const Point2 &u, f32 *pdf) const {
+			f32 pdfs[2];
+			int v;
+			f32 d1 = pMarginal->SampleContinuous(u.y, &pdfs[1], &v);
+			f32 d0 = pConditionalV[v]->SampleContinuous(u.x, &pdfs[0]);
+			*pdf = pdfs[0] * pdfs[1];
+			return Point2(d0, d1);
+		}
+		f32 Pdf(const Point2 &p) const {
+			int iu = lsMath::clamp(int(p.x * pConditionalV[0]->Count()), 0,
+				pConditionalV[0]->Count() - 1);
+			int iv =
+				lsMath::clamp(int(p.y * pMarginal->Count()), 0, pMarginal->Count() - 1);
+			return pConditionalV[iv]->func[iu] / pMarginal->funcInt;
+		}
+
+	private:
+		// Distribution2D Private Data
+		std::vector<std::unique_ptr<Distribution1D>> pConditionalV;
+		std::unique_ptr<Distribution1D> pMarginal;
 	};
 
 	struct MonteCarlo

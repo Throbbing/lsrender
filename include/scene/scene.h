@@ -67,8 +67,9 @@ namespace ls
 
 		virtual void render();
 
-		auto  getLightCount() { return mSceneLights.size(); }
-		auto  getMeshCount() { return mSceneMeshs.size(); }
+		auto  getLightCount() const { return mSceneLights.size(); }
+		auto  getMeshCount()  const { return mSceneMeshs.size(); }
+		auto  getWorldAABB()  const { return mWorldAABB; }
 
 		FilmPtr getMainFilm() const;
 
@@ -85,7 +86,7 @@ namespace ls
 		RenderAlgorithmPtr	     mAlgorithm;
 		SamplerPtr				 mSampler;
 		
-		
+		AABB					 mWorldAABB;
 
 
 

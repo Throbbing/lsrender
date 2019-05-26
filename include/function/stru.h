@@ -57,9 +57,11 @@ namespace ls
 		AABB(const Point3& minp, const Point3& maxp) :
 			minP(minp), maxP(maxp) {}
 
-		f32 extent(s32 i) { return maxP[i] - minP[i]; }
+		f32  extent(s32 i) { return maxP[i] - minP[i]; }
 		void unionAABB(const AABB& aabb);
+		void unionPoint(const Point3& p);
 		bool inside(const Point3& p);
+		f32  maxExtent();
 
 		bool intersect(ls_Param_In const Ray& ray,
 			ls_Param_Out f32* t = nullptr);

@@ -1,5 +1,6 @@
 #pragma once
 #include<config/config.h>
+#include<config/lsPtr.h>
 #include<string>
 #include<d3d11.h>
 #include<3rd/DirectX/WICTextureLoader.h>
@@ -85,6 +86,8 @@ namespace ls
 			s32 blockSizeX = 40;
 			s32 blockSizeY = 40;
 		}sceneRenderBlockInfo;
+
+		static ScenePtr scene;
 
 	};
 

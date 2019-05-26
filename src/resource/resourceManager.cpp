@@ -247,9 +247,16 @@ ls::ImageData ls::ResourceManager::loadTextureFromFile(Path  fullPath)
 }
 
 
-ls_Smart(ls::Scene) ls::ResourceManager::createSceneObj()
+ls::ScenePtr ls::ResourceManager::createSceneObj()
 {
-	return ls_Smart(ls::Scene)(new ls::Scene());
+	if (lsRender::scene)
+		return lsRender::scene;
+
+	lsRender::scene = new Scene();
+
+	mModules.push_back(lsRender::scene);
+
+	return lsRender::scene;
 }
 
 ls::RenderAlgorithmPtr ls::ResourceManager::createAlgorithm(ParamSet & paramSet)

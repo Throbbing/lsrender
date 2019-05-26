@@ -21,7 +21,7 @@ namespace ls
 		static ImageData loadTextureFromFile(Path fullPath);
 
 
-		static ls_Smart(ls::Scene)   createSceneObj();
+		static ls::ScenePtr   createSceneObj();
 
 		static RenderAlgorithmPtr	 createAlgorithm(ParamSet& paramSet);
 		static CameraPtr			 createCamera(ParamSet& paramSet);

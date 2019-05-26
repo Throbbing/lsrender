@@ -91,6 +91,12 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 
 	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
 	
+	if (!mSceneMeshs.empty()) mWorldAABB = mSceneMeshs[0]->getAABB();
+
+	for (s32 i = 1; i < mSceneMeshs.size(); ++i)
+	{
+		mWorldAABB.unionAABB(mSceneMeshs[i]->getAABB());
+	}
 
 
 }

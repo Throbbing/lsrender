@@ -6,6 +6,7 @@
 #include<record/record.h>
 #include<math/transform.h>
 #include<spectrum/spectrum.h>
+#include<function/stru.h>
 namespace ls
 {
 	enum ESubdivision_Type
@@ -32,7 +33,7 @@ namespace ls
 		virtual ~Mesh() {}
 
 
-
+		AABB getAABB() const { return mAABB; }
 		
 		virtual bool intersect(ls_Param_In const ls::Ray& ray,
 			ls_Param_In const RTCRecord& rtc,
@@ -66,6 +67,7 @@ namespace ls
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const = 0;
 
+		
 	protected:
 		s32							mGeomID = -1;
 		const EMesh_Type			mMeshType;
@@ -73,6 +75,7 @@ namespace ls
 		Spectrum					mLightPower;
 		bool						mIsAreaLight = false;
 		MaterialPtr					mMaterial;
+		AABB						mAABB;
 
 		RTCGeometry					mEmbreeGem = nullptr;
 	};
