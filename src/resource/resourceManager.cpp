@@ -198,6 +198,14 @@ ls::ImageData ls::ResourceManager::loadTextureFromFile(Path  fullPath)
 				r = float(rgb.rgbRed) / 255.f;
 				g = float(rgb.rgbGreen) / 255.f;
 				b = float(rgb.rgbBlue) / 255.f;
+
+#ifdef ls_GAMMA_CORRECTION
+				r = std::powf(r, 2.2f);
+				g = std::powf(g, 2.2f);
+				b = std::powf(b, 2.2f);
+#endif // ls_GAMMA_CORRECTION
+
+
 				data[y*width + x] = Spectrum(r, g, b);
 			}
 		}

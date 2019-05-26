@@ -115,12 +115,12 @@ void ls::RenderLib::sampleSurfaceBSDF(
 	ls_Param_In ls_Param_Out ScatteringRecord * sr)
 {
 	Frame frame(sr->normal);
-	auto localWo = frame.toLocal(sr->wo);
+	auto localWo = normalize(frame.toLocal(sr->wo));
 	auto globalWo = sr->wo;
 	sr->wo = localWo;
 
 	bsdf->sample(sampler, sr);
-	sr->wi = frame.toWorld(sr->wi);
+	sr->wi = normalize(frame.toWorld(sr->wi));
 	sr->wo = globalWo;
 	
 }
@@ -142,7 +142,7 @@ f32 ls::RenderLib::fresnelDielectric(f32 cosThetaI, f32 etaI, f32 cosThetaT, f32
 	f32 temp2 = ((etaI * cosThetaI) - (etaT* cosThetaT)) /
 		((etaI * cosThetaI) + (etaT*cosThetaT));
 
-	return (temp1* temp2 + temp2 *temp2) *0.5f;
+	return (temp1* temp1 + temp2 *temp2) *0.5f;
 }
 
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)

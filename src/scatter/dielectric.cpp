@@ -38,7 +38,7 @@ void ls::Dielectric::sample(ls_Param_In Sampler * sampler, ls_Param_Out Scatteri
 		else
 			rec->pdfImportance = rec->pdf;
 		rec->scatterFlag = mSFlag & (~EScattering_Transmission);
-		rec->sampledValue = Spectrum(fresnel / cosThetaI);
+		rec->sampledValue = Spectrum(fresnel / Frame::absCosTheta(rec->wi));
 	}
 	//ÕÛÉä
 	else
@@ -69,7 +69,7 @@ void ls::Dielectric::sample(ls_Param_In Sampler * sampler, ls_Param_Out Scatteri
 		if (rec->transportMode == ETransport_Radiance)
 			f *= (etaI * etaI) / (etaT *etaT);
 
-		rec->sampledValue = f / cosThetaI;
+		rec->sampledValue = f / Frame::absCosTheta(rec->wi);
 
 
 

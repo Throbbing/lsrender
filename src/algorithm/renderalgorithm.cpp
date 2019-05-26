@@ -21,7 +21,7 @@ void ls::RenderAlgorithm::render(ScenePtr scene,
 	{
 		for (s32 w = sceneRenderBlock->xStart; w < sceneRenderBlock->xEnd ; ++w)
 		{
-//			if (w != 640 || h != 360)
+//			if (w != 640 || h != 84)
 //				continue;
 
 

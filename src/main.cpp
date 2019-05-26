@@ -12,9 +12,9 @@
 #include<resource\resourceManager.h>
 #include<config\common.h>
 
-#define PrePath "dragon//"
-#define FileName "dragon.xml"
-#define OutName "dragon.png"
+#define PrePath "cbox//"
+#define FileName "cbox.xml"
+#define OutName "cbox.png"
 int main()
 {
 	ls::lsEmbree::initEmbree();

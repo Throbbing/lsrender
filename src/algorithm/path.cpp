@@ -216,7 +216,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 
 				
 
-				if (!lsMath::closeZero(lightPdfW) && !le.isBlack())
+				if (!le.isBlack())
 				{
 					L += throughput * le * bsdfVal * std::fabs(dot(surSRec.normal, wi)) * RenderLib::mis(bsdfPdfW, lightPdfW)
 						/ bsdfPdfW;
