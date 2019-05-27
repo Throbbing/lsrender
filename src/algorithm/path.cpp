@@ -49,6 +49,8 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 	DifferentialRay cameraRay(ray);
 
 	IntersectionRecord itsRec;
+	
+
 	if (!scene->intersect(cameraRay, &itsRec))
 	{
 		//we need take radiance from environment light into account when ray hit nothing
@@ -61,7 +63,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 		return L;
 	}
 
-
+	bool isHit = true;
 	auto castRay = cameraRay;
 	while (castRay.depth < mPathMaxDepth)
 	{
@@ -83,6 +85,8 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			break;
 		}
 		
+		if (!isHit)
+			break;
 		/*
 			estimate the path integral by this formula
 			$$\frac {Le(p_k \to p_{k-1})\prod_{i=1}^{k-1}f(p_{i+1} \to p_i \to p_{i-1})G(p_{i+1},p_i)G(p_1.p_0)W_e(p_0 \to p_1)}{p_A(\overline{P_k]})}$$
@@ -195,6 +199,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 					hitLight = true;
 					light = areaLight;
 				}
+				isHit = true;
 				
 			}
 			else
@@ -205,7 +210,10 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 					hitLight = true;
 					light = scene->envrionmentLight();
 				}
-				break;
+//				break;
+
+				//仅碰撞到环境光，计算最后一次直接光照然后退出循环
+				isHit = false;
 			}
 
 			if (hitLight && light)

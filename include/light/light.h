@@ -7,12 +7,20 @@
 #include<spectrum/spectrum.h>
 namespace ls
 {
+	enum LightType
+	{
+		ELight_Point = 0,
+		ELight_Environment = 1
+	};
 	class Light:public Module
 	{
 		friend Scene;
 	public:
 		Light(const std::string& id = "Light"):Module(id){}
 		virtual ~Light() {}
+
+
+		virtual LightType getLightType() const = 0;
 
 		virtual bool		isDelta() = 0;
 		virtual Spectrum	getPower() = 0;

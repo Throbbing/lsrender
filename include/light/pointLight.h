@@ -13,6 +13,8 @@ namespace ls
 			mIntensity(intensity){}
 		virtual ~PointLight() {}
 
+		virtual LightType getLightType() const override { return ELight_Point; }
+
 		virtual bool isDelta()		override	{ return true; };
 		virtual Spectrum getPower()	override	{ return mIntensity * lsMath::PI_4; };
 

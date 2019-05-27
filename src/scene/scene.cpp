@@ -91,6 +91,15 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 
 	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
 	
+	for (auto light : mSceneLights)
+	{
+		if (light->getLightType() == ELight_Environment)
+		{
+			mEnvironmentLight = light;
+			break;
+		}
+	}
+
 	if (!mSceneMeshs.empty()) mWorldAABB = mSceneMeshs[0]->getAABB();
 
 	for (s32 i = 1; i < mSceneMeshs.size(); ++i)
@@ -150,9 +159,9 @@ bool ls::Scene::occlude(ls_Param_In const Ray & ray)
 	return false;
 }
 
-ls::Light * ls::Scene::envrionmentLight()
+ls::LightPtr ls::Scene::envrionmentLight()
 {
-	return nullptr;
+	return mEnvironmentLight;
 }
 
 f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out LightSampleRecord * rec)

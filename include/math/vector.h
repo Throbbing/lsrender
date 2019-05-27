@@ -825,12 +825,18 @@ namespace ls
 
 	ls_ForceInline Normal normalize(const Normal& n)
 	{
-		f32 l = 1.f / sqrtf(n.x*n.x+n.y*n.y+n.z*n.z);
+		auto length = sqrtf(n.x*n.x + n.y*n.y + n.z*n.z);
+		if (length == 0.f) length = 1.f;
+		f32 l = 1.f / length;
 
-		return Normal(n.x*l, n.y*l, n.z*l);
+		return Normal(n.x * l, n.y*l, n.z*l);
 
 	}
 
+	ls_ForceInline bool validNormal(const Normal& n)
+	{
+		return n.x != 0.f || n.y != 0.f || n.z != 0.f;
+	}
 
 	
 }

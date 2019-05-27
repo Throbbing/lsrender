@@ -49,7 +49,12 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 			rtc.rayHit.hit.v,
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			slot++, &ns.x, 3);
+
+		if (!validNormal(ns))
+			ns = ng;
 	}
+
+
 	if (!mUVs.empty())
 	{
 		rtcInterpolate0(mEmbreeGem, rtc.primID,
@@ -203,7 +208,8 @@ void ls::TriMesh::commit()
 	u32 vertexAttriSlot = 0;
 	if (!mNormals.empty())
 	{
-		auto normals = (Normal*)rtcSetNewGeometryBuffer(mEmbreeGem,
+		Normal* normals = nullptr;
+		normals = (Normal*)rtcSetNewGeometryBuffer(mEmbreeGem,
 			RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,
 			vertexAttriSlot,
 			RTC_FORMAT_FLOAT3, sizeof(Normal), mNormals.size());
@@ -212,7 +218,12 @@ void ls::TriMesh::commit()
 		
 		for (int i = 0; i < mNormals.size(); ++i)
 		{
-			normals[i] = normalize(mO2W(mNormals[i]));
+			auto n = normalize(mO2W(mNormals[i]));
+			if (isnan(n.x) || isnan(n.y) || isnan(n.z))
+			{
+				n = Normal(1, 0, 0);
+			}
+			normals[i] = n;
 		}
 		++vertexAttriSlot;
 	}

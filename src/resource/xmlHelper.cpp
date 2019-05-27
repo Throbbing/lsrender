@@ -704,7 +704,7 @@ namespace ls
 		ParamSet bsdfSet = src.queryRefObject(mtsShape.getAllRefs(),
 			EParamSet_BSDF);
 		if (!bsdfSet.isValid())
-			bsdfSet = src.queryParamSetByClass("bsdf")[0];
+			bsdfSet = mtsShape.queryParamSetByClass("bsdf")[0];
 
 		if (!bsdfSet.isValid())
 			ls_AssertMsg(false, "Invalid bsdf in mitsuba shape!");
@@ -733,6 +733,13 @@ namespace ls
 			lsLight = ParamSet("light", "pointLight", mtsLight.getName(), mtsLight.getID());
 			lsLight.addSpectrum("intensity", mtsLight.querySpectrum("intensity"));
 			lsLight.addVec3("position", mtsLight.queryVec3("position"));
+		}
+		else if (mtsLightType == "envmap")
+		{
+			lsLight = ParamSet("light", "environmentLight", mtsLight.getName(), mtsLight.getID());
+			lsLight.addString("filename", mtsLight.queryString("filename"));
+			lsLight.addf32("scale", mtsLight.queryf32("scale",1.f));
+			lsLight.addTransform("l2w", mtsLight.queryTransform("toWorld"));
 		}
 		else
 		{

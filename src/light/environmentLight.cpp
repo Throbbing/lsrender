@@ -19,6 +19,8 @@ ls::EnvironmentLight::EnvironmentLight(const std::string & filename, f32 scale)
 	mWidth = bitmap.width;
 	mHeight = bitmap.height;
 	mScale = scale;
+	mL2W = Transform();
+	mW2L = Transform();
 
 	mData.resize(mWidth * mHeight);
 	for (s32 i = 0; i < mData.size(); ++i) mData[i] = bitmap.data[i];
@@ -73,9 +75,9 @@ void ls::EnvironmentLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In co
 	ls_Assert(uvPdf != 0.f);
 
 	f32 worldDiameter = lsRender::scene->getWorldAABB().maxExtent();
-	rec->sampleDirection = -uv2DirAndTheta(uv, &theta);
+	rec->sampleDirection = -uv2DirAndTheta(uv, &theta); if (lsMath::closeZero(theta)) theta = lsMath::Epsilon;
 	rec->samplePosition = refRec->position - 2.f * worldDiameter * rec->sampleDirection;
-	rec->le = fetch(uv);
+	rec->le = fetch(uv) * mScale;
 	rec->mode = EMeasure_SolidAngle;
 	rec->pdfW = uvPdf / (2.f * lsMath::PI * lsMath::PI * std::sinf(theta));
 	rec->pdfA = 0.f;
@@ -85,17 +87,17 @@ void ls::EnvironmentLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In co
 
 ls::Spectrum ls::EnvironmentLight::sample(const Ray & ray)
 {
-	auto uv = dir2uv(ray.dir);
-	return fetch(uv);
+	auto uv = dir2UVAndTheta(ray.dir);
+	return fetch(uv) * mScale;
 	
 }
 
 f32 ls::EnvironmentLight::pdf(const Ray & ray)
 {
 	//pdf (u,v)
-	auto uv = dir2uv(ray.dir);
-	auto theta = dir2Theta(ray.dir);
-	auto sinTheta = std::cosf(theta);
+	f32 theta;
+	auto uv = dir2UVAndTheta(ray.dir,&theta);
+	auto sinTheta = std::sinf(theta);
 	f32 uvPdf = mEnvDistribution->Pdf(Point2(uv));
 	
 	//p(w) = pdf(u,v)/ (2 * PI^2 * sinTheta)
@@ -108,7 +110,7 @@ f32 ls::EnvironmentLight::pdf(ls_Param_In const LightSampleRecord * refRec)
 {
 	//environment light 中只有 基于立体角的Pdf
 	f32 theta;
-	auto uv = dir2UVAndTheta(-refRec->sampleDirection, &theta);
+	auto uv = dir2UVAndTheta(-refRec->sampleDirection, &theta); if (lsMath::closeZero(theta)) theta = lsMath::Epsilon;
 
 	f32 sinTheta = std::sinf(theta);
 	f32 uvPdf = mEnvDistribution->Pdf(Point2(uv));
@@ -126,28 +128,67 @@ std::string ls::EnvironmentLight::strOut() const
 	return oss.str();
 }
 
-ls::Point2 ls::EnvironmentLight::dir2uv(const Vec3 & dir) const
+
+
+ls::Point2 ls::EnvironmentLight::dir2UVAndTheta(const Vec3 & dir, f32 *outTheta) const
 {
+	auto localDir = mW2L(dir);
+	if (lsRender::scene->getSceneFileType() == EScene_MTS)
+	{
+		f32 theta = std::acosf(localDir.y);
+		f32 phi = std::atan2f(localDir.x, -localDir.z); if (phi < 0.f) phi += lsMath::PI_2;
+		Point2 uv = Point2(phi * lsMath::Inv2Pi,
+			theta * lsMath::InvPi
+		);
+
+		if (outTheta) *outTheta = theta;
+
+		return uv;
+	}
+	else if (lsRender::scene->getSceneFileType() == EScene_PBRT)
+	{
+		f32 theta, phi;
+		lsMath::dir2SphereCoordinate(localDir, &theta, &phi);
+		Point2 uv = Point2(phi * lsMath::Inv2Pi,
+			theta * lsMath::InvPi
+		);
+
+		if (outTheta) *outTheta = theta;
+
+		return uv;
+	}
+	if (outTheta) *outTheta = 0.f;
 	return Point2();
 }
 
-f32 ls::EnvironmentLight::dir2Theta(const Vec3 & dir) const
+ls::Vec3 ls::EnvironmentLight::uv2DirAndTheta(const Point2 & uv, f32 * outTheta) const
 {
-	return f32();
-}
+	f32 phi = uv.x * lsMath::PI_2;
+	f32 theta = uv.y * lsMath::PI;
+	auto sinPhi = std::sinf(phi);
+	auto cosPhi = std::cosf(phi);
+	auto sinTheta = std::sinf(theta);
+	auto cosTheta = std::cosf(theta);
 
-ls::Point2 ls::EnvironmentLight::dir2UVAndTheta(const Vec3 & dir, f32 * theta) const
-{
-	return Point2();
-}
+	Vec3 dir;
+	if (lsRender::scene->getSceneFileType() == EScene_MTS)
+	{
+		dir = Vec3(sinPhi*sinTheta, cosTheta, -cosPhi*sinTheta);
+	}
+	else if (lsRender::scene->getSceneFileType() == EScene_PBRT)
+	{
+		dir = Vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+	}
+	if (outTheta) *outTheta = theta;
 
-ls::Vec3 ls::EnvironmentLight::uv2DirAndTheta(const Point2 & uv, f32 * theta) const
-{
-	return Vec3();
+	return mL2W(dir);
+
+
 }
 
 ls::Spectrum ls::EnvironmentLight::fetch(Point2 uv) const
 {
+//	return Spectrum(10, 10, 10);
 	//双线性插值
 	uv.x *= f32(mWidth);
 	uv.y *= f32(mHeight);
@@ -168,6 +209,8 @@ ls::EnvironmentLight::EnvironmentLight(ParamSet & paramSet)
 {
 	auto filename = paramSet.queryString("filename");
 	auto scale = paramSet.queryf32("scale",1.f);
+	mL2W = paramSet.queryTransform("l2w");
+	mW2L = mL2W.inverse();
 
 	auto bitmap = ResourceManager::loadTextureFromFile(Path(filename));
 	mWidth = bitmap.width;
@@ -175,7 +218,18 @@ ls::EnvironmentLight::EnvironmentLight(ParamSet & paramSet)
 	mScale = scale;
 
 	mData.resize(mWidth * mHeight);
-	for (s32 i = 0; i < mData.size(); ++i) mData[i] = bitmap.data[i];
+	
+#ifdef ls_OPENMP
+#pragma omp parallel for
+#endif // ls_OPENMP
+	for (s32 i = 0; i < mData.size(); ++i)
+	{
+		s32 w = i % mWidth;
+		s32 h = i / mWidth;
+		h = mHeight - 1 - h;
+		mData[h* mWidth + w] = bitmap.data[i];
+	}
+
 
 	std::vector<f32> luminance(mWidth * mHeight);
 

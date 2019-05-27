@@ -2,6 +2,7 @@
 
 #include<Light/light.h>
 #include<function/func.h>
+#include<math/transform.h>
 namespace ls
 {
 	class EnvironmentLight:public Light
@@ -12,6 +13,8 @@ namespace ls
 			f32 scale);
 
 		virtual ~EnvironmentLight() {}
+
+		virtual LightType getLightType() const override { return ELight_Environment; };
 
 		virtual bool isDelta()		override { return false; };
 		
@@ -45,11 +48,10 @@ namespace ls
 		}
 
 	private:
-		Point2 dir2uv(const Vec3& dir) const;
-		f32 dir2Theta(const Vec3& dir) const;
-		Point2 dir2UVAndTheta(const Vec3& dir, f32* theta) const;
 
-		Vec3 uv2DirAndTheta(const Point2& uv, f32 * theta) const;
+		Point2 dir2UVAndTheta(const Vec3& dir, f32* theta = nullptr) const;
+
+		Vec3 uv2DirAndTheta(const Point2& uv, f32 * theta = nullptr) const;
 
 		Spectrum fetch(Point2 uv) const;
 
@@ -58,5 +60,7 @@ namespace ls
 		s32								 mHeight;
 		std::vector<Spectrum>			 mData;
 		f32								 mScale;
+		Transform						 mL2W;
+		Transform						 mW2L;
 	};
 }

@@ -10,6 +10,7 @@
 
 #include<film/hdr.h>
 #include<light/pointLight.h>
+#include<light/environmentLight.h>
 
 #include<material/glass.h>
 #include<material/matte.h>
@@ -347,6 +348,10 @@ ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
 	if (paramSet.getType() == "pointLight" || paramSet.getType() == "point")
 	{
 		light = new PointLight(paramSet);
+	}
+	else if (paramSet.getType() == "environmentLight" || paramSet.getType() == "environment")
+	{
+		light = new EnvironmentLight(paramSet);
 	}
 	else
 	{

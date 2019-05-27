@@ -249,7 +249,7 @@ RTCRay ls::GeometryLib::lsRay2Embree(const Ray & ray)
 	return rtcRay;
 }
 
-ls::Distribution2D::Distribution2D(const f32 * data, int nu, int nv)
+ls::Distribution2D::Distribution2D(const f32 * func, int nu, int nv)
 {
 	pConditionalV.reserve(nv);
 	for (int v = 0; v < nv; ++v) {
@@ -257,7 +257,7 @@ ls::Distribution2D::Distribution2D(const f32 * data, int nu, int nv)
 		pConditionalV.emplace_back(new Distribution1D(&func[v * nu], nu));
 	}
 	// Compute marginal sampling distribution $p[\tilde{v}]$
-	std::vector<Float> marginalFunc;
+	std::vector<f32> marginalFunc;
 	marginalFunc.reserve(nv);
 	for (int v = 0; v < nv; ++v)
 		marginalFunc.push_back(pConditionalV[v]->funcInt);

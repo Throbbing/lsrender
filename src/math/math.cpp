@@ -4,6 +4,15 @@
 constexpr f32 ls::lsMath::Infinity;
 constexpr f32 ls::lsMath::Epsilon;
 
+void ls::lsMath::dir2SphereCoordinate(ls_Param_In const Vec3 & v, ls_Param_Out f32 * theta, ls_Param_Out f32 * phi)
+{
+	f32 outPhi = std::atan2f(v.y, v.x);
+	if (outPhi < 0.f) outPhi += lsMath::PI;
+	
+	*phi = outPhi;
+	*theta = std::acosf(v.z);
+}
+
 f32 ls::lsMath::distance(Point3 p1, Point3 p2)
 {
 	return Vec3(p1-p2).length();

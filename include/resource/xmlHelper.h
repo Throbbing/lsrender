@@ -14,7 +14,6 @@ namespace ls
 		XMLPackage() {}
 		
 		std::vector<ParamSet>				mParamSets;
-
 		ParamSet							mSampleInfo;
 		u32									mIntegrator;
 		u32									mCamera;

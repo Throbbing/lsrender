@@ -34,7 +34,11 @@ bool ls::AABB::inside(const Point3 & p)
 
 f32 ls::AABB::maxExtent()
 {
-	return std::max(maxP.x - minP.x, maxP.y - minP.y, maxP.z - minP.z);
+	auto x = maxP.x - minP.x;
+	auto y = maxP.y - minP.y;
+	auto z = maxP.z - minP.z;
+
+	return std::min(x, std::min(y, z));
 }
 
 bool ls::AABB::intersect(ls_Param_In const Ray & ray, ls_Param_Out f32 * t)

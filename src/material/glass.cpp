@@ -30,8 +30,8 @@ ls::Glass::Glass(ParamSet & paramSet)
 {
 	auto reflectanceColor = paramSet.querySpectrum("reflectance");
 	auto transmittanceColor = paramSet.querySpectrum("transmittance");
-	f32 mEtaI = paramSet.queryf32("etaI");
-	f32 mEtaT = paramSet.queryf32("etaT");
+	mEtaI = paramSet.queryf32("etaI");
+	mEtaT = paramSet.queryf32("etaT");
 
 	ParamSet reflectParamSet = ParamSet("texture", "constantTexture", "", "");
 	reflectParamSet.addSpectrum("color", reflectanceColor);

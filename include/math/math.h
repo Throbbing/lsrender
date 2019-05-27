@@ -58,6 +58,12 @@ namespace ls
 			return false;
 		}
 
+		static void dir2SphereCoordinate(ls_Param_In const Vec3& v,
+			ls_Param_Out f32* theta,
+			ls_Param_Out f32* phi);
+
+		
+
 		static f32 distance(Point3 p1, Point3 p2);
 
 		static f32 radian2Degree(float radian);

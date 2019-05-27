@@ -5,8 +5,17 @@
 #include<config/declaration.h>
 #include<config/lsPtr.h>
 #include<config/module.h>
+#include<function/stru.h>
 namespace ls
 {
+	enum SceneFileType
+	{
+		EScene_MTS  = 0,
+		EScene_UPBP ,
+		EScene_PBRT ,
+		EScene_LS   ,
+		EScene_Unknown
+	};
 	class SceneRenderBlock
 	{
 	public:
@@ -51,7 +60,7 @@ namespace ls
 
 		virtual bool occlude(ls_Param_In const Ray& ray);
 
-		virtual Light* envrionmentLight();
+		virtual LightPtr envrionmentLight();
 
 		virtual f32 sampleLight(ls_Param_In Sampler* sampler,
 			ls_Param_Out LightSampleRecord* rec);
@@ -72,6 +81,8 @@ namespace ls
 		auto  getWorldAABB()  const { return mWorldAABB; }
 
 		FilmPtr getMainFilm() const;
+		SceneFileType getSceneFileType() const { return mSceneFileType; }
+
 
 		virtual void commit() override {}
 		virtual std::string strOut() const override;
@@ -82,14 +93,14 @@ namespace ls
 		
 		std::vector<LightPtr>	 mSceneLights;
 		std::vector<MeshPtr>	 mSceneMeshs;
-		CameraPtr				 mCamera;
-		RenderAlgorithmPtr	     mAlgorithm;
-		SamplerPtr				 mSampler;
-		
+		CameraPtr				 mCamera = nullptr;
+		RenderAlgorithmPtr	     mAlgorithm = nullptr;
+		SamplerPtr				 mSampler = nullptr;
+		LightPtr				 mEnvironmentLight = nullptr;
 		AABB					 mWorldAABB;
 
 
-
+		SceneFileType			 mSceneFileType = EScene_MTS;
 
 	};
 }
