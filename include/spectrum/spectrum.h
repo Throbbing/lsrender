@@ -192,6 +192,10 @@ namespace ls
 		return Spectrum(std::expf(s[0]), std::expf(s[1]), std::expf(s[2]));
 	}
 
+	inline Spectrum sqrt(const Spectrum& s)
+	{
+		return Spectrum(std::sqrtf(s[0]), std::sqrtf(s[1]), std::sqrtf(s[2]));
+	}
 
 
 }

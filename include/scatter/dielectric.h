@@ -24,7 +24,7 @@ namespace ls
 		virtual bool isDelta() { return true; }
 
 		virtual void sample(ls_Param_In Sampler* sampler,
-			ls_Param_Out ScatteringRecord* rec) override;
+			ls_Param_In ls_Param_Out ScatteringRecord* rec) override;
 
 		virtual f32 pdf(ls_Param_In const Vec3& wo) override;
 		virtual ls::Spectrum f(ls_Param_In const Vec3& wi,

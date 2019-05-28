@@ -222,11 +222,12 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 				auto le = light->sample(castRay);
 				auto lightPdfW = !(bsdf->isDelta()) ? light->pdf(castRay) : 0.f;
 
-				
+				f32 cosWi = std::fabs(dot(surSRec.normal, wi));
+//				cosWi = (bsdf->isDelta() && lsMath::closeZero(cosWi)) ? lsMath::Epsilon : cosWi;
 
 				if (!le.isBlack())
 				{
-					L += throughput * le * bsdfVal * std::fabs(dot(surSRec.normal, wi)) * RenderLib::mis(bsdfPdfW, lightPdfW)
+					L += throughput * le * bsdfVal * cosWi * RenderLib::mis(bsdfPdfW, lightPdfW)
 						/ bsdfPdfW;
 				}
 			}

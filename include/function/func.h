@@ -244,6 +244,12 @@ namespace ls
 		static f32 fresnelDielectric(f32 cosThetaI, f32 etaI,
 			f32 cosThetaT, f32 etaT);
 
+		static f32 fresnelConductor(f32 cosThetaI, f32 etaI,
+			f32 etaT, f32 k);
+
+		static Spectrum fresnelConductor(f32 cosThetaI, f32 etaI,
+			Spectrum etaT, Spectrum k);
+
 		
 		
 	};

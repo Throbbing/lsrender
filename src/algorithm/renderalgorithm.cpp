@@ -21,7 +21,9 @@ void ls::RenderAlgorithm::render(ScenePtr scene,
 	{
 		for (s32 w = sceneRenderBlock->xStart; w < sceneRenderBlock->xEnd ; ++w)
 		{
-			
+		
+
+
 
 
 			for (s32 i = 0; i < spp; ++i)

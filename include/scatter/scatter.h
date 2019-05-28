@@ -49,7 +49,7 @@ namespace ls
 		//sample 函数填充ScatteringRecord中的 wi pdf scatterFlag sampledValue
 		//并根据transportmode 填充 pdfRadiance 或 pdfImportance
 		virtual void sample(ls_Param_In Sampler* sampler,
-			ls_Param_Out ScatteringRecord* rec) = 0;
+			ls_Param_In ls_Param_Out ScatteringRecord* rec) = 0;
 
 #if 0
 		virtual void sample(ls_Param_In Sampler* sampler,

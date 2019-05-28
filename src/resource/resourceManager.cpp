@@ -14,12 +14,14 @@
 
 #include<material/glass.h>
 #include<material/matte.h>
+#include<material/specularMetal.h>
 
 #include<mesh/mesh.h>
 #include<mesh/trimesh.h>
 #include<sampler/randomsampler.h>
 #include<scatter/lambertian.h>
 #include<scatter/dielectric.h>
+#include<scatter/conductor.h>
 #include<scene/scene.h>
 
 #include<resource/xmlHelper.h>
@@ -315,6 +317,10 @@ ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet
 		
 		scatter = new Dielectric(paramSet);
 	}
+	else if (paramSet.getType() == "conductor")
+	{
+		scatter = new Conductor(paramSet);
+	}
 	
 
 	if (scatter)
@@ -377,6 +383,10 @@ ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
 	else if (paramSet.getType() == "glass")
 	{
 		material = new Glass(paramSet);
+	}
+	else if (paramSet.getType() == "specularMetal")
+	{
+		material = new SpecularMetal(paramSet);
 	}
 	else
 	{

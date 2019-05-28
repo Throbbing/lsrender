@@ -619,6 +619,25 @@ namespace ls
 			lsMaterial.addf32("etaI", etaI);
 			lsMaterial.addf32("etaT", etaT);
 		}
+		else if (mtsBSDFType == "conductor")
+		{
+			lsMaterial = ParamSet("material", "specularMetal", mtsBSDF.getName(), mtsBSDF.getID());
+			
+			std::string materialName = mtsBSDF.queryString("material");
+			if (!materialName.empty())
+			{
+				ls_AssertMsg(false, "Mitsuba' conductor tables have not been included in lsrender! ");
+			}
+			auto lsReflectance = mtsBSDF.querySpectrum("specularReflectance", 1.f);
+			auto etaI = mtsBSDF.queryf32("extEta", 1.f);
+			auto etaT = mtsBSDF.querySpectrum("eta", 1.5f);
+			auto k = mtsBSDF.querySpectrum("k", 1.f);
+
+			lsMaterial.addSpectrum("reflectance", etaI);
+			lsMaterial.addf32("etaI", etaI);
+			lsMaterial.addSpectrum("etaT", etaT);
+			lsMaterial.addSpectrum("k", k);
+		}
 		else
 		{
 			auto t = mtsBSDFType + " in mitsuba has not been supported in lsrender! ";

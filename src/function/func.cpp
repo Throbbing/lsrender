@@ -145,6 +145,56 @@ f32 ls::RenderLib::fresnelDielectric(f32 cosThetaI, f32 etaI, f32 cosThetaT, f32
 	return (temp1* temp1 + temp2 *temp2) *0.5f;
 }
 
+f32 ls::RenderLib::fresnelConductor(f32 cosThetaI, f32 etaI, f32 etaT, f32 k)
+{
+	//From PBRT-V3
+	f32 eta = etaT / etaI;
+	f32 etak = k / etaI;
+
+	f32 cosThetaI2 = cosThetaI * cosThetaI;
+	f32 sinThetaI2 = 1. - cosThetaI2;
+	f32 eta2 = eta * eta;
+	f32 etak2 = etak * etak;
+
+	f32 t0 = eta2 - etak2 - sinThetaI2;
+	f32 a2plusb2 = std::sqrtf(t0 * t0 + 4 * eta2 * etak2);
+	f32 t1 = a2plusb2 + cosThetaI2;
+	f32 a = std::sqrtf(0.5f * (a2plusb2 + t0));
+	f32 t2 = (f32)2 * cosThetaI * a;
+	f32 Rs = (t1 - t2) / (t1 + t2);
+
+	f32 t3 = cosThetaI2 * a2plusb2 + sinThetaI2 * sinThetaI2;
+	f32 t4 = t2 * sinThetaI2;
+	f32 Rp = Rs * (t3 - t4) / (t3 + t4);
+
+	return 0.5 * (Rp + Rs);
+}
+
+ls::Spectrum ls::RenderLib::fresnelConductor(f32 cosThetaI, f32 etaI, Spectrum etaT, Spectrum k)
+{
+	//From PBRT-V3
+	auto eta = etaT / etaI;
+	auto etak = k / etaI;
+
+	f32 cosThetaI2 = cosThetaI * cosThetaI;
+	f32 sinThetaI2 = 1. - cosThetaI2;
+	auto eta2 = eta * eta;
+	auto etak2 = etak * etak;
+
+	auto t0 = eta2 - etak2 - sinThetaI2;
+	auto a2plusb2 = sqrt(t0 * t0 + 4 * eta2 * etak2);
+	auto t1 = a2plusb2 + cosThetaI2;
+	auto a = sqrt(0.5f * (a2plusb2 + t0));
+	auto t2 = (f32)2 * cosThetaI * a;
+	auto Rs = (t1 - t2) / (t1 + t2);
+
+	auto t3 = cosThetaI2 * a2plusb2 + sinThetaI2 * sinThetaI2;
+	auto t4 = t2 * sinThetaI2;
+	auto Rp = Rs * (t3 - t4) / (t3 + t4);
+
+	return 0.5f * (Rp + Rs);
+}
+
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
 {
 	auto z = uv.x;

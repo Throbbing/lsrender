@@ -4,7 +4,8 @@
 #include<resource/xmlHelper.h>
 #include<record/record.h>
 #include<sampler/sampler.h>
-void ls::Dielectric::sample(ls_Param_In Sampler * sampler, ls_Param_Out ScatteringRecord * rec)
+void ls::Dielectric::sample(ls_Param_In Sampler * sampler, 
+	ls_Param_In ls_Param_Out ScatteringRecord * rec)
 {
 	f32 u = sampler->next1D();
 

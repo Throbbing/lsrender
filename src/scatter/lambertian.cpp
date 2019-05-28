@@ -3,7 +3,8 @@
 #include<function/func.h>
 #include<record/record.h>
 #include<resource/xmlHelper.h>
-void ls::Lambertian::sample(ls_Param_In Sampler * sampler, ls_Param_Out ScatteringRecord * rec)
+void ls::Lambertian::sample(ls_Param_In Sampler * sampler, 
+	ls_Param_In ls_Param_Out ScatteringRecord * rec)
 {
 	auto uv = sampler->next2D();
 
