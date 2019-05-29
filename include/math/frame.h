@@ -70,6 +70,25 @@ namespace ls
 			return lsMath::clamp(v.y / sinT, -1.f, 1.f);
 		}
 
+		static f32 tanTheta(const Vec3& v)
+		{
+			f32 temp = 1.f - v.z * v.z;
+			if (temp <= 0.f || v.z == 0.f)
+				return 0.f;
+
+			f32 sinTheta = std::sqrtf(temp);
+			return sinTheta / v.z;
+		}
+
+		static f32 tanTheta2(const Vec3& v)
+		{
+			f32 temp = 1.f - v.z *v.z;
+			if (temp <= 0.f || v.z == 0.f)
+				return 0.f;
+
+			return temp / (v.z * v.z);
+		}
+
 		static f32 sphericalTheta(const Vec3& v)
 		{
 			return std::acosf(lsMath::clamp(v.z, -1.f, 1.f));

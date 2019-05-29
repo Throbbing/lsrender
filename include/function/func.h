@@ -251,7 +251,11 @@ namespace ls
 			Spectrum etaT, Spectrum k);
 
 		
+		//Microfacets functions are from Mitsuba0.5
+		static f32 beckmanG1(const Vec3& v, const Vec3& m,f32 alpha);
+		static f32 ggxG1(const Vec3& v, const Vec3& m, f32 alpha);
 		
+
 	};
 
 	struct GeometryLib

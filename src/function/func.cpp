@@ -195,6 +195,49 @@ ls::Spectrum ls::RenderLib::fresnelConductor(f32 cosThetaI, f32 etaI, Spectrum e
 	return 0.5f * (Rp + Rs);
 }
 
+f32 ls::RenderLib::beckmanG1(const Vec3 & v, const Vec3 & m, f32 alpha)
+{
+	if (dot(v, m) * Frame::cosTheta(v) <= 0)
+		return 0.0f;
+
+	f32 tanTheta = std::abs(Frame::tanTheta(v));
+	if (tanTheta == 0.0f)
+		return 1.0f;
+
+	f32 a = 1.0f / (alpha * tanTheta);
+	if (a >= 1.6f)
+		return 1.0f;
+
+	/* Use a fast and accurate (<0.35% rel. error) rational
+	approximation to the shadowing-masking function */
+	f32 aSqr = a*a;
+	return (3.535f * a + 2.181f * aSqr)
+		/ (1.0f + 2.276f * a + 2.577f * aSqr);
+}
+
+f32 ls::RenderLib::ggxG1(const Vec3 & v, const Vec3 & m, f32 alpha)
+{
+	if (dot(v, m) * Frame::cosTheta(v) <= 0)
+		return 0.0f;
+
+	f32 tanTheta = std::abs(Frame::tanTheta(v));
+	if (tanTheta == 0.0f)
+		return 1.0f;
+
+	f32 a = 1.0f / (alpha * tanTheta);
+	if (a >= 1.6f)
+		return 1.0f;
+
+	f32 root = alpha * tanTheta;
+	f32 temp = 1 + root *root;
+	if (temp < 0.f) return 0.f;
+
+	return 2.0f / (1.0f + std::sqrtf(temp));
+}
+
+
+
+
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
 {
 	auto z = uv.x;

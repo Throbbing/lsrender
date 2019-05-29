@@ -50,6 +50,8 @@ namespace ls
 			return	std::fabsf(std::cosf(radian));
 		}
 
+
+		
 		static bool closeZero(f32 v) 
 		{
 			if (std::fabs(v) < lsMath::Epsilon)
