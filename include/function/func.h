@@ -194,6 +194,42 @@ namespace ls
 			ls_Param_Out f32* pdf);
 		static f32 sampleConcentricDistPdf(const Point2& p);
 		
+		static void sampleBeckmanDistributionAll(ls_Param_In Point2 uv,
+			ls_Param_In f32 alphaU,
+			ls_Param_In f32 alphaV,
+			ls_Param_Out Vec3* wh,
+			ls_Param_Out f32* pdf);
+		static void sampleBeckmanDistributionVisible(ls_Param_In Point2 uv,
+			ls_Param_In f32 alphaU,
+			ls_Param_In f32 alphaV,
+			ls_Param_Out Vec3* wh,
+			ls_Param_Out f32* pdf);
+
+		static void sampleGGXDistributionAll(ls_Param_In Point2 uv,
+			ls_Param_In f32 alphaU,
+			ls_Param_In f32 alphaV,
+			ls_Param_Out Vec3* wh,
+			ls_Param_Out f32* pdf);
+
+		static void sampleGGXDistributionVisible(ls_Param_In Point2 uv,
+			ls_Param_In f32 alphaU,
+			ls_Param_In f32 alphaV,
+			ls_Param_Out Vec3* wh,
+			ls_Param_Out f32* pdf);
+
+		static f32 beckmanDistributionAllPdf(const Vec3& w,
+			const Vec3& wh,
+			f32 alphaU, f32 alphaV);
+		static f32 beckmanDistributionVisiblePdf(const Vec3& w,
+			const Vec3& wh,
+			f32 alphaU, f32 alphaV);
+		static f32 ggxDistributionAllPdf(const Vec3& w,
+			const Vec3& wh,
+			f32 alphaU, f32 alphaV);
+		static f32 ggxDistributionVisiblePdf(const Vec3& w,
+			const Vec3& wh,
+			f32 alphaU, f32 alphaV);
+
 	};
 
 	struct RenderLib
@@ -254,6 +290,15 @@ namespace ls
 		//Microfacets functions are from Mitsuba0.5
 		static f32 beckmanG1(const Vec3& v, const Vec3& m,f32 alpha);
 		static f32 ggxG1(const Vec3& v, const Vec3& m, f32 alpha);
+		static f32 beckmanDistribution(const Vec3& wh,
+			f32 alphaU,
+			f32 alphaV);
+		static f32 ggxDistribution(const Vec3& wh,
+			f32 alphaU,
+			f32 alphaV);
+		
+
+
 		
 
 	};

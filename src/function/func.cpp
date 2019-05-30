@@ -235,7 +235,58 @@ f32 ls::RenderLib::ggxG1(const Vec3 & v, const Vec3 & m, f32 alpha)
 	return 2.0f / (1.0f + std::sqrtf(temp));
 }
 
+f32 ls::RenderLib::beckmanDistribution(const Vec3& wh,
+	f32 alphaU,
+	f32 alphaV)
+{
+	return 0.f;
+}
 
+f32 ls::RenderLib::ggxDistribution(const Vec3& wh,
+	f32 alphaU,
+	f32 alphaV)
+{
+	return 0.f;
+}
+
+f32 ls::MonteCarlo::beckmanDistributionAllPdf(const Vec3 & w, const Vec3 & wh, f32 alphaU, f32 alphaV)
+{
+	return RenderLib::beckmanDistribution(wh, alphaU, alphaV) * Frame::absCosTheta(wh);
+}
+
+f32 ls::MonteCarlo::beckmanDistributionVisiblePdf(const Vec3 & w, const Vec3 & wh, f32 alphaU, f32 alphaV)
+{
+	if (lsMath::closeZero(Frame::cosTheta(w)))
+		return 0.f;
+
+	auto sinPhi = Frame::sinPhi(w);
+	auto sinPhi2 = sinPhi * sinPhi;
+	auto cosPhi = Frame::cosPhi(w);
+	auto cosPhi2 = cosPhi* cosPhi;
+
+	auto alpha = std::sqrt(cosPhi2 * alphaU * alphaU + sinPhi2 * alphaV * alphaV);
+
+	return RenderLib::beckmanDistribution(wh, alphaU, alphaV) * RenderLib::beckmanG1(w, wh, alpha) * std::fabs(dot(w, wh)) / Frame::absCosTheta(w);
+}
+
+f32 ls::MonteCarlo::ggxDistributionAllPdf(const Vec3 & w, const Vec3 & wh, f32 alphaU, f32 alphaV)
+{
+	return RenderLib::ggxDistribution(wh, alphaU, alphaV) * Frame::absCosTheta(wh);
+}
+
+f32 ls::MonteCarlo::ggxDistributionVisiblePdf(const Vec3 & w, const Vec3 & wh, f32 alphaU, f32 alphaV)
+{
+	if (lsMath::closeZero(Frame::cosTheta(w)))
+		return 0.f;
+
+	auto sinPhi = Frame::sinPhi(w);
+	auto sinPhi2 = sinPhi * sinPhi;
+	auto cosPhi = Frame::cosPhi(w);
+	auto cosPhi2 = cosPhi* cosPhi;
+
+	auto alpha = std::sqrt(cosPhi2 * alphaU * alphaU + sinPhi2 * alphaV * alphaV);
+	return RenderLib::ggxDistribution(wh, alphaU, alphaV) * RenderLib::ggxG1(w, wh, alpha) *std::fabs(dot(w, wh)) / Frame::absCosTheta(w);
+}
 
 
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
@@ -324,6 +375,26 @@ void ls::MonteCarlo::sampleConcentricDisk(ls_Param_In Point2 uv, ls_Param_Out Po
 f32 ls::MonteCarlo::sampleConcentricDistPdf(const Point2 & p)
 {
 	return 1.f;
+}
+
+void ls::MonteCarlo::sampleBeckmanDistributionAll(ls_Param_In Point2 uv, 
+	ls_Param_In f32 alphaU,
+	ls_Param_In f32 alphaV, 
+	ls_Param_Out Vec3 * wh, 
+	ls_Param_Out f32 * pdf)
+{
+}
+
+void ls::MonteCarlo::sampleBeckmanDistributionVisible(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+{
+}
+
+void ls::MonteCarlo::sampleGGXDistributionAll(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+{
+}
+
+void ls::MonteCarlo::sampleGGXDistributionVisible(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+{
 }
 
 RTCRay ls::GeometryLib::lsRay2Embree(const Ray & ray)

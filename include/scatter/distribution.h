@@ -13,10 +13,22 @@ namespace ls
 		EDistribution_Beckman,
 		EDistribution_GGX
 	};
-	class Distribution :public Module
+
+
+	class Distribution
 	{
 	public:
-		Distribution(const std::string id = "distribution") :Module(id) {}
+		Distribution(f32 alphaU,
+			f32 alphaV,
+			DistributionType type,
+			bool sampleAll = true
+		) 
+		{
+			mAlphaU = alphaU;
+			mAlphaV = alphaV;
+			mDistributionType = type;
+			mSampleAllDistribution = sampleAll;
+		}
 
 		//采样Wh
 		//@sampler			[in]		采样器
@@ -26,39 +38,48 @@ namespace ls
 		//Frame:						Local
 		//Note: 
 		//返回：D(wh)
-		virtual Spectrum sample(
+		f32 sample(
 			ls_Param_In SamplerPtr sampler,
 			ls_Param_In const Vec3& w,
 			ls_Param_Out Vec3* wh,
 			ls_Param_Out f32* pdfH
-		) const = 0;
+		) const;
 
 		//计算D(wh)
 		//wh = normalize(wi + wo)
-		virtual Spectrum D(
+		f32 D(
 			ls_Param_In const Vec3& wi,
 			ls_Param_In const Vec3& wo) const;
 
 		//计算D(wh)
-		virtual Spectrum D(
+		f32 D(
 			ls_Param_In const Vec3& wh
-		) const = 0;
+		) const;
 
-		//计算pdfH(wh)
-		virtual f32 pdf(
+		f32 G(
+			ls_Param_In const Vec3& wi,
+			ls_Param_In const Vec3& wh
+		);
+
+		f32 G(ls_Param_In const Vec3& wi,
 			ls_Param_In const Vec3& wo,
-			ls_Param_In const Vec3& wi) const;
+			ls_Param_In const Vec3& wh);
 
-		//计算pdfH(wh)
+		//计算pdfH(w,wh)
 		virtual f32 pdf(
-			ls_Param_In const Vec3& wh
-		) const = 0;
+			ls_Param_In const Vec3& w,
+			ls_Param_In const Vec3& wh) const;
+
+
 
 		bool isotropic() { return mAlphaU == mAlphaV; }
 
 	protected:
+		
+
 		f32 mAlphaU;
 		f32 mAlphaV;
 		DistributionType	mDistributionType;
+		bool	mSampleAllDistribution;
 	};
 }
