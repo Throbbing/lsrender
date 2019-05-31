@@ -14,10 +14,10 @@ A small physical render
 
 
 ## EnvBuddha (For environment light)
-![EnvBuddha](https://github.com/Throbbing/lsrender/blob/master/results/environment.png)
+![EnvBuddha](https://github.com/Throbbing/lsrender/blob/master/results/environmentLight.png)
 
 ## SpecularMetalBall (For specularmetal)
 ![specularMetal](https://github.com/Throbbing/lsrender/blob/master/results/specularMetal.png)
 
 ## GlossyMetalBall (For glossymetal)
-![glossyMetalBall](https://github.com/Throbbing/lsrender/blob/master/results/glossyMetal.png)
+![glossyMetalBall](https://github.com/Throbbing/lsrender/blob/master/results/glossyMetalGGX.png)
