@@ -202,6 +202,7 @@ namespace ls
 		static void sampleBeckmanDistributionVisible(ls_Param_In Point2 uv,
 			ls_Param_In f32 alphaU,
 			ls_Param_In f32 alphaV,
+			ls_Param_In const Vec3& w,
 			ls_Param_Out Vec3* wh,
 			ls_Param_Out f32* pdf);
 
@@ -214,6 +215,7 @@ namespace ls
 		static void sampleGGXDistributionVisible(ls_Param_In Point2 uv,
 			ls_Param_In f32 alphaU,
 			ls_Param_In f32 alphaV,
+			ls_Param_In const Vec3& w,
 			ls_Param_Out Vec3* wh,
 			ls_Param_Out f32* pdf);
 

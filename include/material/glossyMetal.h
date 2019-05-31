@@ -7,21 +7,21 @@
 
 namespace ls
 {
-	class SpecularMetal :public Material
+	class GlossyMetal :public Material
 	{
 		friend ResourceManager;
 	public:
-		SpecularMetal()
+		GlossyMetal()
 		{
 
 		}
 
-		virtual ~SpecularMetal()
+		virtual ~GlossyMetal()
 		{
 
 		}
 
-		virtual ScatteringFunctionPtr	getSurfaceScattering() { return mConductor; }
+		virtual ScatteringFunctionPtr	getSurfaceScattering() { return mMicrofacetConductor; }
 		virtual ScatteringFunctionPtr	getMediumScattering() { return nullptr; }
 
 		virtual Spectrum reflectance(
@@ -32,17 +32,19 @@ namespace ls
 		void applyReflectance(TexturePtr reflectance) { mReflectance = reflectance; }
 		void applyTransmittance(TexturePtr transmittance) {  }
 
-		virtual void commit() override;
+		virtual void commit() override {}
 		virtual std::string strOut() const override;
 
 	protected:
-		SpecularMetal(ParamSet& paramSet);
+		GlossyMetal(ParamSet& paramSet);
 
 	protected:
 		f32								mEtaI;
 		Spectrum						mEtaT;
 		Spectrum						mK;
-		TexturePtr						mReflectance;
-		;
+		f32								mAlphaU;
+		f32								mAlphaV;
+		TexturePtr						mReflectance = nullptr;
+		ScatteringFunctionPtr			mMicrofacetConductor = nullptr;
 	};
 }

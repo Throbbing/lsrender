@@ -15,6 +15,7 @@
 #include<material/glass.h>
 #include<material/matte.h>
 #include<material/specularMetal.h>
+#include<material/glossyMetal.h>
 
 #include<mesh/mesh.h>
 #include<mesh/trimesh.h>
@@ -22,6 +23,7 @@
 #include<scatter/lambertian.h>
 #include<scatter/dielectric.h>
 #include<scatter/conductor.h>
+#include<scatter/microfacetConductor.h>
 #include<scene/scene.h>
 
 #include<resource/xmlHelper.h>
@@ -321,6 +323,10 @@ ls::ScatteringFunctionPtr ls::ResourceManager::createScatteringFunction(ParamSet
 	{
 		scatter = new Conductor(paramSet);
 	}
+	else if (paramSet.getType() == "microfacetConductor")
+	{
+		scatter = new MicrofacetConductor(paramSet);
+	}
 	
 
 	if (scatter)
@@ -387,6 +393,10 @@ ls::MaterialPtr ls::ResourceManager::createMaterial(ParamSet & paramSet)
 	else if (paramSet.getType() == "specularMetal")
 	{
 		material = new SpecularMetal(paramSet);
+	}
+	else if (paramSet.getType() == "glossyMetal")
+	{
+		material = new GlossyMetal(paramSet);
 	}
 	else
 	{

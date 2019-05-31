@@ -9,7 +9,7 @@ void ls::MicrofacetConductor::sample(ls_Param_In Sampler * sampler,
 	ls_Param_In ls_Param_Out ScatteringRecord * rec)
 {
 	/*
-		fr = D(wh) * Fr(wi,wo) * G(wi,wo) / (4 * cosThetaI * cosThetaO)
+		fr = D(wh) * Fr(wi,wh) * G(wi,wo) / (4 * cosThetaI * cosThetaO)
 	*/
 	f32 cosThetaI = Frame::cosTheta(rec -> wo);
 	//²ÉÑùD
@@ -37,6 +37,7 @@ void ls::MicrofacetConductor::sample(ls_Param_In Sampler * sampler,
 		return;
 	}
 	rec->pdf = pdfH / (4.f * cosThetaH);
+
 	if (rec->transportMode == ETransport_Radiance)
 		rec->pdfRadiance = rec->pdf;
 	else
@@ -52,23 +53,60 @@ void ls::MicrofacetConductor::sample(ls_Param_In Sampler * sampler,
 	rec->sampledValue = D * fresnel * G / (4 * Frame::absCosTheta(rec->wi) * Frame::absCosTheta(rec->wo));
 }
 
-f32 ls::MicrofacetConductor::pdf(ls_Param_In const Vec3 & wo)
+f32 ls::MicrofacetConductor::pdf(ls_Param_In const Vec3& wi,
+	ls_Param_In const Vec3 & wo)
 {
-	return f32();
+	Distribution distribution(mAlphaU, mAlphaV, mDistributionType, mSampleAll);
+
+	auto wh = normalize(wi + wo);
+	return distribution.pdf(wi, wh);
 }
 
 ls::Spectrum ls::MicrofacetConductor::f(ls_Param_In const Vec3 & wi, ls_Param_In const Vec3 & wo)
 {
-	return ls::Spectrum();
+	/*
+		fr = D(wh) * Fr(wi,wh) * G(wi,wo) / (4 * cosThetaI * cosThetaO)
+	*/
+	Distribution distribution(mAlphaU, mAlphaV, mDistributionType, mSampleAll);
+	
+	if (!Frame::hemisphere(wi, wo)) return 0.f;
+
+	auto wh = normalize(wi + wo);
+	f32 D = distribution.D(wh);
+	auto F = RenderLib::fresnelConductor(dot(wh, wi), mEtaI, mEtaT, mK);
+	auto G = distribution.G(wi, wo, wh);
+
+	auto cosThetaI = Frame::absCosTheta(wo);
+	auto cosThetaO = Frame::absCosTheta(wi);
+
+	return D * F * G / (4 * cosThetaI * cosThetaO);	
 }
 
 std::string ls::MicrofacetConductor::strOut() const
 {
-	return std::string();
+	std::ostringstream oss;
+	oss << ls_Separator << std::endl;
+	oss << "Scatter: " << "MicrofacetConductor" << std::endl;
+	oss << ls_Separator << std::endl;
+	return oss.str();
 }
 
 ls::MicrofacetConductor::MicrofacetConductor(ParamSet & paramSet):ScatteringFunction(ScatteringFlag::EScattering_G
 	| ScatteringFlag::EScattering_Reflection
 	| ScatteringFlag::EScattering_Surface)
 {
+	mEtaI = paramSet.queryf32("etaI", 1.f);
+	mEtaT = paramSet.querySpectrum("etaT", 1.5f);
+	mK = paramSet.querySpectrum("k", 1.f);
+	mAlphaU = paramSet.queryf32("alphaU", 1.f);
+	mAlphaV = paramSet.queryf32("alphaV", 1.f);
+	
+	auto type = paramSet.queryString("distribution", "ggx");
+
+	if (type == "beckman")
+		mDistributionType = EDistribution_Beckman;
+	else
+		mDistributionType = EDistribution_GGX;
+
+	mSampleAll = paramSet.querybool("sampleAll", true);
 }

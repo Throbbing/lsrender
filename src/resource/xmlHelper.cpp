@@ -638,6 +638,37 @@ namespace ls
 			lsMaterial.addSpectrum("etaT", etaT);
 			lsMaterial.addSpectrum("k", k);
 		}
+		else if (mtsBSDFType == "roughconductor")
+		{
+			lsMaterial = ParamSet("material", "glossyMetal", mtsBSDF.getName(), mtsBSDF.getID());
+			std::string materialName = mtsBSDF.queryString("material");
+			if (!materialName.empty())
+			{
+				ls_AssertMsg(false, "Mitsuba' conductor tables have not been included in lsrender! ");
+			}
+			auto lsReflectance = mtsBSDF.querySpectrum("specularReflectance", 1.f);
+			auto etaI = mtsBSDF.queryf32("extEta", 1.f);
+			auto etaT = mtsBSDF.querySpectrum("eta", 1.5f);
+			auto k = mtsBSDF.querySpectrum("k", 1.f);
+			auto alphaU = mtsBSDF.queryf32("alphaU", 0.1f);
+			auto alphaV = mtsBSDF.queryf32("alphaV", 0.1f);
+			auto dis = mtsBSDF.queryString("distribution");
+			
+			lsMaterial.addSpectrum("reflectance", etaI);
+			lsMaterial.addf32("etaI", etaI);
+			lsMaterial.addSpectrum("etaT", etaT);
+			lsMaterial.addSpectrum("k", k);
+			lsMaterial.addf32("alphaU", alphaU);
+			lsMaterial.addf32("alphaV", alphaV);
+			lsMaterial.addbool("sampleAll", true);
+			if (dis == "beckmann")
+				lsMaterial.addString("distribution", "beckman");
+			else
+				lsMaterial.addString("distribution", "ggx");
+
+
+
+		}
 		else
 		{
 			auto t = mtsBSDFType + " in mitsuba has not been supported in lsrender! ";

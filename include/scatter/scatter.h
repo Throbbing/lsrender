@@ -57,7 +57,8 @@ namespace ls
 			ls_Param_Out Record* rec) = 0; 
 #endif
 
-		virtual f32 pdf(ls_Param_In const Vec3& wo) = 0;
+		virtual f32 pdf(ls_Param_In const Vec3& wi,
+			ls_Param_In const Vec3& wo) = 0;
 		virtual ls::Spectrum f(ls_Param_In const Vec3& wi,
 			ls_Param_In const Vec3& wo) = 0;
 

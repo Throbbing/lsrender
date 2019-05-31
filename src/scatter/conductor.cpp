@@ -37,7 +37,8 @@ void ls::Conductor::sample(ls_Param_In Sampler * sampler,
 
 }
 
-f32 ls::Conductor::pdf(ls_Param_In const Vec3 & wo)
+f32 ls::Conductor::pdf(ls_Param_In const Vec3& wi,
+	ls_Param_In const Vec3 & wo)
 {
 	return 0.f;
 }

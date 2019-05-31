@@ -94,7 +94,7 @@ void ls::RenderLib::surfaceBSDFValueAndPdf(
 	auto wo = frame.toLocal(sr->wo);
 
 	sr->sampledValue = bsdf->f(wi, wo);
-	sr->pdf = bsdf->pdf(wi);
+	sr->pdf = bsdf->pdf(wi,wo);
 
 	//Õ¨∞Î«Ú£¨∑¥…‰
 	if (Frame::hemisphere(wi, wo))
@@ -197,6 +197,7 @@ ls::Spectrum ls::RenderLib::fresnelConductor(f32 cosThetaI, f32 etaI, Spectrum e
 
 f32 ls::RenderLib::beckmanG1(const Vec3 & v, const Vec3 & m, f32 alpha)
 {
+	//From mitsuba0.5.0
 	if (dot(v, m) * Frame::cosTheta(v) <= 0)
 		return 0.0f;
 
@@ -239,14 +240,41 @@ f32 ls::RenderLib::beckmanDistribution(const Vec3& wh,
 	f32 alphaU,
 	f32 alphaV)
 {
-	return 0.f;
+	auto tanTheta2 = Frame::tanTheta2(wh);
+	if (std::isnan(tanTheta2)) return 0.f;
+	
+	f32 cosTheta2 = Frame::cosTheta(wh) *Frame::cosTheta(wh);
+	f32 cosTheta4 = cosTheta2 * cosTheta2;
+	f32 cosPhi = Frame::cosPhi(wh);
+	f32 sinPhi = Frame::sinPhi(wh);
+	f32 cosPhi2 = cosPhi * cosPhi;
+	f32 sinPhi2 = sinPhi * sinPhi;
+
+	return std::expf(-tanTheta2 * (cosPhi2 / (alphaU * alphaU) +
+		sinPhi2 / (alphaV * alphaV))) /
+		(lsMath::PI * alphaU * alphaV * cosTheta4);
+
+
 }
 
 f32 ls::RenderLib::ggxDistribution(const Vec3& wh,
 	f32 alphaU,
 	f32 alphaV)
 {
-	return 0.f;
+	auto tanTheta2 = Frame::tanTheta2(wh);
+	if (std::isnan(tanTheta2)) return 0.f;
+
+	f32 cosTheta2 = Frame::cosTheta(wh) *Frame::cosTheta(wh);
+	f32 cosTheta4 = cosTheta2 * cosTheta2;
+	f32 cosPhi = Frame::cosPhi(wh);
+	f32 sinPhi = Frame::sinPhi(wh);
+	f32 cosPhi2 = cosPhi * cosPhi;
+	f32 sinPhi2 = sinPhi * sinPhi;
+
+	f32 e =
+		(cosPhi2 / (alphaU * alphaV) + sinPhi2 / (alphaU * alphaV)) *
+		tanTheta2;
+	return 1 / (lsMath::PI * alphaU * alphaV * cosTheta4 * (1 + e) * (1 + e));
 }
 
 f32 ls::MonteCarlo::beckmanDistributionAllPdf(const Vec3 & w, const Vec3 & wh, f32 alphaU, f32 alphaV)
@@ -383,18 +411,104 @@ void ls::MonteCarlo::sampleBeckmanDistributionAll(ls_Param_In Point2 uv,
 	ls_Param_Out Vec3 * wh, 
 	ls_Param_Out f32 * pdf)
 {
+	//From PBRT-V3
+	// Sample full distribution of normals for Beckmann distribution
+
+	// Compute $\tan^2 \theta$ and $\phi$ for Beckmann distribution sample
+	f32 tan2Theta, phi;
+	if (alphaU == alphaV) {
+		if (uv.x == 1.f) uv.x = lsMath::Epsilon;
+
+		f32 logSample = std::log(1 - uv.x);
+		tan2Theta = -alphaU * alphaV * logSample;
+		phi = uv.y * 2 * lsMath::PI;
+	}
+	else {
+		// Compute _tan2Theta_ and _phi_ for anisotropic Beckmann
+		// distribution
+		if (uv.x == 1.f) uv.x = lsMath::Epsilon;
+
+		f32 logSample = std::log(1 - uv.x);
+		phi = std::atanf(alphaV / alphaU *
+			std::tanf(2 * lsMath::PI * uv.y + 0.5f * lsMath::PI));
+		if (uv.y > 0.5f) phi += lsMath::PI;
+		f32 sinPhi = std::sinf(phi), cosPhi = std::cosf(phi);
+		f32 alphax2 = alphaU * alphaU, alphay2 = alphaV * alphaV;
+		tan2Theta = -logSample /
+			(cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2);
+	}
+
+	// Map sampled Beckmann angles to normal direction _wh_
+	f32 cosTheta = 1 / std::sqrt(1 + tan2Theta);
+	f32 sinTheta = std::sqrt(std::max((f32)0, 1 - cosTheta * cosTheta));
+	
+	*wh = Vec3(sinTheta * std::cosf(phi),
+		sinTheta * std::sinf(phi),
+		cosTheta);
+
+	if (pdf)
+		*pdf = RenderLib::beckmanDistribution(*wh, alphaU, alphaV) * Frame::absCosTheta(*wh);
+	
 }
 
-void ls::MonteCarlo::sampleBeckmanDistributionVisible(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+void ls::MonteCarlo::sampleBeckmanDistributionVisible(ls_Param_In Point2 uv,
+	ls_Param_In f32 alphaU, 
+	ls_Param_In f32 alphaV, 
+	ls_Param_In const Vec3& w,
+	ls_Param_Out Vec3 * wh, 
+	ls_Param_Out f32 * pdf)
 {
+	//From PBRT-V3
+	bool flip = w.z < 0.f;
+	Unimplement;
 }
 
-void ls::MonteCarlo::sampleGGXDistributionAll(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+void ls::MonteCarlo::sampleGGXDistributionAll(ls_Param_In Point2 uv, 
+	ls_Param_In f32 alphaU, 
+	ls_Param_In f32 alphaV, 
+	ls_Param_Out Vec3 * wh,
+	ls_Param_Out f32 * pdf)
 {
+	//From PBRT-V3
+	f32 cosTheta = 0, phi = (2 * lsMath::PI) * uv.y;
+	if (uv.x == 1.f) uv.x = 1.f - lsMath::Epsilon;
+
+	if (alphaU == alphaV) {
+		f32 tanTheta2 = alphaU * alphaU * uv.x / (1.0f - uv.x);
+		cosTheta = 1 / std::sqrt(1 + tanTheta2);
+	}
+	else {
+		phi =
+			std::atan(alphaV / alphaU * std::tan(2 * lsMath::PI * uv.y + .5f * lsMath::PI));
+		if (uv.y > .5f) phi += lsMath::PI;
+		f32 sinPhi = std::sin(phi), cosPhi = std::cos(phi);
+		const f32 alphax2 = alphaU * alphaU, alphay2 = alphaV * alphaV;
+		const f32 alpha2 =
+			1 / (cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2);
+		f32 tanTheta2 = alpha2 * uv.x / (1 - uv.x);
+		cosTheta = 1 / std::sqrt(1 + tanTheta2);
+	}
+	f32 sinTheta =
+		std::sqrt(std::max((f32)0., (f32)1. - cosTheta * cosTheta));
+
+	*wh = Vec3(sinTheta * std::cosf(phi),
+		sinTheta * std::sinf(phi),
+		cosTheta);
+
+	if(pdf)
+		*pdf = RenderLib::ggxDistribution(*wh,alphaU,alphaV) * Frame::absCosTheta(*wh);
+
+
 }
 
-void ls::MonteCarlo::sampleGGXDistributionVisible(ls_Param_In Point2 uv, ls_Param_In f32 alphaU, ls_Param_In f32 alphaV, ls_Param_Out Vec3 * wh, ls_Param_Out f32 * pdf)
+void ls::MonteCarlo::sampleGGXDistributionVisible(ls_Param_In Point2 uv,
+	ls_Param_In f32 alphaU, 
+	ls_Param_In f32 alphaV, 
+	ls_Param_In const Vec3& w,
+	ls_Param_Out Vec3 * wh, 
+	ls_Param_Out f32 * pdf)
 {
+	Unimplement;
 }
 
 RTCRay ls::GeometryLib::lsRay2Embree(const Ray & ray)

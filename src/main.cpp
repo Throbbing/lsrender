@@ -13,8 +13,8 @@
 #include<config\common.h>
 
 #define PrePath "SceneFile//material-testball//"
-#define FileName "scene.xml"
-#define OutName "specularMetal.png"
+#define FileName "sceneGlossy.xml"
+#define OutName "glossyMetal.png"
 int main()
 {
 	ls::lsEmbree::initEmbree();

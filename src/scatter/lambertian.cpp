@@ -20,7 +20,8 @@ void ls::Lambertian::sample(ls_Param_In Sampler * sampler,
 
 }
 
-f32 ls::Lambertian::pdf(ls_Param_In const Vec3& wi)
+f32 ls::Lambertian::pdf(ls_Param_In const Vec3& wi,
+	ls_Param_In const Vec3& wo)
 {
 	return MonteCarlo::sampleCosHemispherePdf(wi);
 }

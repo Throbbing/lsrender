@@ -18,19 +18,19 @@ f32 ls::Distribution::sample(ls_Param_In SamplerPtr sampler,
 	{
 	case ls::EDistribution_Beckman:
 		if (mSampleAllDistribution) MonteCarlo::sampleBeckmanDistributionAll(uv, mAlphaU, mAlphaV, wh, pdfH);
-		else MonteCarlo::sampleBeckmanDistributionVisible(uv, mAlphaU, mAlphaV, wh, pdfH);
+		else MonteCarlo::sampleBeckmanDistributionVisible(uv, mAlphaU, mAlphaV, w,wh, pdfH);
 		value = RenderLib::beckmanDistribution(*wh, mAlphaU, mAlphaV);
 
 		break;
 	case ls::EDistribution_GGX:
 		if (mSampleAllDistribution) MonteCarlo::sampleGGXDistributionAll(uv, mAlphaU, mAlphaV, wh, pdfH);
-		else MonteCarlo::sampleGGXDistributionVisible(uv, mAlphaU, mAlphaV, wh, pdfH);
+		else MonteCarlo::sampleGGXDistributionVisible(uv, mAlphaU, mAlphaV, w,wh, pdfH);
 		value = RenderLib::ggxDistribution(*wh, mAlphaU, mAlphaV);
 
 		break;
 	default:
 		if (mSampleAllDistribution) MonteCarlo::sampleGGXDistributionAll(uv, mAlphaU, mAlphaV, wh, pdfH);
-		else MonteCarlo::sampleGGXDistributionVisible(uv, mAlphaU, mAlphaV, wh, pdfH);
+		else MonteCarlo::sampleGGXDistributionVisible(uv, mAlphaU, mAlphaV,w, wh, pdfH);
 		value = RenderLib::ggxDistribution(*wh, mAlphaU, mAlphaV);
 		break;
 	}
