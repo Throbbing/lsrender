@@ -59,7 +59,7 @@ namespace ls
 		virtual void applyMaterial(MaterialPtr material) { mMaterial = material; }
 		virtual bool isAreaLight();
 		
-		
+		virtual f32  getArea() const = 0;
 		//commit changes to geometry
 		virtual void commit() = 0;
 
@@ -74,6 +74,7 @@ namespace ls
 		std::shared_ptr<Scene>		mScene = nullptr;
 		Spectrum					mLightPower;
 		bool						mIsAreaLight = false;
+		LightPtr					mAreaLight = nullptr;
 		MaterialPtr					mMaterial;
 		AABB						mAABB;
 

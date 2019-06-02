@@ -10,7 +10,8 @@ namespace ls
 	enum LightType
 	{
 		ELight_Point = 0,
-		ELight_Environment = 1
+		ELight_Environment = 1,
+		ELight_Area = 2
 	};
 	class Light:public Module
 	{
@@ -51,7 +52,18 @@ namespace ls
 		//@ray			[in]		采样光线
 		//				[return]	发射能量
 		virtual ls::Spectrum sample(const Ray& ray) { return ls::Spectrum(0); }
+		//Sample优化版本 不单独计算碰撞
+		//默认调用sample(ray)
+		virtual ls::Spectrum sample(const Ray& ray, const IntersectionRecord& its) {
+			return sample(ray);
+		}
+		
 		virtual f32			 pdf(const Ray& ray) { return 0.f; }
+		virtual f32			 pdf(const Ray& ray, const IntersectionRecord& its)
+		{
+			return pdf(ray);
+		}
+		
 
 		//Sample
 		//返回记录器中光线所需要的Pdf

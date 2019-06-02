@@ -317,6 +317,12 @@ f32 ls::MonteCarlo::ggxDistributionVisiblePdf(const Vec3 & w, const Vec3 & wh, f
 }
 
 
+void ls::MonteCarlo::sampleTriangle(ls_Param_In Point2 uv, ls_Param_Out Point2 * b)
+{
+	f32 su0 = std::sqrt(uv.x);
+	*b =  Point2(1 - su0, uv.y * su0);
+}
+
 void ls::MonteCarlo::sampleHemisphere(ls_Param_In Point2 uv, ls_Param_Out Vec3 * w, ls_Param_Out f32 * pdf)
 {
 	auto z = uv.x;

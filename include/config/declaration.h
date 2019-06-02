@@ -3,7 +3,9 @@
 
 namespace ls
 {
-	
+	//Distribution
+	class Distribution1D;
+	class Distribution2D;
 	
 	//Record
 	struct RTCRecord;					

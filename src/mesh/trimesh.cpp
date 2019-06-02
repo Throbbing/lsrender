@@ -3,6 +3,8 @@
 #include<math/transform.h>
 #include<function/func.h>
 #include<function/stru.h>
+#include<record/record.h>
+#include<sampler/sampler.h>
 ls::TriMesh::TriMesh(const std::vector<Point3>& vertices, 
 	const std::vector<Normal>& normals, 
 	const std::vector<Point2>& uvs,
@@ -139,6 +141,7 @@ bool ls::TriMesh::intersect(ls_Param_In const ls::Ray & ray,
 	dgRec->dndx = Vec3(0.f);
 	dgRec->dndy = Vec3(0.f);
 	dgRec->material = mMaterial;
+	dgRec->areaLight = mAreaLight;
 	return true;
 }
 
@@ -269,7 +272,40 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	ls_Param_In const MeshSampleRecord * refRec, 
 	ls_Param_Out MeshSampleRecord * rec) const
 {
-	return false;
+	//选择三角形
+	int selectedTriIndex = mAreasDistribution.SampleDiscrete(sampler->next1D());
+	
+	auto p0 = mVertices[mIndices[selectedTriIndex * 3 + 0]];
+	auto p1 = mVertices[mIndices[selectedTriIndex * 3 + 1]];
+	auto p2 = mVertices[mIndices[selectedTriIndex * 3 + 2]];
+
+	//三角形采样
+	Point2 b;
+	MonteCarlo::sampleTriangle(sampler->next2D(), &b);
+
+	auto p = b.x * p0 + b.y * p1 + (1.f - b.x - b.y) * p2;
+
+	Normal n;
+	if (!mNormals.empty())
+	{
+		auto N0 = mNormal[mIndices[selectedTriIndex * 3 + 0]];
+		auto N1 = mNormal[mIndices[selectedTriIndex * 3 + 1]];
+		auto N2 = mNormal[mIndices[selectedTriIndex * 3 + 2]];
+
+		n = b.x * n0 + b.y * n1 + (1.f - b.x - b.y) * n2;
+	}
+	else
+	{
+		n = cross(p1 - p0, p2 - p0);
+	}
+
+	rec->samplePosition = p;
+	rec->surfaceNormal = n;
+
+	return true;
+
+
+
 }
 
 f32 ls::TriMesh::pdf(ls_Param_In const MeshSampleRecord * refRec) const

@@ -219,8 +219,8 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			if (hitLight && light)
 			{
 				LightSampleRecord lsRec;
-				auto le = light->sample(castRay);
-				auto lightPdfW = !(bsdf->isDelta()) ? light->pdf(castRay) : 0.f;
+				auto le = light->sample(castRay,itsRec);
+				auto lightPdfW = !(bsdf->isDelta()) ? light->pdf(castRay,itsRec) : 0.f;
 
 				f32 cosWi = std::fabs(dot(surSRec.normal, wi));
 //				cosWi = (bsdf->isDelta() && lsMath::closeZero(cosWi)) ? lsMath::Epsilon : cosWi;

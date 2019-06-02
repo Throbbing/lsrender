@@ -170,6 +170,11 @@ namespace ls
 	struct MonteCarlo
 	{
 	public:
+		static void sampleTriangle(
+			ls_Param_In Point2 uv,
+			ls_Param_Out Point2* b
+		);
+
 		static void sampleHemisphere(ls_Param_In Point2 uv,
 			ls_Param_Out Vec3* w,
 			ls_Param_Out f32* pdf);

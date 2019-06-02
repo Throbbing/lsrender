@@ -43,6 +43,8 @@ namespace ls
 		virtual void commit() override;
 		virtual std::string strOut() const override;
 		
+		virtual f32  getArea() const  override { return mArea; }
+
 
 		virtual bool sample(ls_Param_In Sampler* sampler,
 			ls_Param_Out MeshSampleRecord* rec) const  override ;
@@ -66,6 +68,9 @@ namespace ls
 		std::vector<Point2>			mUVs;
 		std::vector<u32>			mIndices;
 		Transform					mO2W;
+
+		f32							mArea;
+		Distribution1D				mAreasDistribution;
 
 
 
