@@ -11,6 +11,7 @@
 #include<film/hdr.h>
 #include<light/pointLight.h>
 #include<light/environmentLight.h>
+#include<light/areaLight.h>
 
 #include<material/glass.h>
 #include<material/matte.h>
@@ -365,6 +366,10 @@ ls::LightPtr ls::ResourceManager::createLight(ParamSet & paramSet)
 	{
 		light = new EnvironmentLight(paramSet);
 	}
+	else if (paramSet.getType() == "areaLight" || paramSet.getType() == "area")
+	{
+		light = new AreaLight(paramSet);
+	}
 	else
 	{
 		auto t = paramSet.getType() + " in mitsuba has not been supported in lsrender!";
@@ -461,6 +466,13 @@ std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 		{
 			p->applyMaterial(createMaterial(paramSet.queryParamSetByClass("material")[0]));
 			p->applyTransform(paramSet.queryTransform("world"));
+			
+			auto areas = paramSet.queryParamSetByClass("light");
+			if (!areas.empty())
+			{
+				auto radiance = areas[0].querySpectrum("radiance", 1.f);
+				p->applyAreaLight(radiance);
+			}
 		}
 
 		return t;

@@ -78,6 +78,9 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 		{
 			t->commit();
 			addMesh(t);
+
+			if (t->getAreaLight())
+				addLight(t->getAreaLight());
 		}
 		
 	}
@@ -129,7 +132,7 @@ bool ls::Scene::intersect(ls_Param_In Ray & ray, ls_Param_Out IntersectionRecord
 	rtcRecord.geomID = rtcHit.hit.geomID;
 	rtcRecord.primID = rtcHit.hit.primID;
 	ray.tfar = rtcHit.ray.tfar;
-	ray.tnear = rtcHit.ray.tnear;
+ 	ray.tnear = rtcHit.ray.tnear;
 	ray.time = rtcHit.ray.time;
 
 	for (auto& mesh : mSceneMeshs)
@@ -166,8 +169,11 @@ ls::LightPtr ls::Scene::envrionmentLight()
 
 f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out LightSampleRecord * rec)
 {
-	rec->light = mSceneLights[0];
-	return 1.f;
+	f32 u = sampler->next1D();
+	auto selectedIndex = std::min((u32)(mSceneLights.size() * u), (u32)mSceneLights.size() - 1);
+	rec->light = mSceneLights[selectedIndex];
+
+	return 1.f / mSceneLights.size();
 }
 
 f32 ls::Scene::sampleMesh(ls_Param_In Sampler * sampler, ls_Param_Out MeshSampleRecord * rec)

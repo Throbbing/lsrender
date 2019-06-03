@@ -35,9 +35,19 @@ bool ls::RenderLib::visible(ScenePtr scene, Point p0, Point p1,f32 time)
 	auto dist = dir.length();
 	dir /= dist;
 
-	Ray ray = Ray(p0, dir, 0, time, 1e-4f, dist * (1.f - 1e-3f));
+	Ray ray = Ray(p0, dir, 0, time, 1e-3f, dist * (1.f - 1e-3f));
 
-	return !scene->occlude(ray);
+	IntersectionRecord its;
+	auto r = scene->intersect(ray, &its);
+
+#if 0	
+	if (r && (std::fabs(ray.tfar) < 1e-3f || std::fabs(ray.tfar - dist) < 1.f))
+	{
+		std::cout << "fuck" << std::endl;
+	}
+
+#endif
+	return !r;
 }
 
 bool ls::RenderLib::globalSample(

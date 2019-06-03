@@ -55,10 +55,11 @@ namespace ls
 
 		
 		virtual void applyTransform(const Transform& transform) = 0;
-		virtual void applyAreaLight(const Spectrum& power);
+		virtual void applyAreaLight(const Spectrum& radiance);
 		virtual void applyMaterial(MaterialPtr material) { mMaterial = material; }
 		virtual bool isAreaLight();
 		
+		virtual LightPtr getAreaLight() const { return mAreaLight; }
 		virtual f32  getArea() const = 0;
 		//commit changes to geometry
 		virtual void commit() = 0;
@@ -72,8 +73,6 @@ namespace ls
 		s32							mGeomID = -1;
 		const EMesh_Type			mMeshType;
 		std::shared_ptr<Scene>		mScene = nullptr;
-		Spectrum					mLightPower;
-		bool						mIsAreaLight = false;
 		LightPtr					mAreaLight = nullptr;
 		MaterialPtr					mMaterial;
 		AABB						mAABB;

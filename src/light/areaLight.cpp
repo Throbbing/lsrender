@@ -2,6 +2,7 @@
 #include<light/areaLight.h>
 #include<math/math.h>
 #include<mesh/mesh.h>
+#include<resource/xmlHelper.h>
 #include<scatter/scatter.h>
 #include<scene/scene.h>
 
@@ -37,7 +38,7 @@ void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const Int
 	rec->sampleDirection = dir;
 	rec->pdfPos = 1.f / mMesh->getArea();
 	rec->pdfDir = RenderLib::pdfA2W(rec->pdfPos, r, dot(meshRec.surfaceNormal, dir));
-	rec->pdfW = rec->pdfPos;
+	rec->pdfW = rec->pdfDir;
 	rec->mode = EMeasure_SolidAngle;
 	rec->light = LightPtr(this);
 
@@ -47,7 +48,7 @@ void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const Int
 ls::Spectrum ls::AreaLight::sample(const Ray & ray)
 {
 	IntersectionRecord its;
-	Ray r;
+	Ray r = ray;
 	lsRender::scene->intersect(r, &its);
 	if (!lsRender::scene->intersect(r, &its) || its.areaLight != this)
 	{
@@ -66,7 +67,7 @@ ls::Spectrum ls::AreaLight::sample(const Ray & ray, const IntersectionRecord & i
 f32 ls::AreaLight::pdf(const Ray & ray)
 {
 	IntersectionRecord its;
-	Ray r;
+	Ray r = ray;
 	lsRender::scene->intersect(r, &its);
 	if (!lsRender::scene->intersect(r, &its) || its.areaLight != this)
 	{
@@ -94,10 +95,17 @@ f32 ls::AreaLight::pdf(const Ray & ray, const IntersectionRecord & its)
 
 f32 ls::AreaLight::pdf(ls_Param_In const LightSampleRecord * refRec)
 {
+	Unimplement;
 	return f32();
 }
 
 std::string ls::AreaLight::strOut() const
 {
+	
 	return std::string();
+}
+
+ls::AreaLight::AreaLight(ParamSet & paramSet)
+{
+	mRadiance = paramSet.querySpectrum("radiance", 1.f);
 }

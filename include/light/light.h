@@ -26,8 +26,6 @@ namespace ls
 		virtual bool		isDelta() = 0;
 		virtual Spectrum	getPower() = 0;
 
-		virtual void attachMesh(MeshPtr mesh) { mAttachedMesh = mesh; }
-		virtual void detachMesh() { mAttachedMesh = nullptr; }
 
 
 		//Sample
@@ -76,6 +74,5 @@ namespace ls
 		
 
 	protected:
-		MeshPtr					mAttachedMesh = nullptr;
 	};
 }

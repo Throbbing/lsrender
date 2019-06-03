@@ -16,6 +16,7 @@ f32 ls::RandomSampler::next1D()
 
 ls::Point2 ls::RandomSampler::next2D()
 {
+//	return Point2(0.5f, 0.5f);
 	return Point2(rng.UniformFloat(), rng.UniformFloat());
 }
 

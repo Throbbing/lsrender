@@ -17,6 +17,11 @@ namespace ls
 			const std::vector<Point2>& uvs,
 			const std::vector<u32>& indices);
 
+		virtual ~TriMesh()
+		{
+			delete mAreasDistribution;
+		}
+
 
 		//get functions
 		std::vector<Point3>			getVertices()  const { return mVertices; }
@@ -70,7 +75,7 @@ namespace ls
 		Transform					mO2W;
 
 		f32							mArea;
-		Distribution1D				mAreasDistribution;
+		Distribution1D*				mAreasDistribution = nullptr;
 
 
 

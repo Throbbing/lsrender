@@ -79,7 +79,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			if (castRay.depth == 0)
 			{
 				auto areaLight = itsRec.areaLight;
-				L += areaLight->sample(castRay);
+				L += areaLight->sample(castRay,itsRec);
 				
 			}
 			break;
@@ -126,34 +126,35 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 				auto wi = -lsRec.sampleDirection;
 				auto lightPdfW = lsRec.pdfW * selectPdf;
 
-				//calculate bsdf
-				SurfaceSampleRecord surSRec;
-				
-				RenderLib::fillScatteringRecordForBSDFValueAndPdf(
-					itsRec.position,
-					itsRec.ns,
-					-castRay.dir,
-					wi,
-					TransportMode::ETransport_Radiance,
-					&surSRec);
-
-				RenderLib::surfaceBSDFValueAndPdf(bsdf, &surSRec);
-
-				auto bsdfPdfW = surSRec.pdf;
-				auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec,itsRec);
-
-				auto visible = RenderLib::visible(scene, lightPoint, itsRec.position);
-
-				if (light->isDelta()) bsdfPdfW = 0.f;
-
-				if (visible && !bsdfVal.isBlack() && dot(surSRec.normal,wi) > 0.f &&
-					 !lsMath::closeZero(lightPdfW))
+				if (!le.isBlack())
 				{
-					L += throughput * le *bsdfVal * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
-						lightPdfW;
-				}
+					//calculate bsdf
+					SurfaceSampleRecord surSRec;
 
+					RenderLib::fillScatteringRecordForBSDFValueAndPdf(
+						itsRec.position,
+						itsRec.ns,
+						-castRay.dir,
+						wi,
+						TransportMode::ETransport_Radiance,
+						&surSRec);
 
+					RenderLib::surfaceBSDFValueAndPdf(bsdf, &surSRec);
+
+					auto bsdfPdfW = surSRec.pdf;
+					auto bsdfVal = surSRec.sampledValue * itsRec.material->scatteringFactor(surSRec, itsRec);
+
+					auto visible = RenderLib::visible(scene, itsRec.position, lightPoint);
+
+					if (light->isDelta()) bsdfPdfW = 0.f;
+
+					if (visible && !bsdfVal.isBlack() && dot(surSRec.normal, wi) > 0.f &&
+						lightPdfW != 0.f)
+					{
+						L += throughput * le *bsdfVal * dot(surSRec.normal, wi) * RenderLib::mis(lightPdfW, bsdfPdfW) /
+							lightPdfW;
+					}
+				}// !le.isBlack()
 
 			}//endif !bsdf->isDelta()
 		}//Direct Light Calculation
@@ -233,7 +234,7 @@ ls::RenderAlgorithmPtr ls::PathTracer::copy() const
 			}
 			
 			//update throughput
-			throughput *= bsdfVal * std::fabs(dot(surSRec.normal, wi)) / bsdfPdfW;
+			throughput *= (bsdfVal * std::fabs(dot(surSRec.normal, wi)) / bsdfPdfW);
 
 		}//end BSDF Sample
 		

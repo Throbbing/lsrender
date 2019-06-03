@@ -204,7 +204,7 @@ namespace ls
 		}
 		ls_ForceInline f32 length() const
 		{
-			return sqrtf(x*x + y*y + z*z);
+			return std::sqrtf(x*x + y*y + z*z);
 		}
 
 		ls_ForceInline void normalize()

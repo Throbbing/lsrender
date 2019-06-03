@@ -186,6 +186,32 @@ void ls::TriMesh::commit()
 			vertices[i] = v;
 			mAABB.unionPoint(v);
 		}
+		mArea = 0;
+		std::vector<f32> areas;
+
+		if (mAreasDistribution) delete mAreasDistribution;
+
+		for (int i = 0; i < mVertices.size() / 3; ++i)
+		{
+			auto v0 = mO2W(mVertices[i * 3 + 0]);
+			auto v1 = mO2W(mVertices[i * 3 + 1]);
+			auto v2 = mO2W(mVertices[i * 3 + 2]);
+
+			auto v01 = Vec3(v0 - v1); auto a = v01.length();
+			auto v02 = Vec3(v0 - v2); auto b = v02.length();
+
+			v01 /= a;
+			v02 /= b;
+			auto cos = dot(v01, v02);
+			auto sin = std::sqrtf(1.f - cos *cos);
+
+			auto area = .5f * a *b * sin;
+
+			mArea += area;
+			areas.push_back(area);
+		}
+		mAreasDistribution = new Distribution1D(&areas[0], areas.size());
+
 	}
 	
 	{
@@ -273,7 +299,7 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	ls_Param_Out MeshSampleRecord * rec) const
 {
 	//选择三角形
-	int selectedTriIndex = mAreasDistribution.SampleDiscrete(sampler->next1D());
+	int selectedTriIndex = mAreasDistribution->SampleDiscrete(sampler->next1D());
 	
 	auto p0 = mVertices[mIndices[selectedTriIndex * 3 + 0]];
 	auto p1 = mVertices[mIndices[selectedTriIndex * 3 + 1]];
@@ -282,25 +308,27 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	//三角形采样
 	Point2 b;
 	MonteCarlo::sampleTriangle(sampler->next2D(), &b);
-
-	auto p = b.x * p0 + b.y * p1 + (1.f - b.x - b.y) * p2;
+//	MonteCarlo::sampleTriangle(Point2(0.5,1.f), &b);
+	auto p =  p0 + b.x * (p1 - p0) + b.y * (p2 - p0);
 
 	Normal n;
 	if (!mNormals.empty())
 	{
-		auto N0 = mNormal[mIndices[selectedTriIndex * 3 + 0]];
-		auto N1 = mNormal[mIndices[selectedTriIndex * 3 + 1]];
-		auto N2 = mNormal[mIndices[selectedTriIndex * 3 + 2]];
+		auto n0 = mNormals[mIndices[selectedTriIndex * 3 + 0]];
+		auto n1 = mNormals[mIndices[selectedTriIndex * 3 + 1]];
+		auto n2 = mNormals[mIndices[selectedTriIndex * 3 + 2]];
 
 		n = b.x * n0 + b.y * n1 + (1.f - b.x - b.y) * n2;
 	}
 	else
 	{
-		n = cross(p1 - p0, p2 - p0);
+		
+		n = Normal(cross(normalize(Vec3(p1 - p0)), normalize(Vec3(p2 - p0))));
+		n = normalize(n);
 	}
 
-	rec->samplePosition = p;
-	rec->surfaceNormal = n;
+	rec->samplePosition = mO2W(p);
+	rec->surfaceNormal = mO2W(n);
 
 	return true;
 

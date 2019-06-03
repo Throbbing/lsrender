@@ -30,7 +30,10 @@ namespace ls
 		virtual f32 pdf(ls_Param_In const LightSampleRecord* refRec) override;
 
 
-
+		void attachMesh(MeshPtr mesh)
+		{
+			mMesh = mesh;
+		}
 
 		virtual void commit() {};
 		virtual std::string strOut() const override;
@@ -38,7 +41,7 @@ namespace ls
 	protected:
 		AreaLight(ParamSet& paramSet);
 	protected:
-		MeshPtr			mMesh;
+		MeshPtr			mMesh = nullptr;
 		Spectrum		mRadiance;
 	};
 }

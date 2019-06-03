@@ -1,6 +1,10 @@
+#include<light/areaLight.h>
 #include<mesh/mesh.h>
 #include<record/record.h>
+#include<resource/resourceManager.h>
+#include<resource/xmlHelper.h>
 #include<scene/scene.h>
+
 
 bool ls::Mesh::intersect(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRecord & rtc, ls_Param_Out IntersectionRecord * rec) const
 {
@@ -21,14 +25,17 @@ bool ls::Mesh::occlude(ls_Param_In const ls::Ray & ray, ls_Param_In const RTCRec
 	return false;
 }
 
-void ls::Mesh::applyAreaLight(const Spectrum & power)
+void ls::Mesh::applyAreaLight(const Spectrum & radiance)
 {
-	mLightPower = power;
-	if (!mLightPower.isBlack())
-		mIsAreaLight = true;
+	ParamSet paramSet = ParamSet("light", "areaLight", "", "");
+	paramSet.addSpectrum("radiance", radiance);
+
+	mAreaLight = ResourceManager::createLight(paramSet);
+
+	dynamic_cast<AreaLight*>(mAreaLight)->attachMesh(MeshPtr(this));
 }
 
 bool ls::Mesh::isAreaLight()
 {
-	return mIsAreaLight;
+	return mAreaLight;
 }

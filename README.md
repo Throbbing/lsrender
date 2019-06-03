@@ -21,3 +21,6 @@ A small physical render
 
 ## GlossyMetalBall (For glossymetal)
 ![glossyMetalBall](https://github.com/Throbbing/lsrender/blob/master/results/glossyMetalGGX.png)
+
+## LampAreaLight (For areaLight)
+![lampAreaLight](https://github.com/Throbbing/lsrender/blob/master/results/lampAreaLight.png)

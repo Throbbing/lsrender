@@ -108,6 +108,13 @@ Mat4x4 Transform::Mat4x4Rotate(f32 radian, f32 x,f32 y,f32 z)
 
 Mat4x4 Transform::Mat4x4Rotate(f32 radian, const Vec3& v)
 {
+	if (radian == 0.f)
+	{
+		return Mat4x4(1,0,0,0,
+			0,1,0,0,
+			0,0,1,0,
+			0,0,0,1);
+	}
 	return Mat4x4Rotate(radian, v.x, v.y, v.z);
 }
 

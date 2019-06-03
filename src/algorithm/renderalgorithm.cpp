@@ -23,7 +23,8 @@ void ls::RenderAlgorithm::render(ScenePtr scene,
 		{
 		
 
-
+//			if (w != 256 || h != 256)
+//				continue;
 
 
 			for (s32 i = 0; i < spp; ++i)

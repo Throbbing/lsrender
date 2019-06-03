@@ -1,5 +1,6 @@
 #include<scatter/lambertian.h>
 #include<sampler/sampler.h>
+#include<math/frame.h>
 #include<function/func.h>
 #include<record/record.h>
 #include<resource/xmlHelper.h>
@@ -23,6 +24,8 @@ void ls::Lambertian::sample(ls_Param_In Sampler * sampler,
 f32 ls::Lambertian::pdf(ls_Param_In const Vec3& wi,
 	ls_Param_In const Vec3& wo)
 {
+	if (!Frame::hemisphere(wi, wo))
+		return 0.f;
 	return MonteCarlo::sampleCosHemispherePdf(wi);
 }
 

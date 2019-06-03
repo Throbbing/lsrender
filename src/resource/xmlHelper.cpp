@@ -206,7 +206,7 @@ namespace ls
 		auto scale = elem->FirstChildElement("scale");
 		int jointCount = 0;
 		Vec3 transVec(0), rotateVec(0), scaleVec(1);
-		f32 rotateAngle;
+		f32 rotateAngle = 0.f;
 		if (translate)
 		{
 			transVec = parseVec3(translate);
@@ -650,11 +650,12 @@ namespace ls
 			auto etaI = mtsBSDF.queryf32("extEta", 1.f);
 			auto etaT = mtsBSDF.querySpectrum("eta", 1.5f);
 			auto k = mtsBSDF.querySpectrum("k", 1.f);
-			auto alphaU = mtsBSDF.queryf32("alphaU", 0.1f);
-			auto alphaV = mtsBSDF.queryf32("alphaV", 0.1f);
+			f32 alpha = mtsBSDF.queryf32("alpha", 0.1f);
+			f32 alphaU = mtsBSDF.queryf32("alphaU", alpha);
+			f32 alphaV = mtsBSDF.queryf32("alphaV", alpha);
 			auto dis = mtsBSDF.queryString("distribution");
 			
-			lsMaterial.addSpectrum("reflectance", etaI);
+			lsMaterial.addSpectrum("reflectance", lsReflectance);
 			lsMaterial.addf32("etaI", etaI);
 			lsMaterial.addSpectrum("etaT", etaT);
 			lsMaterial.addSpectrum("k", k);
@@ -761,6 +762,22 @@ namespace ls
 
 		lsMesh.addParamSet(mts2lsMaterial(src,bsdfSet));
 
+		
+
+		//读取可能面积光
+		ParamSet areaSet = src.queryRefObject(mtsShape.getAllRefs(),
+			EParamSet_Light);
+		if (!areaSet.isValid())
+		{
+			auto areaSets = mtsShape.queryParamSetByClass("emitter");
+			if (!areaSets.empty())
+				areaSet = areaSets[0];
+		}
+		if (areaSet.isValid())
+		{
+			lsMesh.addParamSet(mts2lsLight(src, areaSet));
+		}
+			
 		return lsMesh;
 	}
 
@@ -791,6 +808,11 @@ namespace ls
 			lsLight.addf32("scale", mtsLight.queryf32("scale",1.f));
 			lsLight.addTransform("l2w", mtsLight.queryTransform("toWorld"));
 		}
+		else if (mtsLightType == "area")
+		{
+			lsLight = ParamSet("light", "areaLight", mtsLight.getName(), mtsLight.getID());
+			lsLight.addSpectrum("radiance", mtsLight.querySpectrum("radiance", 1.f));
+		}
 		else
 		{
 			auto t = mtsLightType + " in mitsuba has not been supported in lsrender!";
@@ -820,6 +842,16 @@ namespace ls
 				if (mTextures.find(r.second) != mTextures.end())
 				{
 					return mParamSets[mTextures[r.second]];
+				}
+			}
+		}
+		else if (type == EParamSet_Light)
+		{
+			for (auto& r : refs)
+			{
+				if (mLights.find(r.second) != mLights.end())
+				{
+					return mParamSets[mLights[r.second]];
 				}
 			}
 		}

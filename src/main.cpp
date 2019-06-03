@@ -12,9 +12,9 @@
 #include<resource\resourceManager.h>
 #include<config\common.h>
 
-#define PrePath "SceneFile//material-testball//"
-#define FileName "sceneGlossy.xml"
-#define OutName "glossyMetal.png"
+#define PrePath "SceneFile//lamp//"
+#define FileName "scene.xml"
+#define OutName "lampAreaLight.png"
 int main()
 {
 	ls::lsEmbree::initEmbree();
