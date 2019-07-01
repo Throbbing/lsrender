@@ -49,6 +49,11 @@ void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_Out Camer
 	Unimplement
 }
 
+void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_In const CameraSample & sample, ls_Param_Out CameraSampleRecord * rec) const
+{
+	Unimplement;
+}
+
 f32 ls::Pinhole::pdf(ls_Param_In const CameraSampleRecord * rec) const
 {
 	Unimplement

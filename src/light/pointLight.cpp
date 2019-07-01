@@ -13,6 +13,7 @@ void ls::PointLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_Out LightSa
 	MonteCarlo::sampleSphere(uv, &wo, &pdf);
 	rec->samplePosition = mPosition;
 	rec->sampleDirection = wo;	
+	rec->n = Normal(wo);
 	rec->le = mIntensity;
 	rec->mode = EMeasure_SolidAngle;
 	rec->pdfPos = 1.f;

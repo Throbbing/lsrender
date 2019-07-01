@@ -17,6 +17,10 @@ namespace ls
 		virtual void sample(ls_Param_In const Sampler* sampler,
 			ls_Param_Out CameraSampleRecord* rec) const  = 0;
 
+		virtual void sample(ls_Param_In const Sampler* sampler,
+			ls_Param_In const CameraSample& sample,
+			ls_Param_Out CameraSampleRecord* rec) const = 0;
+
 		virtual f32 pdf(ls_Param_In const CameraSampleRecord* rec) const = 0;
 
 		//commit changes into camera

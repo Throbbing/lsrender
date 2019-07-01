@@ -283,6 +283,13 @@ namespace ls
 			ls_Param_In f32 cosThetaI,
 			ls_Param_In f32 etaT);
 
+		static f32 correctShadingNormal(
+			ls_Param_In const Vec3& wi,
+			ls_Param_In const Vec3& wo,
+			ls_Param_In const Normal& ng,
+			ls_Param_In const Normal& ns,
+			ls_Param_In s32 transMode);
+
 
 		static f32 fresnelDielectric(f32 cosThetaI, f32 etaI,
 			f32 cosThetaT, f32 etaT);

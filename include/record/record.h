@@ -53,6 +53,7 @@ namespace ls
 		// $ We = W^0_e * W^1_e $
 		Point			samplePosition;
 		Vec3			sampleDirection;
+		Normal			n;
 		ls::Spectrum	we;
 		f32				pdfA;
 		f32				pdfD;
@@ -69,6 +70,9 @@ namespace ls
 		Point			samplePosition;
 		//@sampleDirection				光源采样方向 从光源方向发出
 		Vec3			sampleDirection;
+
+		//@normal						光源表面的法线
+		Normal			n;
 
 		//@le							光源采样得到的radiance W/(sr* m^2)
 		ls::Spectrum	le;

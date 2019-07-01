@@ -46,6 +46,7 @@ namespace ls
 		Vec3   dirY;
 	};
 
+
 	class AABB
 	{
 	public:
