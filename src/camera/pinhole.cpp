@@ -60,6 +60,11 @@ f32 ls::Pinhole::pdf(ls_Param_In const CameraSampleRecord * rec) const
 	return f32();
 }
 
+ls::Vec3 ls::Pinhole::look() const
+{
+	return mC2W(Vec3(0.f,0.f,1.f));
+}
+
 void ls::Pinhole::commit() 
 {
 	if (!mFilm)

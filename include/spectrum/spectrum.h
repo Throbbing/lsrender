@@ -157,6 +157,11 @@ namespace ls
 			return c[0] == 0.f&&c[1] == 0.f&&c[2] == 0.f;
 		}
 
+		f32 maxComponent()
+		{
+			return std::max(c[0], std::max(c[1], c[2]));
+		}
+
 		//调试函数，将Spectrum转换为可读的String
 		std::string toString() const
 		{

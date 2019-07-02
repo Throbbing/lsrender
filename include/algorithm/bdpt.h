@@ -1,7 +1,9 @@
 #pragma once
 
+#include<config/declaration.h>
 #include<algorithm/renderalgorithm.h>
 #include<spectrum/spectrum.h>
+#include<function/func.h>
 namespace ls
 {
 	class BDPT :public RenderAlgorithm
@@ -29,6 +31,18 @@ namespace ls
 		virtual void commit() override {}
 
 		virtual std::string strOut() const override;
+
+		/*
+			连接两条路径并计算对应的throughput
+		*/
+		virtual Spectrum connectPath(
+			ls_Param_In ScenePtr scene,
+			ls_Param_In SamplerPtr sampler,
+			ls_Param_In const Path& lightPath,
+			ls_Param_In const Path& cameraPath,
+			ls_Param_In s32 s, // 光源路径 顶点数
+			ls_Param_In s32 t, // 相机路径 定点数
+			ls_Param_In ls_Param_Out CameraSample* cameraSample);
 
 	protected:
 		BDPT(ParamSet& paramSet);

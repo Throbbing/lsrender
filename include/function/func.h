@@ -246,6 +246,14 @@ namespace ls
 		static f32 mis(f32 pf, f32 pg);
 		static f32 pdfW2A(f32 pdfW, f32 r, f32 cos);
 		static f32 pdfA2W(f32 pdfA, f32 r, f32 cos);
+		static f32 G(
+			const Point3& p1, const Normal& n1,
+			const Point3& p2, const Normal& n2);
+		static f32 G(
+			ScenePtr scene,
+			const Point3& p1, const Normal& n1,
+			const Point3& p2, const Normal& n2);
+
 		static bool visible(ScenePtr scene, Point p0, Point p1,f32 time = 0.f);
 		static bool globalSample(ls_Param_In ScenePtr scene, ls_Param_In SamplerPtr sampler,
 			ls_Param_Out MeshSampleRecord* meshRec);

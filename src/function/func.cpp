@@ -29,6 +29,30 @@ f32 ls::RenderLib::pdfA2W(f32 pdfA, f32 r, f32 cos)
 	return pdfA*r*r / cos;
 }
 
+f32 ls::RenderLib::G(const Point3 & p1,
+	const Normal & n1, 
+	const Point3 & p2, 
+	const Normal & n2)
+{
+	auto dir = Vec3(p1 - p2);
+	auto dist = dir.length();
+	if (dist == 0.f) return 0.f;
+
+	dir /= dist;
+	auto cosA = std::fabs(dot(dir, n1));
+	auto cosB = std::fabs(dot(dir, n2));
+
+	return (cosA * cosB) / (dist * dist);
+}
+
+f32 ls::RenderLib::G(ScenePtr scene, const Point3 & p1, const Normal & n1, const Point3 & p2, const Normal & n2)
+{
+	if (!RenderLib::visible(scene, p1, p2))
+		return 0.f;
+
+	return G(p1, n1, p2, n2);
+}
+
 bool ls::RenderLib::visible(ScenePtr scene, Point p0, Point p1,f32 time)
 {
 	auto dir = Vec3(p1 - p0);

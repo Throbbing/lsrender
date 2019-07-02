@@ -23,6 +23,8 @@ namespace ls
 
 		virtual f32 pdf(ls_Param_In const CameraSampleRecord* rec) const = 0;
 
+		virtual Vec3 look() const = 0;
+
 		//commit changes into camera
 		virtual void commit() = 0;
 

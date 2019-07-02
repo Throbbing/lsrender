@@ -33,6 +33,47 @@ std::string ls::BDPT::strOut() const
 	return std::string();
 }
 
+ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
+	ls_Param_In SamplerPtr sampler,
+	ls_Param_In const Path & lightPath, 
+	ls_Param_In const Path & cameraPath, 
+	ls_Param_In s32 s,
+	ls_Param_In s32 t,
+	ls_Param_In ls_Param_Out CameraSample * cameraSample)
+{
+	if (t == 0)
+		return Spectrum(0.f);
+
+	/*
+		case 1: s = 0 ,直接光照
+	*/
+	if (s == 0)
+	{
+
+	}
+	/*
+		case 2: s = 1,需要判断 Surface 顶点和 光源 顶点是否可以相连
+	*/
+	else if (s == 1)
+	{
+
+	}
+	/*
+		case 3: t = 1  只有一个相机顶点，可能需要重新计算 像素 位置
+	*/
+	else if (t == 1)
+	{
+
+	}
+	/*
+		case 4: 其余情况， BDPT General 连接方式
+	*/
+	else
+	{
+
+	}
+}
+
 ls::BDPT::BDPT(ParamSet & paramSet)
 {
 }

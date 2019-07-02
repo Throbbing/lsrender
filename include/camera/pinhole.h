@@ -31,6 +31,8 @@ namespace ls
 
 		virtual f32 pdf(ls_Param_In const CameraSampleRecord* rec) const override ;
 
+		virtual Vec3 look() const override;
+
 		//commit changes into camera
 		virtual void commit()  override;
 		virtual std::string strOut() const override;
