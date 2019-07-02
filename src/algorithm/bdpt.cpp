@@ -2,6 +2,7 @@
 #include<algorithm/bdpt.h>
 #include<record/record.h>
 #include<function/stru.h>
+#include<function/bidirStru.h>
 #include<scene/scene.h>
 #include<light/light.h>
 #include<material/material.h>
@@ -44,12 +45,18 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 	if (t == 0)
 		return Spectrum(0.f);
 
+	Spectrum L(0.f);
 	/*
 		case 1: s = 0 ,直接光照
 	*/
 	if (s == 0)
 	{
+		//直接光照，直接计算 光源顶点的 Le
+		auto& v = cameraPath[t - 1];
+		if (v.getVertexType() != PathVertexType::EPathVertex_Light)
+			return 0.f;
 
+		L = v.throughput * v.pathVertexRecord.lightSampleRecord.le;
 	}
 	/*
 		case 2: s = 1,需要判断 Surface 顶点和 光源 顶点是否可以相连
@@ -70,7 +77,13 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 	*/
 	else
 	{
+		auto& cameraVertex = cameraPath[t - 1];
+		auto& lightVertex = lightPath[s - 1];
 
+		if (!PathVertex::connectable(cameraVertex, lightVertex))
+			return Spectrum(0.f);
+
+		L = cameraVertex.throughput * cameraVertex.
 	}
 }
 
