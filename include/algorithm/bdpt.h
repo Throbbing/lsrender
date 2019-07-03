@@ -38,12 +38,33 @@ namespace ls
 		virtual Spectrum connectPath(
 			ls_Param_In ScenePtr scene,
 			ls_Param_In SamplerPtr sampler,
+			ls_Param_In CameraPtr camera,
 			ls_Param_In const Path& lightPath,
 			ls_Param_In const Path& cameraPath,
 			ls_Param_In s32 s, // 光源路径 顶点数
-			ls_Param_In s32 t, // 相机路径 定点数
+			ls_Param_In s32 t, // 相机路径 数点数
 			ls_Param_In ls_Param_Out CameraSample* cameraSample);
 
+
+		/*
+			生成 MIS 
+			Brute Force
+		*/
+		virtual f32 BDPTMIS(
+			ls_Param_In const Path& lightPath,
+			ls_Param_In const Path& cameraPath,
+			ls_Param_In s32 s, //光源路径 顶点数
+			ls_Param_In s32 t //相机路径 顶点数
+			);
+
+		/*
+			生成 MIS
+		*/
+		virtual f32 BDPTMISEfficiency(
+			ls_Param_In const Path& lightPath,
+			ls_Param_In const Path& cameraPath,
+			ls_Param_In s32 s,
+			ls_Param_In s32 t);
 	protected:
 		BDPT(ParamSet& paramSet);
 	private:

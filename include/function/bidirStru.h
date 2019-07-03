@@ -76,6 +76,7 @@ namespace ls
 			ns = v.ns;
 			wi = v.wi;
 			wo = v.wo;
+			scatter = v.scatter;
 			pdfType = v.pdfType;
 			pdfForward = v.pdfForward;
 			pdfReverse = v.pdfReverse;
@@ -127,6 +128,8 @@ namespace ls
 		Normal				ns;
 		Vec3				wi;
 		Vec3				wo;
+
+		ScatteringFunctionPtr	scatter = nullptr;
 
 		ScatteringFlag		pdfType;
 

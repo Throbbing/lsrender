@@ -44,6 +44,10 @@ f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler,
 	return f32();
 }
 
+void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_In const IntersectionRecord & refIts, ls_Param_Out CameraSampleRecord * rec) const
+{
+}
+
 void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_Out CameraSampleRecord * rec) const
 {
 	Unimplement

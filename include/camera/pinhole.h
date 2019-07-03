@@ -23,6 +23,10 @@ namespace ls
 			ls_Param_Out CameraSpwanRayRecord* rec) const override;
 
 		virtual void sample(ls_Param_In const Sampler* sampler,
+			ls_Param_In const IntersectionRecord& refIts,
+			ls_Param_Out CameraSampleRecord* rec) const override;
+
+		virtual void sample(ls_Param_In const Sampler* sampler,
 			ls_Param_Out CameraSampleRecord* rec) const override;
 
 		virtual void sample(ls_Param_In const Sampler* sampler,

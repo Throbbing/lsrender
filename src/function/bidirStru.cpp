@@ -208,6 +208,7 @@ ls::PathVertex ls::PathVertex::createPathVertex(
 	vertex.ns = surfaceSampleRecord.normal;
 	vertex.wi = surfaceSampleRecord.wi;
 	vertex.wo = surfaceSampleRecord.wo;
+	vertex.scatter = bsdf;
 	vertex.pdfType = ScatteringFlag::EMeasure_SolidAngle;
 	vertex.pdfWi = surfaceSampleRecord.pdf;
 	Frame localFrame(vertex.ns);
