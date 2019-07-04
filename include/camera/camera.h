@@ -1,5 +1,6 @@
 #pragma once
 #include<config/config.h>
+#include<config/lsPtr.h>
 #include<config/declaration.h>
 #include<config/module.h>
 namespace ls
@@ -10,18 +11,19 @@ namespace ls
 		Camera(const std::string& id = "camera"):Module(id){}
 		virtual ~Camera() {}
 
-		virtual f32 spawnRay(ls_Param_In const Sampler* sampler,
+		virtual f32 spawnRay(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSpwanRayRecord* rec) const = 0;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const IntersectionRecord& refIts,
+			ls_Param_Out CameraSample* cameraSample,
 			ls_Param_Out CameraSampleRecord* rec) const = 0;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_Out CameraSampleRecord* rec) const  = 0;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSampleRecord* rec) const = 0;
 

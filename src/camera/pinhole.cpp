@@ -1,9 +1,11 @@
+#include<config/declaration.h>
 #include<camera/pinhole.h>
 #include<function/log.h>
 #include<film/film.h>
 #include<record/record.h>
 #include<resource/xmlHelper.h>
 #include<sampler/sampler.h>
+
 #include<function/stru.h>
 ls::Pinhole::Pinhole(const Transform & c2w, f32 shutterStart, f32 shutterEnd, f32 fov,
 	f32 near,f32 far)
@@ -23,7 +25,9 @@ ls::Pinhole::Pinhole(const Transform & c2w, f32 shutterStart, f32 shutterEnd, f3
 
 }
 
-f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler, 
+
+
+f32 ls::Pinhole::spawnRay(ls_Param_In SamplerPtr sampler,
 	ls_Param_In const CameraSample & sample, 
 	ls_Param_Out CameraSpwanRayRecord * rec) const
 {
@@ -44,18 +48,141 @@ f32 ls::Pinhole::spawnRay(ls_Param_In const Sampler * sampler,
 	return f32();
 }
 
-void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_In const IntersectionRecord & refIts, ls_Param_Out CameraSampleRecord * rec) const
+void ls::Pinhole::sample(
+	ls_Param_In SamplerPtr sampler,
+	ls_Param_In const IntersectionRecord & refIts, 
+	ls_Param_Out CameraSample* cameraSample,
+	ls_Param_Out CameraSampleRecord * rec) const
 {
+	
+
+
+	Point3 cameraPoint = mC2W(Point3(0.f, 0.f, 0.f));
+	auto dir = Vec3(refIts.position - cameraPoint);
+	auto dist = dir.length();
+	dir /= dist;
+
+	//相机空间的 Ray
+	Ray cameraRay = mW2C(Ray(cameraPoint, dir));
+	
+	auto rasterPos = cameraRay(1.f / cameraRay.dir.z);
+
+	rasterPos = mC2R(rasterPos);
+
+	auto screenPos = Point2(rasterPos.x * mFilm->getWidth(), rasterPos.y * mFilm->getHeight());
+
+	// 保存 新的 像素 坐标
+	if (cameraSample)
+		cameraSample->pos = screenPos;
+
+	if (screenPos.x < 0.f ||
+		screenPos.x >= mFilm->getWidth() ||
+		screenPos.y < 0.f ||
+		screenPos.y >= mFilm->getHeight())
+	{
+		rec->we = 0.f;
+		rec->pdfD = 0.f;
+		rec->pdfA = 1.f;
+		return;
+	}
+
+	f32 area = mFilm->getWidth() * mFilm->getHeight();
+
+	f32 cosTheta2 = cameraRay.dir.z * cameraRay.dir.z;
+	rec->samplePosition = cameraPoint;
+	rec->sampleDirection = dir;
+	rec->we = 1.f / (area * cosTheta2 * cosTheta2);
+
+	/*
+		pdfD 为 采样方向的 pdf 
+		该方向 为 cameraPoint 与 refIts.position 的连线 
+		不需要考虑在 焦平面 的采样
+		由于 不存在 lens , 所以 采样得到 cameraPoint 的 pdfA = 1
+		由于其中一个点 （cameraPoint）为采样得到 （在这里是固定的）
+		所以需要将 采样该点的 pdf （基于 面积 ）转换为 基于立体角
+		
+		由于是根据 refIts 采样，所以距离不是 焦平面的距离 
+		而是  cameraPoint 与 refIts.position 的距离
+	*/
+	rec->pdfA = 1.f;
+	rec->pdfD = RenderLib::pdfA2W(1.f, dist, std::fabs(cameraRay.dir.z));
+
 }
 
-void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_Out CameraSampleRecord * rec) const
+void ls::Pinhole::sample(ls_Param_In SamplerPtr sampler,
+	ls_Param_Out CameraSampleRecord * rec) const
 {
-	Unimplement
+	auto uv = sampler->next2D();
+
+
+	Point3 pRaster = Point3(uv.x, uv.y, 1.f);
+	Point3 pCamera = mR2C(pRaster);
+
+	//相机空间的光线
+	Ray cameraRay = Ray(Point3(0, 0, 0), normalize(Vec3(pCamera)));
+
+
+	auto cosTheta = std::fabs(cameraRay.dir.z);
+	auto cosTheta2 = cosTheta * cosTheta;
+	//没有 lens pdfA = 1.f
+
+	/*
+		pdfD 方向的概率密度 = lens采样 PdfA (1.f) * 生成方向 Pdf
+		生成方向 是通过与 焦平面 上 采样 得到的点 直接相连得到 pdf = 1 / 焦平面大小
+
+		由于 两者 为 基于面积 ，需要转换成 基于立体角
+	*/
+	auto area = mFilm->getWidth() * mFilm->getHeight();
+	auto pdfA = 1.f;
+	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / area, 1 / cosTheta, cosTheta);
+
+
+	rec->samplePosition = mC2W(Point3(0.f, 0.f, 0.f));
+	rec->sampleDirection = mC2W(cameraRay.dir);
+	rec->we = 1.f / (area * 1.f * cosTheta2 * cosTheta2);
+	rec->pdfA = pdfA;
+	rec->pdfD = pdfD;
 }
 
-void ls::Pinhole::sample(ls_Param_In const Sampler * sampler, ls_Param_In const CameraSample & sample, ls_Param_Out CameraSampleRecord * rec) const
+void ls::Pinhole::sample(ls_Param_In SamplerPtr sampler,
+	ls_Param_In const CameraSample & sample, 
+	ls_Param_Out CameraSampleRecord * rec) const
 {
-	Unimplement;
+	
+
+	auto uv = sample.pos; uv.x /= mFilm->getWidth(); uv.y /= mFilm->getHeight();
+
+	
+	Point3 pRaster = Point3(uv.x,uv.y,1.f);
+	Point3 pCamera = mR2C(pRaster);
+
+	//相机空间的光线
+	Ray cameraRay = Ray(Point3(0, 0, 0), normalize(Vec3(pCamera)));
+
+	
+	auto cosTheta = std::fabs(cameraRay.dir.z);
+	auto cosTheta2 = cosTheta * cosTheta;
+	//没有 lens pdfA = 1.f
+	
+	/* 
+		pdfD 方向的概率密度 = lens采样 PdfA (1.f) * 生成方向 Pdf
+		生成方向 是通过与 焦平面 上 采样 得到的点 直接相连得到 pdf = 1 / 焦平面大小
+
+		由于 两者 为 基于面积 ，需要转换成 基于立体角
+	*/
+	auto area = mFilm->getWidth() * mFilm->getHeight();
+	auto pdfA = 1.f;
+	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / area, 1 / cosTheta, cosTheta);
+
+
+	rec->samplePosition = mC2W(Point3(0.f, 0.f, 0.f));
+	rec->sampleDirection = mC2W(cameraRay.dir);
+	rec->we = 1.f / (area * 1.f * cosTheta * cosTheta);
+	rec->pdfA = pdfA;
+	rec->pdfD = pdfD;
+
+
+
 }
 
 f32 ls::Pinhole::pdf(ls_Param_In const CameraSampleRecord * rec) const
@@ -100,7 +227,7 @@ void ls::Pinhole::commit()
 		Transform::Mat4x4Translate(Vector(-relOffset.x, -relOffset.y, 0.0f)) *
 		Transform::Mat4x4Scale(Vector(1.0f / relSize.x, 1.0f / relSize.y, 1.0f));
 
-
+	mC2R = C2R;
 	mR2C = C2R.inverse();
 
 

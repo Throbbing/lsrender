@@ -11,9 +11,25 @@ ls::Spectrum ls::AreaLight::getPower()
 	return mRadiance * mMesh->getArea() * lsMath::PI;
 }
 
-void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_Out LightSampleRecord * rec)
+void ls::AreaLight::sample(
+	ls_Param_In SamplerPtr sampler, 
+	ls_Param_Out LightSampleRecord * rec)
 {
-	Unimplement;
+	MeshSampleRecord meshRec;
+	mMesh->sample(sampler, &meshRec);
+
+	auto sampledPos = meshRec.samplePosition;
+	auto sampledNormal = meshRec.surfaceNormal;
+	auto sampledDirection = meshRec.sampleDirection;
+
+	rec->le = mRadiance;
+	rec->samplePosition = meshRec.samplePosition;
+	rec->sampleDirection = meshRec.sampleDirection;
+	rec->pdfPos = meshRec.pdfA ;
+	rec->pdfDir = meshRec.pdfD;
+	rec->pdfW = rec->pdfDir * rec->pdfPos;
+	rec->mode = EMeasure_SolidAngle;
+	rec->light = LightPtr(this);
 }
 
 void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const IntersectionRecord * refRec, ls_Param_Out LightSampleRecord * rec)
@@ -37,8 +53,8 @@ void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const Int
 	rec->samplePosition = meshRec.samplePosition;
 	rec->sampleDirection = dir;
 	rec->pdfPos = 1.f / mMesh->getArea();
-	rec->pdfDir = RenderLib::pdfA2W(rec->pdfPos, r, dot(meshRec.surfaceNormal, dir));
-	rec->pdfW = rec->pdfDir;
+	rec->pdfDir = 1.f;
+	rec->pdfW = RenderLib::pdfA2W(rec->pdfPos, r, dot(meshRec.surfaceNormal, dir));
 	rec->mode = EMeasure_SolidAngle;
 	rec->light = LightPtr(this);
 

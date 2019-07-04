@@ -43,7 +43,7 @@ namespace ls
 			ls_Param_In const Path& cameraPath,
 			ls_Param_In s32 s, // 光源路径 顶点数
 			ls_Param_In s32 t, // 相机路径 数点数
-			ls_Param_In ls_Param_Out CameraSample* cameraSample);
+			ls_Param_In ls_Param_Out CameraSample* cameraSample) const;
 
 
 		/*
@@ -55,7 +55,7 @@ namespace ls
 			ls_Param_In const Path& cameraPath,
 			ls_Param_In s32 s, //光源路径 顶点数
 			ls_Param_In s32 t //相机路径 顶点数
-			);
+			) const ;
 
 		/*
 			生成 MIS
@@ -64,7 +64,7 @@ namespace ls
 			ls_Param_In const Path& lightPath,
 			ls_Param_In const Path& cameraPath,
 			ls_Param_In s32 s,
-			ls_Param_In s32 t);
+			ls_Param_In s32 t) const;
 	protected:
 		BDPT(ParamSet& paramSet);
 	private:

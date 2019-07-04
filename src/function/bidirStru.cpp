@@ -35,6 +35,19 @@ bool ls::PathVertex::updatePdfForward()
 {
 	ls_AssertMsg(pre, "PdfForward need valid Pre vertex! ");
 
+	/*
+		当前点为 环境光时 ，距离为无穷
+		所以需要额外处理
+	*/
+	if (getVertexType() == PathVertexType::EPathVertex_Light &&
+		pathVertexRecord.lightSampleRecord.light->getLightType() ==
+		LightType::ELight_Environment)
+	{
+		pdfForward = pre->pdfWi;
+		return true;
+	}
+
+
 	auto dir = Vec3(pre->position - position);
 	auto dist = dir.length();
 	if (dist == 0.f) return false;
@@ -47,6 +60,18 @@ bool ls::PathVertex::updatePdfForward()
 bool ls::PathVertex::updatePdfReverse()
 {
 	ls_AssertMsg(next, "PdfReverse need valid Next vertex! ");
+
+	/*
+		当后续点是 环境光时，由于环境光在无穷远
+		所以不能使用 基于面积 的概率密度
+	*/
+	if (next->getVertexType() == PathVertexType::EPathVertex_Light &&
+		next->pathVertexRecord.lightSampleRecord.light->getLightType()==
+		LightType::ELight_Environment)
+	{
+		pdfReverse = next->pdfWo;
+		return true;
+	}
 
 	auto dir = Vec3(next->position - position);
 	auto dist = dir.length();
@@ -95,10 +120,10 @@ ls::PathVertex ls::PathVertex::createPathVertex(
 	vertex.ns = lightSampleRecord.n;
 	vertex.wi = lightSampleRecord.sampleDirection;
 	vertex.wo = Vec3(0.f);//光源是Importance transport的端点，不会再反射
-	vertex.pdfWi = lightSampleRecord.pdfDir * lightSampleRecord.pdfA;
+	vertex.pdfWi = lightSampleRecord.pdfDir;
 	vertex.pdfWo = 0.f;
 	vertex.pdfType = ScatteringFlag::EMeasure_SolidAngle;
-	vertex.pdfForward = 0.f; 
+	vertex.pdfForward = lightSampleRecord.pdfA; 
 	vertex.pdfReverse = 0.f;
 	vertex.throughput = 1.f;
 	
@@ -132,10 +157,10 @@ ls::PathVertex ls::PathVertex::createPathVertex(
 	vertex.ns = cameraSampleRecord.n;
 	vertex.wi = cameraSampleRecord.sampleDirection;
 	vertex.wo = Vec3(0.f);//相机是 Radiance Transport的端点，不会再反射 
-	vertex.pdfWi = cameraSampleRecord.pdfD * cameraSampleRecord.pdfA;
+	vertex.pdfWi = cameraSampleRecord.pdfD;
 	vertex.pdfWo = 0.f;
 	vertex.pdfType = ScatteringFlag::EMeasure_Area;
-	vertex.pdfForward = 0.f;
+	vertex.pdfForward = cameraSampleRecord.pdfA;
 	vertex.pdfReverse = 0.f;
 	vertex.throughput = 1.f;
 

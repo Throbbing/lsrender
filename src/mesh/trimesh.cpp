@@ -1,6 +1,7 @@
 #include <mesh/trimesh.h>
 #include<config/common.h>
 #include<math/transform.h>
+#include<math/frame.h>
 #include<function/func.h>
 #include<function/stru.h>
 #include<record/record.h>
@@ -291,7 +292,42 @@ std::string ls::TriMesh::strOut() const
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	ls_Param_Out MeshSampleRecord * rec) const
 {
-	return false;
+	//选择三角形
+	int selectedTriIndex = mAreasDistribution->SampleDiscrete(sampler->next1D());
+
+	auto p0 = mVertices[mIndices[selectedTriIndex * 3 + 0]];
+	auto p1 = mVertices[mIndices[selectedTriIndex * 3 + 1]];
+	auto p2 = mVertices[mIndices[selectedTriIndex * 3 + 2]];
+
+	//三角形采样
+	Point2 b;
+	MonteCarlo::sampleTriangle(sampler->next2D(), &b);
+	//	MonteCarlo::sampleTriangle(Point2(0.5,1.f), &b);
+	auto p = p0 + b.x * (p1 - p0) + b.y * (p2 - p0);
+
+	Normal n;
+	if (!mNormals.empty())
+	{
+		auto n0 = mNormals[mIndices[selectedTriIndex * 3 + 0]];
+		auto n1 = mNormals[mIndices[selectedTriIndex * 3 + 1]];
+		auto n2 = mNormals[mIndices[selectedTriIndex * 3 + 2]];
+
+		n = b.x * n0 + b.y * n1 + (1.f - b.x - b.y) * n2;
+	}
+	else
+	{
+
+		n = Normal(cross(normalize(Vec3(p1 - p0)), normalize(Vec3(p2 - p0))));
+		n = normalize(n);
+	}
+
+	rec->samplePosition = mO2W(p);
+	rec->pdfA = 1.f / mArea;
+	MonteCarlo::sampleCosHemisphere(sampler->next2D(), &rec->sampleDirection, &rec->pdfD);
+	rec->surfaceNormal = mO2W(n);
+	Frame localFrame(rec->surfaceNormal);
+
+	rec->sampleDirection = localFrame.toWorld(rec->sampleDirection);
 }
 
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, 
@@ -329,6 +365,7 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 
 	rec->samplePosition = mO2W(p);
 	rec->surfaceNormal = mO2W(n);
+	rec->pdfA = 1.f / mArea;
 
 	return true;
 

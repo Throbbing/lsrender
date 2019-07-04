@@ -1,9 +1,9 @@
 #pragma once
-#include<config\config.h>
-#include<config\declaration.h>
-#include<math\frame.h>
-#include<math\transform.h>
-#include<camera\camera.h>
+#include<config/config.h>
+#include<config/declaration.h>
+#include<math/frame.h>
+#include<math/transform.h>
+#include<camera/camera.h>
 namespace ls
 {
 	class Pinhole:public Camera
@@ -18,18 +18,19 @@ namespace ls
 
 		virtual ~Pinhole() {}
 
-		virtual f32 spawnRay(ls_Param_In const Sampler* sampler,
+		virtual f32 spawnRay(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSpwanRayRecord* rec) const override;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const IntersectionRecord& refIts,
+			ls_Param_Out CameraSample* cameraSample,
 			ls_Param_Out CameraSampleRecord* rec) const override;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_Out CameraSampleRecord* rec) const override;
 
-		virtual void sample(ls_Param_In const Sampler* sampler,
+		virtual void sample(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSampleRecord* rec) const override;
 
@@ -48,7 +49,7 @@ namespace ls
 		Transform			mW2C, mC2W;
 		Transform			mC2S, mS2C;
 		Transform			mS2R, mR2S;
-		Transform			mR2C;
+		Transform			mR2C, mC2R;
 		f32					mShutterStart;
 		f32					mShutterEnd;
 		f32					mFov;

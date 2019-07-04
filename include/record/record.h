@@ -102,6 +102,7 @@ namespace ls
 
 		
 		f32			pdfA;
+		f32			pdfD;
 		f32			pdfW;
 
 		Mesh*		mesh = nullptr;
