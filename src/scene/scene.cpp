@@ -257,7 +257,9 @@ void ls::Scene::render()
 	std::vector<RenderAlgorithmPtr> renderAlgorithms(renderBlocks.size());
 	std::vector<FilmPtr>		    films(renderBlocks.size());
 	std::vector<SamplerPtr>			samplers(renderBlocks.size());
+	std::vector<CameraPtr>			cameras(renderBlocks.size());
 
+#if 0
 	renderAlgorithms[0] = mAlgorithm;
 	films[0] = mCamera->getFilm();
 	samplers[0] = mSampler;
@@ -265,15 +267,18 @@ void ls::Scene::render()
 	renderBlocks[0].sampler = mSampler;
 	renderBlocks[0].camera = mCamera;
 	renderBlocks[0].scene = this;
-	for (s32 i = 1; i < renderBlocks.size(); ++i)
+#endif
+	for (s32 i = 0; i < renderBlocks.size(); ++i)
 	{
-		renderAlgorithms[i] = renderAlgorithms[0]->copy();
-		films[i] = films[0]->copy();
-		samplers[i] = samplers[0]->copy();
+		renderAlgorithms[i] = mAlgorithm->copy(); renderAlgorithms[i]->commit();
+		films[i] = mCamera->getFilm()->copy(); films[i]->commit();
+		samplers[i] = samplers[0]->copy(); samplers[i]->commit();
+		cameras[i] = mCamera->copy(); cameras[i]->addFilm(films[i]); cameras[i]->commit();
+
 
 		renderBlocks[i].algorithm = renderAlgorithms[i];
 		renderBlocks[i].sampler = samplers[i];
-		renderBlocks[i].camera = mCamera;
+		renderBlocks[i].camera = cameras[i];
 		renderBlocks[i].scene = this;
 
 	}
@@ -364,6 +369,8 @@ void ls::Scene::render()
 		}
 	}
 #endif
+	ls::Log::log("Merge Multi-Block Film ! \n");
+	mCamera->getFilm()->merge(films);
 
 	mCamera->getFilm()->flush();
 

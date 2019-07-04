@@ -4,6 +4,7 @@
 #include<film/film.h>
 #include<record/record.h>
 #include<resource/xmlHelper.h>
+#include<resource/resourceManager.h>
 #include<sampler/sampler.h>
 
 #include<function/stru.h>
@@ -26,6 +27,19 @@ ls::Pinhole::Pinhole(const Transform & c2w, f32 shutterStart, f32 shutterEnd, f3
 }
 
 
+
+ls::CameraPtr ls::Pinhole::copy() const
+{
+	ParamSet paramSet("camera", "pinhole", "", "");
+	paramSet.addf32("fov", mFov);
+	paramSet.addTransform("c2w", mC2W);
+	paramSet.addf32("nearZ", mNear);
+	paramSet.addf32("farZ", mFar);
+	
+	auto copyCamera = ResourceManager::createCamera(paramSet);
+	return copyCamera;
+	
+}
 
 f32 ls::Pinhole::spawnRay(ls_Param_In SamplerPtr sampler,
 	ls_Param_In const CameraSample & sample, 

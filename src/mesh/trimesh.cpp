@@ -328,6 +328,7 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	Frame localFrame(rec->surfaceNormal);
 
 	rec->sampleDirection = localFrame.toWorld(rec->sampleDirection);
+	return true;
 }
 
 bool ls::TriMesh::sample(ls_Param_In Sampler * sampler, 

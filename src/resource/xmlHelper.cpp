@@ -574,6 +574,12 @@ namespace ls
 				"path", "renderAlgorithmPath", "sceneAlgorithm");
 			lsAlgorithm.adds32("maxDepth", mtsIntegrator.querys32("maxDepth"));
 		}
+		else if (integratorType == "bdpt")
+		{
+			lsAlgorithm = ParamSet("renderAlgorithm",
+				"bdpt", "renderAlgorithmPath", "sceneAlgorithm");
+			lsAlgorithm.adds32("maxDepth", mtsIntegrator.querys32("maxDepth"));
+		}
 		else
 		{
 			auto t = integratorType + " in mitsuba has not been support in lsrender! ";

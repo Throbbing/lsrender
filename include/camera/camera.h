@@ -11,6 +11,8 @@ namespace ls
 		Camera(const std::string& id = "camera"):Module(id){}
 		virtual ~Camera() {}
 
+		virtual CameraPtr copy() const { return nullptr; }
+
 		virtual f32 spawnRay(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSpwanRayRecord* rec) const = 0;

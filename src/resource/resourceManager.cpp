@@ -6,6 +6,7 @@
 
 #include<algorithm/direct.h>
 #include<algorithm/path.h>
+#include<algorithm/bdpt.h>
 #include<camera/pinhole.h>
 
 #include<film/hdr.h>
@@ -278,6 +279,10 @@ ls::RenderAlgorithmPtr ls::ResourceManager::createAlgorithm(ParamSet & paramSet)
 	else if (paramSet.getType() == "path")
 	{
 		renderAlgorithm = new PathTracer(paramSet);
+	}
+	else if (paramSet.getType() == "bdpt")
+	{
+		renderAlgorithm = new BDPT(paramSet);
 	}
 
 	if (renderAlgorithm)

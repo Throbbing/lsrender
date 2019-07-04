@@ -18,6 +18,8 @@ namespace ls
 
 		virtual ~Pinhole() {}
 
+		virtual CameraPtr copy() const override;
+
 		virtual f32 spawnRay(ls_Param_In SamplerPtr sampler,
 			ls_Param_In const CameraSample& sample,
 			ls_Param_Out CameraSpwanRayRecord* rec) const override;

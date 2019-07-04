@@ -65,7 +65,7 @@ void ls::BDPT::render(ScenePtr scene,
 					}
 				}
 
-				film->addPixel(L, cs.pos.x, cs.pos.y);
+				film->addPixel(L, cs.pos.x, cs.pos.y); 
 			}
 
 		}
@@ -396,4 +396,5 @@ f32 ls::BDPT::BDPTMISEfficiency(
 
 ls::BDPT::BDPT(ParamSet & paramSet)
 {
+	mPathMaxDepth = paramSet.querys32("maxDepth", 1);
 }

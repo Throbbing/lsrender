@@ -13,6 +13,29 @@ ls::FilmPtr ls::HDRFilm::copy() const
 	return ResourceManager::createFilm(paramSet);
 }
 
+void ls::HDRFilm::merge(const std::vector<FilmPtr>& films)
+{
+	for (auto p : films)
+	{
+		if (typeid(*p) != typeid(HDRFilm))
+			continue;
+
+		HDRFilm* film = dynamic_cast<HDRFilm*>(p);
+
+		if (film->mRenderBuffer.size() != mRenderBuffer.size())
+			continue;
+
+		for (s32 i = 0; i < mRenderBuffer.size(); ++i)
+		{
+			auto& pixel = mRenderBuffer[i];
+			auto& filmPixel = film->mRenderBuffer[i];
+
+			pixel.color += filmPixel.color;
+			pixel.weight += filmPixel.weight;
+		}
+	}
+}
+
 void ls::HDRFilm::commit()
 {
 	if (mWidth < 0 || mHeight < 0)

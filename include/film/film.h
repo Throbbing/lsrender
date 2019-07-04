@@ -10,7 +10,7 @@ namespace ls
 	struct Pixel
 	{
 		u32 x, y;
-		Spectrum color;
+		Spectrum color = Spectrum(0.f);
 		float weight = 0.f;
 	};
 	class Film:public Module
@@ -21,6 +21,7 @@ namespace ls
 
 
 		virtual FilmPtr copy() const = 0;
+		virtual void merge(const std::vector<FilmPtr>& films) = 0;
 		virtual void setResolution(s32 w, s32 h) { mWidth = w; mHeight = h; }
 
 		virtual s32 getWidth() { return mWidth; }
