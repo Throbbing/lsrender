@@ -29,8 +29,8 @@ void ls::BDPT::render(ScenePtr scene,
 	{
 		for (s32 w = renderBlock->xStart; w < renderBlock->xEnd; ++w)
 		{
-			//			if (w != 256 || h != 256)
-			//				continue;
+			if (w != 256 || h != 256)
+				continue;
 			for (s32 i = 0; i < spp; ++i)
 			{
 				CameraSample cs;
@@ -74,7 +74,10 @@ void ls::BDPT::render(ScenePtr scene,
 
 ls::RenderAlgorithmPtr ls::BDPT::copy() const
 {
-	return RenderAlgorithmPtr();
+	ParamSet paramSet = ParamSet("renderAlgorithm", "bdpt", "bdpt", "bdpt");
+	paramSet.adds32("maxDepth", mPathMaxDepth);
+
+	return ResourceManager::createAlgorithm(paramSet);
 }
 
 ls::Spectrum ls::BDPT::Li(ls_Param_In const DifferentialRay ray, 

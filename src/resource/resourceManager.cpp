@@ -44,6 +44,15 @@ std::map<std::string, ls::ImageData> ls::ResourceManager::mImageDatas;
 std::vector<ls::ModulePtr> ls::ResourceManager::mModules;
 std::string					ls::ResourceManager::mPath;
 
+void ls::ResourceManager::clear()
+{
+	for (auto& p : mModules)
+	{
+		ReleaselsPtr(p);
+	}
+	mModules.clear();
+}
+
 std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(Path fullPath)
 {
 	if (!fullPath.isAbsolute())
@@ -300,7 +309,10 @@ ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
 	if (paramSet.getType() == "pinhole" || paramSet.getType() == "pinholeCamera")
 	{
 		camera = new Pinhole(paramSet);
-		camera->addFilm(createFilm(paramSet.queryParamSetByClass("film")[0]));
+		auto films = paramSet.queryParamSetByClass("film");
+
+		if(!films.empty())
+			camera->addFilm(createFilm(films[0]));
 	}
 
 
@@ -482,6 +494,13 @@ std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 
 		return t;
 	}
+	else if (paramSet.getType() == "rectangle" || paramSet.getType() == "rect")
+	{
+		auto p = createRectangleMesh(paramSet);
+		std::vector<ls::MeshPtr> meshs;
+		meshs.push_back(p);
+		return meshs;
+	}
 	else
 	{
 		auto t = paramSet.getType() + " in mitsuba has not been supported in lsrender!";
@@ -492,6 +511,57 @@ std::vector<ls::MeshPtr> ls::ResourceManager::createMesh(ParamSet & paramSet)
 
 
 
+}
+
+ls::MeshPtr ls::ResourceManager::createRectangleMesh(ParamSet & paramSet)
+{
+	std::vector<Point3> positions;
+	std::vector<Normal> normals;
+	std::vector<Point2>	texs;
+	std::vector<u32>	indices;
+
+	auto world = paramSet.queryTransform("world");
+
+
+	positions.push_back(Point3(-1, -1, 0));
+	positions.push_back(Point3(-1, 1, 0));
+	positions.push_back(Point3(1, 1, 0));
+
+	positions.push_back(Point3(1, 1, 0));
+	positions.push_back(Point3(1, -1, 0));
+	positions.push_back(Point3(-1, -1, 0));
+
+	normals.push_back(Normal(0, 0, 1));
+	normals.push_back(Normal(0, 0, 1));
+	normals.push_back(Normal(0, 0, 1));
+	normals.push_back(Normal(0, 0, 1));
+	normals.push_back(Normal(0, 0, 1));
+	normals.push_back(Normal(0, 0, 1));
+
+	texs.push_back(Point2(0, 0));
+	texs.push_back(Point2(0, 1));
+	texs.push_back(Point2(1, 1));
+	texs.push_back(Point2(1, 1));
+	texs.push_back(Point2(1, 0));
+	texs.push_back(Point2(0, 0));
+
+	indices.push_back(0); indices.push_back(1); indices.push_back(2);
+	indices.push_back(3); indices.push_back(4); indices.push_back(5);
+
+	MeshPtr p = new TriMesh(positions, normals, texs, indices);
+	
+	p->applyMaterial(createMaterial(paramSet.queryParamSetByClass("material")[0]));
+	p->applyTransform(world);
+
+	auto areas = paramSet.queryParamSetByClass("light");
+	if (!areas.empty())
+	{
+		auto radiance = areas[0].querySpectrum("radiance", 1.f);
+		p->applyAreaLight(radiance);
+	}
+
+	mModules.push_back(p);
+	return p;
 }
 
 

@@ -31,13 +31,23 @@ namespace ls
 
 
 
-
+		
 		for (u32 i = 0; i < package.mParamSets.size(); ++i)
 		{
 			if (package.mParamSets[i].varClass == "integrator")
 				package.mIntegrator = i;
 			else if (package.mParamSets[i].varClass == "shape")
-				package.mShapes[package.mParamSets[i].queryString("filename")] = i;
+			{
+				auto filename = package.mParamSets[i].queryString("filename");
+
+				if (filename.empty())
+				{
+					std::stringstream ss;
+					ss << "Geometry" << i;
+					filename = ss.str();
+				}
+				package.mShapes[filename] = i;
+			}
 			else if (package.mParamSets[i].varClass== "bsdf")
 				package.mBSDFs[package.mParamSets[i].varID] = i;
 			else if (package.mParamSets[i].varClass == "sensor")
@@ -82,7 +92,7 @@ namespace ls
 	{
 		const char* value = "failed";
 		elem->QueryStringAttribute("value", &value);
-
+		 
 		if (std::string(value) == "true")
 			return true;
 		else
@@ -749,6 +759,11 @@ namespace ls
 		{
 			lsMesh = ParamSet("mesh", "triMesh", mtsShape.getName(), mtsShape.getID());
 			lsMesh.addString("filename", mtsShape.queryString("filename"));
+			lsMesh.addTransform("world", mtsShape.queryTransform("toWorld"));
+		}
+		else if (mtsShapeType == "rectangle")
+		{
+			lsMesh = ParamSet("mesh", "rectangle", mtsShape.getName(), mtsShape.getID());
 			lsMesh.addTransform("world", mtsShape.queryTransform("toWorld"));
 		}
 		else

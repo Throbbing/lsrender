@@ -32,7 +32,9 @@ void ls::AreaLight::sample(
 	rec->light = LightPtr(this);
 }
 
-void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const IntersectionRecord * refRec, ls_Param_Out LightSampleRecord * rec)
+void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler, 
+	ls_Param_In const IntersectionRecord * refRec,
+	ls_Param_Out LightSampleRecord * rec)
 {
 	MeshSampleRecord meshRefRec;
 	MeshSampleRecord meshRec;

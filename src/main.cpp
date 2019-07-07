@@ -12,9 +12,9 @@
 #include<resource\resourceManager.h>
 #include<config\common.h>
 
-#define PrePath "SceneFile//lamp//"
+#define PrePath "SceneFile//veach-bidir//"
 #define FileName "scene.xml"
-#define OutName "lampAreaLight.png"
+#define OutName "veach_bidir.png"
 int main()
 {
 	ls::lsEmbree::initEmbree();

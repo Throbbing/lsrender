@@ -365,7 +365,7 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 	}
 
 	rec->samplePosition = mO2W(p);
-	rec->surfaceNormal = mO2W(n);
+	rec->surfaceNormal = normalize(mO2W(n));
 	rec->pdfA = 1.f / mArea;
 
 	return true;

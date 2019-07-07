@@ -272,7 +272,7 @@ void ls::Scene::render()
 	{
 		renderAlgorithms[i] = mAlgorithm->copy(); renderAlgorithms[i]->commit();
 		films[i] = mCamera->getFilm()->copy(); films[i]->commit();
-		samplers[i] = samplers[0]->copy(); samplers[i]->commit();
+		samplers[i] = mSampler->copy(); samplers[i]->commit();
 		cameras[i] = mCamera->copy(); cameras[i]->addFilm(films[i]); cameras[i]->commit();
 
 
@@ -287,7 +287,7 @@ void ls::Scene::render()
 	timer.tick();
 
 #ifdef ls_OPENMP
-#pragma omp parallel for
+//#pragma omp parallel for
 #endif
 	for (s32 i = 0; i < renderBlocks.size(); ++i)
 	{

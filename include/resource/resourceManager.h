@@ -14,6 +14,8 @@ namespace ls
 	{
 	public:
 
+		static void clear();
+
 		static void setPath(const std::string& path) { mPath = path; }
 
 		static std::vector<MeshPtr> loadMeshFromFile(Path fullPath);
@@ -32,7 +34,7 @@ namespace ls
 		static SamplerPtr			 createSampler(ParamSet& paramSet);
 		static TexturePtr			 createTexture(ParamSet& paramSet);
 		static std::vector<MeshPtr>	 createMesh(ParamSet& paramSet);
-
+		static MeshPtr				 createRectangleMesh(ParamSet& paramSet);
 
 		static void write2File(ls::Texture* texture,
 			const Path& fullPath);

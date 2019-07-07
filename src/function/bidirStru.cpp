@@ -31,10 +31,11 @@ f32 ls::PathVertex::getRadiancePdf() const
 	}
 }
 
-bool ls::PathVertex::updatePdfForward()
+bool ls::PathVertex::updatePdfForward(const Path& path)
 {
-	ls_AssertMsg(pre, "PdfForward need valid Pre vertex! ");
+	ls_AssertMsg(pre != -1, "PdfForward need valid Pre vertex! ");
 
+	const auto& preVertex = path[pre];
 	/*
 		当前点为 环境光时 ，距离为无穷
 		所以需要额外处理
@@ -43,42 +44,43 @@ bool ls::PathVertex::updatePdfForward()
 		pathVertexRecord.lightSampleRecord.light->getLightType() ==
 		LightType::ELight_Environment)
 	{
-		pdfForward = pre->pdfWi;
+		pdfForward = preVertex.pdfWi;
 		return true;
 	}
 
 
-	auto dir = Vec3(pre->position - position);
+	auto dir = Vec3(preVertex.position - position);
 	auto dist = dir.length();
 	if (dist == 0.f) return false;
 	dir /= dist;
 
-	pdfForward = RenderLib::pdfW2A(pre->pdfWi, dist, std::fabs(dot(ns, dir)));
+	pdfForward = RenderLib::pdfW2A(preVertex.pdfWi, dist, std::fabs(dot(ns, dir)));
 	return true;
 }
 
-bool ls::PathVertex::updatePdfReverse()
+bool ls::PathVertex::updatePdfReverse(const Path& path)
 {
-	ls_AssertMsg(next, "PdfReverse need valid Next vertex! ");
-
+	ls_AssertMsg(next !=-1, "PdfReverse need valid Next vertex! ");
+	const auto& nextVertex = path[next];
 	/*
 		当后续点是 环境光时，由于环境光在无穷远
 		所以不能使用 基于面积 的概率密度
 	*/
-	if (next->getVertexType() == PathVertexType::EPathVertex_Light &&
-		next->pathVertexRecord.lightSampleRecord.light->getLightType()==
+	
+	if (nextVertex.getVertexType() == PathVertexType::EPathVertex_Light &&
+		nextVertex.pathVertexRecord.lightSampleRecord.light->getLightType()==
 		LightType::ELight_Environment)
 	{
-		pdfReverse = next->pdfWo;
+		pdfReverse = nextVertex.pdfWo;
 		return true;
 	}
 
-	auto dir = Vec3(next->position - position);
+	auto dir = Vec3(nextVertex.position - position);
 	auto dist = dir.length();
 	if (dist == 0.f) return false;
 	dir /= dist;
 
-	pdfReverse = RenderLib::pdfW2A(next->pdfWo, dist, std::fabs(dot(ns, dir)));
+	pdfReverse = RenderLib::pdfW2A(nextVertex.pdfWo, dist, std::fabs(dot(ns, dir)));
 	return true;
 }
 void ls::PathVertex::getDirection(ls_Param_In TransportMode mode, ls_Param_Out Vec3 * wi, ls_Param_Out Vec3 * wo)

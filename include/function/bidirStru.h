@@ -13,6 +13,7 @@
 //This file is for Bidirection Render Algorithm
 namespace ls
 {		
+	class Path;
 	enum PathVertexType
 	{
 		EPathVertex_Surface,
@@ -41,9 +42,13 @@ namespace ls
 			ns = v.ns;
 			wi = v.wi;
 			wo = v.wo;
+			scatter = v.scatter;
 			pdfType = v.pdfType;
 			pdfForward = v.pdfForward;
 			pdfReverse = v.pdfReverse;
+			pdfWi = v.pdfWi;
+			pdfWo = v.pdfWo;
+			throughput = v.throughput;
 
 			next = v.next;
 			pre = v.pre;
@@ -80,6 +85,9 @@ namespace ls
 			pdfType = v.pdfType;
 			pdfForward = v.pdfForward;
 			pdfReverse = v.pdfReverse;
+			pdfWi = v.pdfWi;
+			pdfWo = v.pdfWo;
+			throughput = v.throughput;
 
 			next = v.next;
 			pre = v.pre;
@@ -130,7 +138,6 @@ namespace ls
 		Vec3				wo;
 
 		ScatteringFunctionPtr	scatter = nullptr;
-
 		ScatteringFlag		pdfType;
 
 		/*
@@ -179,12 +186,12 @@ namespace ls
 		/*
 			计算 pdfForward 需要 pre 顶点有效
 		*/
-		bool				updatePdfForward();
+		bool				updatePdfForward(const Path& path);
 
 		/*
 			计算 pdfReverse 需要 next 顶点有效
 		*/
-		bool				updatePdfReverse();
+		bool				updatePdfReverse(const Path& path);
 
 
 
@@ -248,8 +255,8 @@ namespace ls
 			pre - > current -> next ( wo -> wi )
 			  
 		*/
-		PathVertex*				next = nullptr;
-		PathVertex*				pre = nullptr;
+		s32				next = -1;
+		s32				pre = -1;
 
 	private:
 		PathVertexType		mVertexType;
@@ -261,8 +268,13 @@ namespace ls
 	public:
 		Path(PathType type) :mPathType(type) {}
 
+//		Path(const Path& var) = delete;
+//		Path& operator=(const Path& var) = delete;
+
 		auto getPathType() const { return mPathType; }
 		auto size() const { return vertices.size(); }
+		auto reserve(s32 cap) { return vertices.reserve(cap + 2); }
+
 
 		void addVertex(const PathVertex& vertex)
 		{	
@@ -277,14 +289,17 @@ namespace ls
 				PathVertex& pre = vertices[vertices.size() - 2];
 				PathVertex& cur = vertices[vertices.size() - 1];
 
-				pre.next = &cur;
-				cur.pre = &pre;
+				pre.next = vertices.size() - 1;
+				cur.pre = vertices.size() - 2;
 
+				auto ttt = &vertices[vertices.size() - 1];
 				// 更新相邻顶点的 基于面积的PDF
-				pre.updatePdfReverse();
-				cur.updatePdfForward();
+				pre.updatePdfReverse(*this);
+				cur.updatePdfForward(*this);
 			}
 		}
+
+		
 
 		PathVertex& operator[](s32 i) 
 		{
@@ -327,6 +342,7 @@ namespace ls
 
 	private:
 		std::vector<PathVertex> vertices;
+
 		PathType				mPathType;
 	};
 }
