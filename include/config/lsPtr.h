@@ -33,6 +33,9 @@ namespace ls
 	//About Preview
 	using PreviewerPtr			= Previewer*;
 
+	//About Timer
+	using TimerPtr				= Timer*;
+
 
 	template<typename T>
 	__forceinline static void ReleaselsPtr(T& p)

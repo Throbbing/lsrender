@@ -1,4 +1,5 @@
 #include<config/common.h>
+#include<function/timer.h>
 #include<scene/scene.h>
 #include<d3d11.h>
 #include<DirectXMath.h>
@@ -42,7 +43,7 @@ ls::lsWnd::_hw			ls::lsWnd::hw;
 
 bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 {
-#if 0
+#if 1
 	wnd.screenWidth = w;
 	wnd.screenHeight = h;
 
@@ -59,7 +60,7 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 	int width = R.right - R.left;
 	int height = R.bottom - R.top;
 
-	wnd.wndHwnd = CreateWindowA("S Example", "JmxRender",
+	wnd.wndHwnd = CreateWindowA("ImGui Example", "JmxRender",
 		WS_OVERLAPPEDWINDOW, 0, 0, width, height, 0, 0, wnd.wndHinstance, 0);
 
 	if (!wnd.wndHwnd)
@@ -81,14 +82,14 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 #endif // defined(DEBUG)|
 
 	D3D_FEATURE_LEVEL feature;
-	HR(D3D11CreateDevice(
+	HRESULT hr = D3D11CreateDevice(
 		NULL, D3D_DRIVER_TYPE_HARDWARE,
 		NULL, createDeviceFlag,
 		0, 0,
 		D3D11_SDK_VERSION,
 		&hw.d3dDevice,
 		&feature,
-		&hw.d3dImmediateContext));
+		&hw.d3dImmediateContext);
 	if (feature != D3D_FEATURE_LEVEL_11_0)
 	{
 		std::cout << "Error: fail to support directx11!" << std::endl;
@@ -122,15 +123,15 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 	//first,we need do it by IDXGIFactory
 	//
 	IDXGIDevice* dxgiDevice = 0;
-	HR(hw.d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
+	(hw.d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
 
 	IDXGIAdapter* dxgiAdapter = 0;
-	HR(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
+	(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
 
 	IDXGIFactory* dxgiFactory = 0;
-	HR(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory));
+	(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory));
 
-	HR(dxgiFactory->CreateSwapChain(hw.d3dDevice, &sd, &hw.swapChain));
+	(dxgiFactory->CreateSwapChain(hw.d3dDevice, &sd, &hw.swapChain));
 
 	dxgiDevice->Release();
 	dxgiAdapter->Release();
@@ -140,13 +141,16 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 	assert(hw.d3dImmediateContext);
 	assert(hw.swapChain);
 
-	hw.renderTargetView->Release();
-	hw.depthStencilView->Release();
-	hw.depthStencilBuffer->Release();
+	if(hw.renderTargetView)
+		hw.renderTargetView->Release();
+	if(hw.depthStencilView)
+		hw.depthStencilView->Release();
+	if(hw.depthStencilBuffer)
+		hw.depthStencilBuffer->Release();
 	//ReleaseCom(mBackBuffer);
 
 
-	HR(hw.swapChain->ResizeBuffers(
+	(hw.swapChain->ResizeBuffers(
 		1,
 		wnd.screenWidth,
 		wnd.screenHeight,
@@ -154,11 +158,11 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 		NULL
 	));
 	//	ID3D11Texture2D* mBackBuffer;
-	HR(hw.swapChain->GetBuffer(0,
+	(hw.swapChain->GetBuffer(0,
 		__uuidof(ID3D11Texture2D),
 		reinterpret_cast<void**>(&hw.backBuffer)));
 
-	HR(hw.d3dDevice->CreateRenderTargetView(hw.backBuffer,
+	(hw.d3dDevice->CreateRenderTargetView(hw.backBuffer,
 		NULL,
 		&hw.renderTargetView));
 
@@ -178,11 +182,11 @@ bool ls::lsWnd ::lsWndInit(u32 w, u32 h, WNDPROC wndProc)
 	td.CPUAccessFlags = NULL;
 	td.MiscFlags = NULL;
 
-	HR(hw.d3dDevice->CreateTexture2D(
+	(hw.d3dDevice->CreateTexture2D(
 		&td,
 		NULL,
 		&hw.depthStencilBuffer));
-	HR(hw.d3dDevice->CreateDepthStencilView(
+	(hw.d3dDevice->CreateDepthStencilView(
 		hw.depthStencilBuffer,
 		NULL,
 		&hw.depthStencilView));
@@ -221,3 +225,4 @@ void ls::lsWnd::lsWndShutDown()
 ls::lsRender::_sampleInfo  ls::lsRender::sampleInfo;
 ls::lsRender::_sceneRenderBlockInfo ls::lsRender::sceneRenderBlockInfo;
 ls::ScenePtr ls::lsRender::scene = nullptr;
+//ls::TimerPtr ls::lsEnvironment::timer = new Timer();

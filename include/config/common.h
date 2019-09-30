@@ -4,7 +4,6 @@
 #include<string>
 #include<d3d11.h>
 #include<3rd/DirectX/WICTextureLoader.h>
-#include<3rd/DirectX/dxerr.h>
 #include<3rd/DirectX/DirectXTex.h>
 #include<windows.h>
 namespace ls
@@ -26,11 +25,8 @@ namespace ls
 		static bool				isInit;
 	};
 
-#ifndef HR
 
-#define  HR(x)																
 
-#endif
 	class lsWnd
 	{
 	public:
@@ -91,6 +87,12 @@ namespace ls
 
 	};
 
+
+	class lsEnvironment
+	{
+	public:
+//		static TimerPtr timer;
+	};
 	
 	
 

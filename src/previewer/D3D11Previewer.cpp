@@ -87,7 +87,7 @@ void* ls::createShaderAndLayout(LPCWSTR srcFile,
 
 	ID3DBlob* blob = nullptr;
 	ID3DBlob* err = nullptr;
-	HR(D3DCompileFromFile(srcFile, macro, include, name, sm, dwShaderFlags,
+	auto hr = (D3DCompileFromFile(srcFile, macro, include, name, sm, dwShaderFlags,
 		0, &blob, &err));
 
 
@@ -103,7 +103,7 @@ void* ls::createShaderAndLayout(LPCWSTR srcFile,
 
 	if (desc&&descNum > 0)
 	{
-		HR(device->CreateInputLayout(desc, descNum,
+		(device->CreateInputLayout(desc, descNum,
 			blob->GetBufferPointer(), blob->GetBufferSize(), layout));
 
 	}
@@ -112,32 +112,32 @@ void* ls::createShaderAndLayout(LPCWSTR srcFile,
 	{
 	case ls::EVs:
 		ID3D11VertexShader* vs;
-		HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vs));
+		(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vs));
 		return (void*)vs;
 		break;
 	case ls::EGs:
 		ID3D11GeometryShader* gs;
-		HR(device->CreateGeometryShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &gs));
+		(device->CreateGeometryShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &gs));
 		return (void*)gs;
 		break;
 	case ls::EHs:
 		ID3D11HullShader* hs;
-		HR(device->CreateHullShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &hs));
+		(device->CreateHullShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &hs));
 		return (void*)hs;
 		break;
 	case ls::EDs:
 		ID3D11DomainShader* ds;
-		HR(device->CreateDomainShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ds));
+		(device->CreateDomainShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ds));
 		return (void*)ds;
 		break;
 	case ls::ECs:
 		ID3D11ComputeShader* cs;
-		HR(device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &cs));
+		(device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &cs));
 		return (void*)cs;
 		break;
 	case ls::EPs:
 		ID3D11PixelShader* ps;
-		HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps));
+		(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps));
 		return (void*)ps;
 		break;
 	default:return nullptr;
@@ -160,7 +160,7 @@ ID3D11Buffer* ls::createConstantBuffer(u32 byteWidth, ID3D11Device* device,
 	bd.StructureByteStride = 0;
 
 	ID3D11Buffer* buf;
-	HR(device->CreateBuffer(&bd, 0, &buf));
+	(device->CreateBuffer(&bd, 0, &buf));
 
 	return buf;
 }
@@ -207,7 +207,7 @@ ID3D11ShaderResourceView* ls::createSRV(ID3D11Resource* src, DXGI_FORMAT format,
 		break;
 	}
 	ID3D11ShaderResourceView* srv;
-	HR(device->CreateShaderResourceView(src, &srvd, &srv));
+	(device->CreateShaderResourceView(src, &srvd, &srv));
 
 	return srv;
 
@@ -249,7 +249,7 @@ ID3D11UnorderedAccessView* ls::createUAV(ID3D11Resource* src,
 	}
 
 	ID3D11UnorderedAccessView* uav;
-	HR(device->CreateUnorderedAccessView(src, &uavd, &uav));
+	(device->CreateUnorderedAccessView(src, &uavd, &uav));
 
 	return uav;
 }
@@ -291,7 +291,7 @@ ID3D11RenderTargetView* ls::createRTV(ID3D11Resource* src,
 		break;
 	}
 	ID3D11RenderTargetView * rtv;
-	HR(device->CreateRenderTargetView(src, &rtvd, &rtv));
+	(device->CreateRenderTargetView(src, &rtvd, &rtv));
 
 	return rtv;
 }
@@ -317,11 +317,11 @@ ID3D11Buffer* ls::createBuffer(D3D11_USAGE usage, u32 bindflag,
 	if (data)
 	{
 		sd.pSysMem = data;
-		HR(device->CreateBuffer(&bd, &sd, &buf));
+		(device->CreateBuffer(&bd, &sd, &buf));
 	}
 	else
 	{
-		HR(device->CreateBuffer(&bd, 0, &buf));
+		(device->CreateBuffer(&bd, 0, &buf));
 	}
 
 	return buf;
@@ -356,11 +356,11 @@ ID3D11Texture2D* ls::createTex2D(D3D11_USAGE usage, u32 bindflag,
 		D3D11_SUBRESOURCE_DATA sd;
 		sd.pSysMem = data;
 		sd.SysMemPitch = width*sizeOF(format);
-		HR(device->CreateTexture2D(&td, &sd, &tex));
+		(device->CreateTexture2D(&td, &sd, &tex));
 	}
 	else
 	{
-		HR(device->CreateTexture2D(&td, nullptr, &tex));
+		(device->CreateTexture2D(&td, nullptr, &tex));
 	}
 
 	return tex;
@@ -446,6 +446,23 @@ void ls::D3D11Previewer::newFrame(f32 dt)
 
 void ls::D3D11Previewer::render()
 {
+	auto d3dDevice = lsWnd::hw.d3dDevice;
+	auto context = lsWnd::hw.d3dImmediateContext;
+	auto rtv = lsWnd::hw.renderTargetView;
+	auto dsv = lsWnd::hw.depthStencilView;
+
+	f32 renderColor[] = { 0.5f,0.5f,0.5f,0.5f };
+
+	context->OMSetRenderTargets(1,
+		&rtv, dsv);
+	context->ClearRenderTargetView(rtv, renderColor);
+	context->ClearDepthStencilView(mDSV,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+		1.f,
+		0.f);
+
+	
+	lsWnd::hw.swapChain->Present(0, 0);
 
 }
 
@@ -590,10 +607,10 @@ void ls::D3D11Previewer::createShader()
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (size_t)(&((ImDrawVert*)0)->uv), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	mGuiVs = (ID3D11VertexShader*)createShaderAndLayout(L"HLSL/EditorVS.hlsl", nullptr, nullptr, "main", "vs_5_0",
+	mGuiVs = (ID3D11VertexShader*)createShaderAndLayout(L"src//Previewer//PreviewVS.hlsl", nullptr, nullptr, "main", "vs_5_0",
 		EVs, md3dDevice, layout, 3, &mLayout);
 
-	mGuiPs = (ID3D11PixelShader*)createShaderAndLayout(L"HLSL/EditorPS.hlsl", nullptr, nullptr, "main", "ps_5_0",
+	mGuiPs = (ID3D11PixelShader*)createShaderAndLayout(L"src//Previewer//PreviewPS.hlsl", nullptr, nullptr, "main", "ps_5_0",
 		EPs, md3dDevice);
 }
 

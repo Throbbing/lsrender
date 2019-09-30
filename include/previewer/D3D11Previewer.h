@@ -1,5 +1,6 @@
 #pragma once
-#include<3rd/IMGUI/imgui.h>
+#include<3rd/imgui.h>
+#include<function/log.h>
 #include<previewer/previewer.h>
 #include<math/transform.h>
 #include<function/file.h>
@@ -17,13 +18,20 @@
 
 
 
-
+std::string ls::castHR2Chars(HRESULT hr);
 
 #define ReleaseCom(p) {if(p)p->Release();p=NULL;}
 #define ErrorBox(text) {MessageBox(0, text, 0, 0);}
-
-
 #define PAD16(x)		((x+15)&(~15))
+
+#ifdef _DEBUG
+#define D3DHR(x) {			\
+		if(x!= S_OK)					\
+			ls_AssertMsg(false,castHR2Chars(x)) \
+}
+#else
+#define D3DHR(x) (x)
+#endif // _DEBUG
 
 using namespace DirectX;
 
@@ -40,6 +48,27 @@ namespace ls
 		EPs,
 
 	};
+	std::string castHR2Chars(HRESULT hr)
+	{
+		switch (hr)
+		{
+		case S_OK:return "D3D_OK";
+		case E_ABORT:return "D3D_ABORT_ERROR";
+		case E_ACCESSDENIED:return "D3D_ACCESSDENIED_ERROR";
+		case E_FAIL:return "D3D_FAILED_ERROR";
+		case E_HANDLE:return "D3D_HANDLE_ERROR";
+		case E_INVALIDARG:return "D3D_INVALIDARG_ERROR";
+		case E_NOINTERFACE:return "D3D_NOINTERFACE_ERROR";
+		case E_NOTIMPL:return "D3D_NOTIMPL_ERROR";
+		case E_OUTOFMEMORY:return "D3D_OUTOFMEMORY_ERROR";
+		case E_POINTER:return "D3D_POINTER_ERROR";
+		default:
+			return "D3D_UNEXPECTED_ERROR";
+		}
+		return "";
+	}
+
+
 	void* createShaderAndLayout(LPCWSTR srcFile,
 		const D3D10_SHADER_MACRO * macro,
 		LPD3D10INCLUDE include,
@@ -208,7 +237,7 @@ namespace ls
 			//				nullptr, nullptr, &srv, nullptr));
 
 			ID3D11Resource* texR;
-			HR(CreateWICTextureFromFile(device, wname.c_str(), &texR,
+			(CreateWICTextureFromFile(device, wname.c_str(), &texR,
 				&srv));
 			ReleaseCom(texR);
 
