@@ -87,7 +87,7 @@ void* ls::createShaderAndLayout(LPCWSTR srcFile,
 
 	ID3DBlob* blob = nullptr;
 	ID3DBlob* err = nullptr;
-	auto hr = (D3DCompileFromFile(srcFile, macro, include, name, sm, dwShaderFlags,
+	D3DHR(D3DCompileFromFile(srcFile, macro, include, name, sm, dwShaderFlags,
 		0, &blob, &err));
 
 
@@ -112,32 +112,32 @@ void* ls::createShaderAndLayout(LPCWSTR srcFile,
 	{
 	case ls::EVs:
 		ID3D11VertexShader* vs;
-		(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vs));
+		D3DHR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vs));
 		return (void*)vs;
 		break;
 	case ls::EGs:
 		ID3D11GeometryShader* gs;
-		(device->CreateGeometryShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &gs));
+		D3DHR(device->CreateGeometryShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &gs));
 		return (void*)gs;
 		break;
 	case ls::EHs:
 		ID3D11HullShader* hs;
-		(device->CreateHullShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &hs));
+		D3DHR(device->CreateHullShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &hs));
 		return (void*)hs;
 		break;
 	case ls::EDs:
 		ID3D11DomainShader* ds;
-		(device->CreateDomainShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ds));
+		D3DHR(device->CreateDomainShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ds));
 		return (void*)ds;
 		break;
 	case ls::ECs:
 		ID3D11ComputeShader* cs;
-		(device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &cs));
+		D3DHR(device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &cs));
 		return (void*)cs;
 		break;
 	case ls::EPs:
 		ID3D11PixelShader* ps;
-		(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps));
+		D3DHR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps));
 		return (void*)ps;
 		break;
 	default:return nullptr;
@@ -207,7 +207,7 @@ ID3D11ShaderResourceView* ls::createSRV(ID3D11Resource* src, DXGI_FORMAT format,
 		break;
 	}
 	ID3D11ShaderResourceView* srv;
-	(device->CreateShaderResourceView(src, &srvd, &srv));
+	D3DHR(device->CreateShaderResourceView(src, &srvd, &srv));
 
 	return srv;
 
@@ -249,7 +249,7 @@ ID3D11UnorderedAccessView* ls::createUAV(ID3D11Resource* src,
 	}
 
 	ID3D11UnorderedAccessView* uav;
-	(device->CreateUnorderedAccessView(src, &uavd, &uav));
+	D3DHR(device->CreateUnorderedAccessView(src, &uavd, &uav));
 
 	return uav;
 }
@@ -291,7 +291,7 @@ ID3D11RenderTargetView* ls::createRTV(ID3D11Resource* src,
 		break;
 	}
 	ID3D11RenderTargetView * rtv;
-	(device->CreateRenderTargetView(src, &rtvd, &rtv));
+	D3DHR(device->CreateRenderTargetView(src, &rtvd, &rtv));
 
 	return rtv;
 }
@@ -317,11 +317,11 @@ ID3D11Buffer* ls::createBuffer(D3D11_USAGE usage, u32 bindflag,
 	if (data)
 	{
 		sd.pSysMem = data;
-		(device->CreateBuffer(&bd, &sd, &buf));
+		D3DHR(device->CreateBuffer(&bd, &sd, &buf));
 	}
 	else
 	{
-		(device->CreateBuffer(&bd, 0, &buf));
+		D3DHR(device->CreateBuffer(&bd, 0, &buf));
 	}
 
 	return buf;
@@ -356,11 +356,11 @@ ID3D11Texture2D* ls::createTex2D(D3D11_USAGE usage, u32 bindflag,
 		D3D11_SUBRESOURCE_DATA sd;
 		sd.pSysMem = data;
 		sd.SysMemPitch = width*sizeOF(format);
-		(device->CreateTexture2D(&td, &sd, &tex));
+		D3DHR(device->CreateTexture2D(&td, &sd, &tex));
 	}
 	else
 	{
-		(device->CreateTexture2D(&td, nullptr, &tex));
+		D3DHR(device->CreateTexture2D(&td, nullptr, &tex));
 	}
 
 	return tex;
@@ -460,6 +460,8 @@ void ls::D3D11Previewer::render()
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.f,
 		0.f);
+
+	render(ImGui::GetDrawData());
 
 	
 	lsWnd::hw.swapChain->Present(0, 0);
@@ -664,6 +666,9 @@ void ls::D3D11Previewer::createStates()
 
 void ls::D3D11Previewer::render(ImDrawData* drawData)
 {
+	if (!drawData)
+		return;
+
 	if (!mVB || mVerticesCount < drawData->TotalVtxCount)
 	{
 		if (mVB)
@@ -840,3 +845,22 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 	md3dImmediateContext->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
+std::string ls::castHR2Chars(HRESULT hr)
+{
+	switch (hr)
+	{
+	case S_OK:return "D3D_OK";
+	case E_ABORT:return "D3D_ABORT_ERROR";
+	case E_ACCESSDENIED:return "D3D_ACCESSDENIED_ERROR";
+	case E_FAIL:return "D3D_FAILED_ERROR";
+	case E_HANDLE:return "D3D_HANDLE_ERROR";
+	case E_INVALIDARG:return "D3D_INVALIDARG_ERROR";
+	case E_NOINTERFACE:return "D3D_NOINTERFACE_ERROR";
+	case E_NOTIMPL:return "D3D_NOTIMPL_ERROR";
+	case E_OUTOFMEMORY:return "D3D_OUTOFMEMORY_ERROR";
+	case E_POINTER:return "D3D_POINTER_ERROR";
+	default:
+		return "D3D_UNEXPECTED_ERROR";
+	}
+	return "";
+}

@@ -18,7 +18,11 @@
 
 
 
-std::string ls::castHR2Chars(HRESULT hr);
+namespace ls
+{
+	std::string castHR2Chars(HRESULT hr);
+}
+
 
 #define ReleaseCom(p) {if(p)p->Release();p=NULL;}
 #define ErrorBox(text) {MessageBox(0, text, 0, 0);}
@@ -27,7 +31,7 @@ std::string ls::castHR2Chars(HRESULT hr);
 #ifdef _DEBUG
 #define D3DHR(x) {			\
 		if(x!= S_OK)					\
-			ls_AssertMsg(false,castHR2Chars(x)) \
+			ls_AssertMsg(false,ls::castHR2Chars(x)) \
 }
 #else
 #define D3DHR(x) (x)
@@ -48,25 +52,6 @@ namespace ls
 		EPs,
 
 	};
-	std::string castHR2Chars(HRESULT hr)
-	{
-		switch (hr)
-		{
-		case S_OK:return "D3D_OK";
-		case E_ABORT:return "D3D_ABORT_ERROR";
-		case E_ACCESSDENIED:return "D3D_ACCESSDENIED_ERROR";
-		case E_FAIL:return "D3D_FAILED_ERROR";
-		case E_HANDLE:return "D3D_HANDLE_ERROR";
-		case E_INVALIDARG:return "D3D_INVALIDARG_ERROR";
-		case E_NOINTERFACE:return "D3D_NOINTERFACE_ERROR";
-		case E_NOTIMPL:return "D3D_NOTIMPL_ERROR";
-		case E_OUTOFMEMORY:return "D3D_OUTOFMEMORY_ERROR";
-		case E_POINTER:return "D3D_POINTER_ERROR";
-		default:
-			return "D3D_UNEXPECTED_ERROR";
-		}
-		return "";
-	}
 
 
 	void* createShaderAndLayout(LPCWSTR srcFile,
@@ -283,28 +268,28 @@ namespace ls
 		void render(ImDrawData* drawData);
 
 
-		HWND							mWndHwnd;
+		HWND						mWndHwnd;
 		HINSTANCE					mWndHinstance;
 		ID3D11Device*				md3dDevice;
-		ID3D11DeviceContext*			md3dImmediateContext;
+		ID3D11DeviceContext*		md3dImmediateContext;
 		ID3D11RenderTargetView*		mRTV;
 		ID3D11DepthStencilView*		mDSV;
 
 
-		ID3D11VertexShader*			mGuiVs;
-		ID3D11PixelShader*			mGuiPs;
-		ID3D11Buffer*				mCBTrans;
-		ID3D11Buffer*				mVB;
+		ID3D11VertexShader*			mGuiVs = nullptr;
+		ID3D11PixelShader*			mGuiPs = nullptr;
+		ID3D11Buffer*				mCBTrans = nullptr;
+		ID3D11Buffer*				mVB = nullptr;
 		u32							mVerticesCount;
-		ID3D11Buffer*				mIB;
+		ID3D11Buffer*				mIB = nullptr;
 		u32							mIndicesCount;
-		ID3D11InputLayout*			mLayout;
-		ID3D11SamplerState*			mSam;
-		ID3D11ShaderResourceView*	mFontSRV;
+		ID3D11InputLayout*			mLayout = nullptr;
+		ID3D11SamplerState*			mSam = nullptr;
+		ID3D11ShaderResourceView*	mFontSRV = nullptr;
 
-		ID3D11BlendState*			mBS;
-		ID3D11DepthStencilState*	mDSS;
-		ID3D11RasterizerState*		mRS;
+		ID3D11BlendState*			mBS = nullptr;
+		ID3D11DepthStencilState*	mDSS = nullptr;
+		ID3D11RasterizerState*		mRS = nullptr;
 		D3D11_VIEWPORT				mViewPort;
 
 		u32							mWidth;
