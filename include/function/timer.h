@@ -7,6 +7,13 @@ using namespace std;
 
 namespace ls
 {
+	enum TimeUnitType
+	{
+		ETimeUnit_Second = 0,
+		ETimeUnit_MilliSecond = 1,
+		ETimeUnit_Minute=2,
+		ETimeUnit_Hour
+	};
 	class Timer
 	{
 	public:

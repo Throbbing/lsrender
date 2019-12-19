@@ -6,6 +6,7 @@
 #include<config/lsPtr.h>
 #include<config/module.h>
 #include<function/stru.h>
+#include<d3d11.h>
 namespace ls
 {
 	enum SceneFileType
@@ -16,21 +17,38 @@ namespace ls
 		EScene_LS   ,
 		EScene_Unknown
 	};
-	class SceneRenderBlock
+	struct SceneRenderBlock
 	{
 	public:
 		s32 xStart;
 		s32 yStart;
 		s32 xEnd;
 		s32 yEnd;
-		SamplerPtr sampler;
-		CameraPtr  camera;
-		RenderAlgorithmPtr algorithm;
-		ScenePtr   scene;
-		void run();
+	};
+
+	class SceneRenderTask
+	{
+	public:
+		SceneRenderTask(s32 xStart,
+			s32 yStart,
+			s32 xEnd,
+			s32 yEnd,
+			SamplerPtr sampler,
+			CameraPtr camera,
+			RenderAlgorithmPtr algorithm,
+			ScenePtr scene) :mXStart(xStart), mYStart(yStart), mXEnd(xEnd), mYEnd(yEnd), mSampler(sampler),mCamera(camera), mAlgorithm(algorithm), mScene(scene) {}
+
+		void operator()();
 
 	private:
-		
+		s32 mXStart;
+		s32 mYStart;
+		s32 mXEnd;
+		s32 mYEnd;
+		SamplerPtr mSampler;
+		CameraPtr  mCamera;
+		RenderAlgorithmPtr mAlgorithm;
+		ScenePtr   mScene;
 	};
 
 	class Scene :public Module
@@ -101,6 +119,9 @@ namespace ls
 
 
 		SceneFileType			 mSceneFileType = EScene_MTS;
+
+		CanvasPtr				 mRealtimeCanvas = nullptr;
+
 
 	};
 }

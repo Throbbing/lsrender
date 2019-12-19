@@ -1,10 +1,22 @@
-#include<previewer/D3D11Previewer.h>
-
+#include<realtime/D3D11Realtime.h>
+#include<function/timer.h>
 LRESULT CALLBACK wndGUIProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	ImGuiIO& io = ImGui::GetIO();
+
 	switch (msg)
 	{
+	case WM_SIZE:
+		if (ls::lsEnvironment::realtimeRenderer)
+		{
+			auto clientWidth = LOWORD(lParam);
+			auto clientHeight = HIWORD(lParam);
+			ls::lsWnd::lsWndResize(clientWidth, clientHeight);
+			ls::lsEnvironment::realtimeRenderer->resizeImmediate(clientWidth, clientHeight);
+		}
+
+		return true;
+
 	case WM_LBUTTONDOWN:
 		io.MouseDown[0] = true;
 //		ld = true;
@@ -69,6 +81,8 @@ LRESULT CALLBACK wndGUIProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 }
 
 
+
+ls::D3D11Renderer::_hw ls::D3D11Renderer::hw;
 void* ls::createShaderAndLayout(LPCWSTR srcFile,
 	const D3D10_SHADER_MACRO * macro,
 	LPD3D10INCLUDE include,
@@ -370,18 +384,143 @@ ID3D11Texture2D* ls::createTex2D(D3D11_USAGE usage, u32 bindflag,
 
 }
 
-ls::D3D11Previewer::D3D11Previewer(u32 w, u32 h, HWND hwnd, HINSTANCE hinstance, ID3D11Device * device, ID3D11DeviceContext * context, ID3D11RenderTargetView * rtv, ID3D11DepthStencilView * dsv, const D3D11_VIEWPORT & vp)
+void ls::D3D11Renderer::initD3D11()
 {
-	mWidth = w;
-	mHeight = h;
-	mWndHwnd = hwnd;
-	mWndHinstance = hinstance;
-	md3dDevice = device;
-	md3dImmediateContext = context;
-	mRTV = rtv;
-	mDSV = dsv;
-	mViewPort = vp;
+	hw.width = lsWnd::screenWidth;
+	hw.height = lsWnd::screenHeight;
+	//Initiate DirectX11 and create SwapChain
+	UINT createDeviceFlag = 0;
+#if defined(DEBUG)|defined(_DEBUG)
+	createDeviceFlag |= D3D11_CREATE_DEVICE_DEBUG;
 
+#endif // defined(DEBUG)|
+
+	D3D_FEATURE_LEVEL feature;
+	D3DHR(D3D11CreateDevice(
+		NULL, D3D_DRIVER_TYPE_HARDWARE,
+		NULL, createDeviceFlag,
+		0, 0,
+		D3D11_SDK_VERSION,
+		&hw.d3dDevice,
+		&feature,
+		&hw.d3dImmediateContext));
+	if (feature != D3D_FEATURE_LEVEL_11_0)
+	{
+		std::cout << "Error: fail to support directx11!" << std::endl;
+	}
+
+
+
+
+	DXGI_SWAP_CHAIN_DESC sd;
+
+	sd.BufferDesc.Width = lsWnd::screenWidth;
+	sd.BufferDesc.Height = lsWnd::screenHeight;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
+	sd.BufferDesc.RefreshRate.Denominator = 1;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
+
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+	sd.BufferCount = 1;
+	sd.OutputWindow = lsWnd::wndHwnd;
+	sd.Windowed = true;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	sd.Flags = 0;
+
+	//Create DXGISWAPCHAIN
+	//first,we need do it by IDXGIFactory
+	//
+	IDXGIDevice* dxgiDevice = 0;
+	(hw.d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
+
+	IDXGIAdapter* dxgiAdapter = 0;
+	(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
+
+	IDXGIFactory* dxgiFactory = 0;
+	(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory));
+
+	(dxgiFactory->CreateSwapChain(hw.d3dDevice, &sd, &hw.swapChain));
+
+	dxgiDevice->Release();
+	dxgiAdapter->Release();
+	dxgiFactory->Release();
+
+	assert(hw.d3dDevice);
+	assert(hw.d3dImmediateContext);
+	assert(hw.swapChain);
+
+	if (hw.renderTargetView)
+		hw.renderTargetView->Release();
+	if (hw.depthStencilView)
+		hw.depthStencilView->Release();
+	if (hw.depthStencilBuffer)
+		hw.depthStencilBuffer->Release();
+	//ReleaseCom(mBackBuffer);
+
+
+	(hw.swapChain->ResizeBuffers(
+		1,
+		lsWnd::screenWidth,
+		lsWnd::screenHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		NULL
+	));
+	//	ID3D11Texture2D* mBackBuffer;
+	(hw.swapChain->GetBuffer(0,
+		__uuidof(ID3D11Texture2D),
+		reinterpret_cast<void**>(&hw.backBuffer)));
+
+	(hw.d3dDevice->CreateRenderTargetView(hw.backBuffer,
+		NULL,
+		&hw.renderTargetView));
+
+
+	//	ReleaseCom(mBackBuffer);
+
+	D3D11_TEXTURE2D_DESC td;
+	td.Width = lsWnd::screenWidth;
+	td.Height = lsWnd::screenHeight;
+	td.MipLevels = 1;
+	td.ArraySize = 1;
+	td.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	td.SampleDesc.Count = 1;
+	td.SampleDesc.Quality = 0;
+	td.Usage = D3D11_USAGE_DEFAULT;
+	td.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	td.CPUAccessFlags = NULL;
+	td.MiscFlags = NULL;
+
+	(hw.d3dDevice->CreateTexture2D(
+		&td,
+		NULL,
+		&hw.depthStencilBuffer));
+	(hw.d3dDevice->CreateDepthStencilView(
+		hw.depthStencilBuffer,
+		NULL,
+		&hw.depthStencilView));
+
+	hw.d3dImmediateContext->OMSetRenderTargets(1, &hw.renderTargetView, hw.depthStencilView);
+
+	hw.viewport.TopLeftX = 0;
+	hw.viewport.TopLeftY = 0;
+	hw.viewport.Width = static_cast<float>(lsWnd::screenWidth);
+	hw.viewport.Height = static_cast<float>(lsWnd::screenHeight);
+	hw.viewport.MinDepth = 0.0f;
+	hw.viewport.MaxDepth = 1.0f;
+
+	hw.d3dImmediateContext->RSSetViewports(1, &hw.viewport);
+
+}
+
+ls::D3D11Renderer::D3D11Renderer()
+{
 	initGUI();
 	createFontsTexture();
 	createShader();
@@ -389,7 +528,7 @@ ls::D3D11Previewer::D3D11Previewer(u32 w, u32 h, HWND hwnd, HINSTANCE hinstance,
 	createStates();
 }
 
-ls::D3D11Previewer::~D3D11Previewer()
+ls::D3D11Renderer::~D3D11Renderer()
 {
 	ReleaseCom(mGuiVs);
 	ReleaseCom(mGuiPs);
@@ -404,13 +543,97 @@ ls::D3D11Previewer::~D3D11Previewer()
 	ReleaseCom(mRS);
 }
 
-void ls::D3D11Previewer::newFrame(f32 dt)
+void ls::D3D11Renderer::resize(s32 w, s32 h)
 {
+	hw.width = w;
+	hw.height = h;
+	mToResize = true;
+}
+
+void ls::D3D11Renderer::onResize()
+{
+	lsWnd::lsWndResize(hw.width, hw.height);
+	resizeImmediate(hw.width,hw.height);
+}
+
+
+void ls::D3D11Renderer::resizeImmediate(s32 w, s32 h)
+{
+	hw.width = w;
+	hw.height = h;
+
+	ls_Assert(hw.renderTargetView);
+	ls_Assert(hw.backBuffer);
+	ls_Assert(hw.depthStencilView);
+	ls_Assert(hw.depthStencilBuffer);
+
+
+	hw.renderTargetView->Release();
+	hw.backBuffer->Release();
+	hw.depthStencilView->Release();
+	hw.depthStencilBuffer->Release();
+
+	// 重建 RTV
+	hw.swapChain->ResizeBuffers(1, lsWnd::screenWidth, lsWnd::screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	hw.swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&hw.backBuffer));
+	hw.d3dDevice->CreateRenderTargetView(hw.backBuffer, 0, &hw.renderTargetView);
+
+	// 重建 DSV
+	D3D11_TEXTURE2D_DESC td;
+	td.Width = lsWnd::screenWidth;
+	td.Height = lsWnd::screenHeight;
+	td.MipLevels = 1;
+	td.ArraySize = 1;
+	td.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	td.SampleDesc.Count = 1;
+	td.SampleDesc.Quality = 0;
+	td.Usage = D3D11_USAGE_DEFAULT;
+	td.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	td.CPUAccessFlags = NULL;
+	td.MiscFlags = NULL;
+
+	(hw.d3dDevice->CreateTexture2D(
+		&td,
+		NULL,
+		&hw.depthStencilBuffer));
+	(hw.d3dDevice->CreateDepthStencilView(
+		hw.depthStencilBuffer,
+		NULL,
+		&hw.depthStencilView));
+
+	hw.d3dImmediateContext->OMSetRenderTargets(1, &hw.renderTargetView, hw.depthStencilView);
+
+	hw.viewport.TopLeftX = 0;
+	hw.viewport.TopLeftY = 0;
+	hw.viewport.Width = static_cast<float>(lsWnd::screenWidth);
+	hw.viewport.Height = static_cast<float>(lsWnd::screenHeight);
+	hw.viewport.MinDepth = 0.0f;
+	hw.viewport.MaxDepth = 1.0f;
+
+	hw.d3dImmediateContext->RSSetViewports(1, &hw.viewport);
+
+
+	initGUI();
+	ReleaseCom(mFontSRV);
+	ReleaseCom(mSam);
+	createFontsTexture();
+}
+
+void ls::D3D11Renderer::newFrame(f32 dt)
+{
+	
+
+	if (mToResize)
+	{
+		mToResize = false;
+		onResize();
+	}
+
 	ImGuiIO& io = ImGui::GetIO();
 	static f32 totalTime = 0.f;
 	static u32 frames = 0;
 	RECT rect;
-	GetClientRect(mWndHwnd, &rect);
+	GetClientRect(lsWnd::wndHwnd, &rect);
 	io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
 
 	// Setup time step
@@ -442,33 +665,43 @@ void ls::D3D11Previewer::newFrame(f32 dt)
 
 	// Start the frame
 	ImGui::NewFrame();
+
+	RealtimeRenderer::newFrame(dt);
 }
 
-void ls::D3D11Previewer::render()
+void ls::D3D11Renderer::render()
 {
-	auto d3dDevice = lsWnd::hw.d3dDevice;
-	auto context = lsWnd::hw.d3dImmediateContext;
-	auto rtv = lsWnd::hw.renderTargetView;
-	auto dsv = lsWnd::hw.depthStencilView;
+	auto d3dDevice = hw.d3dDevice;
+	auto context = hw.d3dImmediateContext;
+	auto rtv = hw.renderTargetView;
+	auto dsv = hw.depthStencilView;
 
 	f32 renderColor[] = { 0.5f,0.5f,0.5f,0.5f };
 
 	context->OMSetRenderTargets(1,
 		&rtv, dsv);
 	context->ClearRenderTargetView(rtv, renderColor);
-	context->ClearDepthStencilView(mDSV,
+	context->ClearDepthStencilView(dsv,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.f,
 		0.f);
 
-	render(ImGui::GetDrawData());
 
+	ImGui::ShowDemoWindow();
 	
-	lsWnd::hw.swapChain->Present(0, 0);
+	RealtimeRenderer::render();
+	
+	ImGui::Render();
+
+
+
+
+
+	hw.swapChain->Present(0, 0);
 
 }
 
-void ls::D3D11Previewer::commit()
+void ls::D3D11Renderer::commit()
 {
 	std::lock_guard<std::mutex> lck(mMutex);
 
@@ -489,34 +722,34 @@ void ls::D3D11Previewer::commit()
 	if(!mPoint3DData.empty())
 		mPoint3DVB = createBuffer(D3D11_USAGE_DEFAULT,
 			D3D11_BIND_VERTEX_BUFFER,
-			mPoint3DData.size() * sizeof(PrePoint),
+			mPoint3DData.size() * sizeof(Point),
 			0,0,0,
 			&mPoint3DData[0],
-			lsWnd::hw.d3dDevice);
+			hw.d3dDevice);
 
 	if(!mLine3DData.empty())
 		mLine3DVB = createBuffer(D3D11_USAGE_DEFAULT,
 			D3D11_BIND_VERTEX_BUFFER,
-			mLine3DData.size() * sizeof(PreLine),
+			mLine3DData.size() * sizeof(Line),
 			0, 0, 0,
 			&mLine3DData[0],
-			lsWnd::hw.d3dDevice);
+			hw.d3dDevice);
 
 	if (!mTri3DData.empty())
 		mTri3DVB = createBuffer(D3D11_USAGE_DEFAULT,
 			D3D11_BIND_VERTEX_BUFFER,
-			mTri3DData.size() * sizeof(PreTri),
+			mTri3DData.size() * sizeof(Triangle),
 			0, 0, 0,
 			&mTri3DData[0],
-			lsWnd::hw.d3dDevice);
+			hw.d3dDevice);
 
 }
 
 
-void ls::D3D11Previewer::initGUI()
+void ls::D3D11Renderer::initGUI()
 {
 
-
+	
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = VK_TAB;                       // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
 	io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
@@ -538,12 +771,12 @@ void ls::D3D11Previewer::initGUI()
 	io.KeyMap[ImGuiKey_Y] = 'Y';
 	io.KeyMap[ImGuiKey_Z] = 'Z';
 
-//	io.RenderDrawListsFn = std::bind(&D3D11Previewer::render, std::placeholders::_1);  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-	io.ImeWindowHandle = mWndHwnd;
+	io.RenderDrawListsFn = std::bind(&D3D11Renderer::guiRender, this,std::placeholders::_1);  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+	io.ImeWindowHandle = lsWnd::wndHwnd;
 }
 
 
-void ls::D3D11Previewer::createFontsTexture()
+void ls::D3D11Renderer::createFontsTexture()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	u8* pixels = nullptr;
@@ -569,7 +802,7 @@ void ls::D3D11Previewer::createFontsTexture()
 		subResource.pSysMem = pixels;
 		subResource.SysMemPitch = desc.Width * 4;
 		subResource.SysMemSlicePitch = 0;
-		md3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+		hw.d3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
 
 		// Create texture view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -578,7 +811,7 @@ void ls::D3D11Previewer::createFontsTexture()
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		md3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &mFontSRV);
+		hw.d3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &mFontSRV);
 		pTexture->Release();
 	}
 
@@ -597,31 +830,31 @@ void ls::D3D11Previewer::createFontsTexture()
 		desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		desc.MinLOD = -FLT_MAX;
 		desc.MaxLOD = FLT_MAX;
-		md3dDevice->CreateSamplerState(&desc, &mSam);
+		hw.d3dDevice->CreateSamplerState(&desc, &mSam);
 	}
 
 }
 
-void ls::D3D11Previewer::createShader()
+void ls::D3D11Renderer::createShader()
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (size_t)(&((ImDrawVert*)0)->uv), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	mGuiVs = (ID3D11VertexShader*)createShaderAndLayout(L"src//Previewer//PreviewVS.hlsl", nullptr, nullptr, "main", "vs_5_0",
-		EVs, md3dDevice, layout, 3, &mLayout);
+	mGuiVs = (ID3D11VertexShader*)createShaderAndLayout(L"src//realtime//PreviewVS.hlsl", nullptr, nullptr, "main", "vs_5_0",
+		EVs, hw.d3dDevice, layout, 3, &mLayout);
 
-	mGuiPs = (ID3D11PixelShader*)createShaderAndLayout(L"src//Previewer//PreviewPS.hlsl", nullptr, nullptr, "main", "ps_5_0",
-		EPs, md3dDevice);
+	mGuiPs = (ID3D11PixelShader*)createShaderAndLayout(L"src//realtime//PreviewPS.hlsl", nullptr, nullptr, "main", "ps_5_0",
+		EPs, hw.d3dDevice);
 }
 
-void ls::D3D11Previewer::createBuf()
+void ls::D3D11Renderer::createBuf()
 {
-	mCBTrans = createConstantBuffer(PAD16(sizeof(XMFLOAT4X4)), md3dDevice);
+	mCBTrans = createConstantBuffer(PAD16(sizeof(XMFLOAT4X4)), hw.d3dDevice);
 }
 
-void ls::D3D11Previewer::createStates()
+void ls::D3D11Renderer::createStates()
 {
 	{
 		D3D11_BLEND_DESC desc;
@@ -635,7 +868,7 @@ void ls::D3D11Previewer::createStates()
 		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-		md3dDevice->CreateBlendState(&desc, &mBS);
+		hw.d3dDevice->CreateBlendState(&desc, &mBS);
 	}
 
 	// Create the rasterizer state
@@ -646,7 +879,7 @@ void ls::D3D11Previewer::createStates()
 		desc.CullMode = D3D11_CULL_NONE;
 		desc.ScissorEnable = true;
 		desc.DepthClipEnable = true;
-		md3dDevice->CreateRasterizerState(&desc, &mRS);
+		hw.d3dDevice->CreateRasterizerState(&desc, &mRS);
 	}
 
 	// Create depth-stencil State
@@ -660,11 +893,11 @@ void ls::D3D11Previewer::createStates()
 		desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 		desc.BackFace = desc.FrontFace;
-		md3dDevice->CreateDepthStencilState(&desc, &mDSS);
+		hw.d3dDevice->CreateDepthStencilState(&desc, &mDSS);
 	}
 }
 
-void ls::D3D11Previewer::render(ImDrawData* drawData)
+void ls::D3D11Renderer::guiRender(ImDrawData* drawData)
 {
 	if (!drawData)
 		return;
@@ -678,7 +911,7 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 		mVB = createBuffer(D3D11_USAGE_DYNAMIC,
 			D3D11_BIND_VERTEX_BUFFER,
 			mVerticesCount * sizeof(ImDrawVert),
-			0, D3D11_CPU_ACCESS_WRITE, 0, nullptr, md3dDevice);
+			0, D3D11_CPU_ACCESS_WRITE, 0, nullptr, hw.d3dDevice);
 	}
 
 	if (!mIB || mIndicesCount < drawData->TotalVtxCount)
@@ -691,13 +924,13 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 		mIB = createBuffer(D3D11_USAGE_DYNAMIC,
 			D3D11_BIND_INDEX_BUFFER,
 			mIndicesCount * sizeof(ImDrawIdx),
-			0, D3D11_CPU_ACCESS_WRITE, 0, nullptr, md3dDevice);
+			0, D3D11_CPU_ACCESS_WRITE, 0, nullptr, hw.d3dDevice);
 	}
 
 	D3D11_MAPPED_SUBRESOURCE vtx_resource, idx_resource;
-	if (md3dImmediateContext->Map(mVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
+	if (hw.d3dImmediateContext->Map(mVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
 		return;
-	if (md3dImmediateContext->Map(mIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+	if (hw.d3dImmediateContext->Map(mIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
 		return;
 	ImDrawVert* vtx_dst = (ImDrawVert*)vtx_resource.pData;
 	ImDrawIdx* idx_dst = (ImDrawIdx*)idx_resource.pData;
@@ -709,13 +942,13 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 		vtx_dst += cmd_list->VtxBuffer.Size;
 		idx_dst += cmd_list->IdxBuffer.Size;
 	}
-	md3dImmediateContext->Unmap(mVB, 0);
-	md3dImmediateContext->Unmap(mIB, 0);
+	hw.d3dImmediateContext->Unmap(mVB, 0);
+	hw.d3dImmediateContext->Unmap(mIB, 0);
 
 	// Setup orthographic projection matrix into our constant buffer
 	{
 		D3D11_MAPPED_SUBRESOURCE mapped_resource;
-		if (md3dImmediateContext->Map(mCBTrans, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+		if (hw.d3dImmediateContext->Map(mCBTrans, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
 			return;
 		XMFLOAT4X4* constant_buffer = (XMFLOAT4X4*)mapped_resource.pData;
 		float L = 0.0f;
@@ -728,7 +961,7 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 			(R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);
 
 		XMStoreFloat4x4(constant_buffer, XMMatrixTranspose(mvp));
-		md3dImmediateContext->Unmap(mCBTrans, 0);
+		hw.d3dImmediateContext->Unmap(mCBTrans, 0);
 	}
 
 	// Backup DX state that will be modified to restore it afterwards (unfortunately this is very ugly looking and verbose. Close your eyes!)
@@ -757,21 +990,21 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 	};
 	BACKUP_DX11_STATE old;
 	old.ScissorRectsCount = old.ViewportsCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-	md3dImmediateContext->RSGetScissorRects(&old.ScissorRectsCount, old.ScissorRects);
-	md3dImmediateContext->RSGetViewports(&old.ViewportsCount, old.Viewports);
-	md3dImmediateContext->RSGetState(&old.RS);
-	md3dImmediateContext->OMGetBlendState(&old.BlendState, old.BlendFactor, &old.SampleMask);
-	md3dImmediateContext->OMGetDepthStencilState(&old.DepthStencilState, &old.StencilRef);
-	md3dImmediateContext->PSGetShaderResources(0, 1, &old.PSShaderResource);
-	md3dImmediateContext->PSGetSamplers(0, 1, &old.PSSampler);
+	hw.d3dImmediateContext->RSGetScissorRects(&old.ScissorRectsCount, old.ScissorRects);
+	hw.d3dImmediateContext->RSGetViewports(&old.ViewportsCount, old.Viewports);
+	hw.d3dImmediateContext->RSGetState(&old.RS);
+	hw.d3dImmediateContext->OMGetBlendState(&old.BlendState, old.BlendFactor, &old.SampleMask);
+	hw.d3dImmediateContext->OMGetDepthStencilState(&old.DepthStencilState, &old.StencilRef);
+	hw.d3dImmediateContext->PSGetShaderResources(0, 1, &old.PSShaderResource);
+	hw.d3dImmediateContext->PSGetSamplers(0, 1, &old.PSSampler);
 	old.PSInstancesCount = old.VSInstancesCount = 256;
-	md3dImmediateContext->PSGetShader(&old.PS, old.PSInstances, &old.PSInstancesCount);
-	md3dImmediateContext->VSGetShader(&old.VS, old.VSInstances, &old.VSInstancesCount);
-	md3dImmediateContext->VSGetConstantBuffers(0, 1, &old.VSConstantBuffer);
-	md3dImmediateContext->IAGetPrimitiveTopology(&old.PrimitiveTopology);
-	md3dImmediateContext->IAGetIndexBuffer(&old.IndexBuffer, &old.IndexBufferFormat, &old.IndexBufferOffset);
-	md3dImmediateContext->IAGetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset);
-	md3dImmediateContext->IAGetInputLayout(&old.InputLayout);
+	hw.d3dImmediateContext->PSGetShader(&old.PS, old.PSInstances, &old.PSInstancesCount);
+	hw.d3dImmediateContext->VSGetShader(&old.VS, old.VSInstances, &old.VSInstancesCount);
+	hw.d3dImmediateContext->VSGetConstantBuffers(0, 1, &old.VSConstantBuffer);
+	hw.d3dImmediateContext->IAGetPrimitiveTopology(&old.PrimitiveTopology);
+	hw.d3dImmediateContext->IAGetIndexBuffer(&old.IndexBuffer, &old.IndexBufferFormat, &old.IndexBufferOffset);
+	hw.d3dImmediateContext->IAGetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset);
+	hw.d3dImmediateContext->IAGetInputLayout(&old.InputLayout);
 
 	// Setup viewport
 	D3D11_VIEWPORT vp;
@@ -781,25 +1014,25 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = vp.TopLeftY = 0.0f;
-	md3dImmediateContext->RSSetViewports(1, &vp);
+	hw.d3dImmediateContext->RSSetViewports(1, &vp);
 
 	// Bind shader and vertex buffers
 	unsigned int stride = sizeof(ImDrawVert);
 	unsigned int offset = 0;
-	md3dImmediateContext->IASetInputLayout(mLayout);
-	md3dImmediateContext->IASetVertexBuffers(0, 1, &mVB, &stride, &offset);
-	md3dImmediateContext->IASetIndexBuffer(mIB, sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
-	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	md3dImmediateContext->VSSetShader(mGuiVs, NULL, 0);
-	md3dImmediateContext->VSSetConstantBuffers(0, 1, &mCBTrans);
-	md3dImmediateContext->PSSetShader(mGuiPs, NULL, 0);
-	md3dImmediateContext->PSSetSamplers(0, 1, &mSam);
+	hw.d3dImmediateContext->IASetInputLayout(mLayout);
+	hw.d3dImmediateContext->IASetVertexBuffers(0, 1, &mVB, &stride, &offset);
+	hw.d3dImmediateContext->IASetIndexBuffer(mIB, sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
+	hw.d3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	hw.d3dImmediateContext->VSSetShader(mGuiVs, NULL, 0);
+	hw.d3dImmediateContext->VSSetConstantBuffers(0, 1, &mCBTrans);
+	hw.d3dImmediateContext->PSSetShader(mGuiPs, NULL, 0);
+	hw.d3dImmediateContext->PSSetSamplers(0, 1, &mSam);
 
 	// Setup render state
 	const float blend_factor[4] = { 0.f, 0.f, 0.f, 0.f };
-	md3dImmediateContext->OMSetBlendState(mBS, blend_factor, 0xffffffff);
-	md3dImmediateContext->OMSetDepthStencilState(mDSS, 0);
-	md3dImmediateContext->RSSetState(mRS);
+	hw.d3dImmediateContext->OMSetBlendState(mBS, blend_factor, 0xffffffff);
+	hw.d3dImmediateContext->OMSetDepthStencilState(mDSS, 0);
+	hw.d3dImmediateContext->RSSetState(mRS);
 
 	// Render command lists
 	int vtx_offset = 0;
@@ -817,9 +1050,9 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 			else
 			{
 				const D3D11_RECT r = { (LONG)pcmd->ClipRect.x, (LONG)pcmd->ClipRect.y, (LONG)pcmd->ClipRect.z, (LONG)pcmd->ClipRect.w };
-				md3dImmediateContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&pcmd->TextureId);
-				md3dImmediateContext->RSSetScissorRects(1, &r);
-				md3dImmediateContext->DrawIndexed(pcmd->ElemCount, idx_offset, vtx_offset);
+				hw.d3dImmediateContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&pcmd->TextureId);
+				hw.d3dImmediateContext->RSSetScissorRects(1, &r);
+				hw.d3dImmediateContext->DrawIndexed(pcmd->ElemCount, idx_offset, vtx_offset);
 			}
 			idx_offset += pcmd->ElemCount;
 		}
@@ -827,22 +1060,22 @@ void ls::D3D11Previewer::render(ImDrawData* drawData)
 	}
 
 	// Restore modified DX state
-	md3dImmediateContext->RSSetScissorRects(old.ScissorRectsCount, old.ScissorRects);
-	md3dImmediateContext->RSSetViewports(old.ViewportsCount, old.Viewports);
-	md3dImmediateContext->RSSetState(old.RS); if (old.RS) old.RS->Release();
-	md3dImmediateContext->OMSetBlendState(old.BlendState, old.BlendFactor, old.SampleMask); if (old.BlendState) old.BlendState->Release();
-	md3dImmediateContext->OMSetDepthStencilState(old.DepthStencilState, old.StencilRef); if (old.DepthStencilState) old.DepthStencilState->Release();
-	md3dImmediateContext->PSSetShaderResources(0, 1, &old.PSShaderResource); if (old.PSShaderResource) old.PSShaderResource->Release();
-	md3dImmediateContext->PSSetSamplers(0, 1, &old.PSSampler); if (old.PSSampler) old.PSSampler->Release();
-	md3dImmediateContext->PSSetShader(old.PS, old.PSInstances, old.PSInstancesCount); if (old.PS) old.PS->Release();
+	hw.d3dImmediateContext->RSSetScissorRects(old.ScissorRectsCount, old.ScissorRects);
+	hw.d3dImmediateContext->RSSetViewports(old.ViewportsCount, old.Viewports);
+	hw.d3dImmediateContext->RSSetState(old.RS); if (old.RS) old.RS->Release();
+	hw.d3dImmediateContext->OMSetBlendState(old.BlendState, old.BlendFactor, old.SampleMask); if (old.BlendState) old.BlendState->Release();
+	hw.d3dImmediateContext->OMSetDepthStencilState(old.DepthStencilState, old.StencilRef); if (old.DepthStencilState) old.DepthStencilState->Release();
+	hw.d3dImmediateContext->PSSetShaderResources(0, 1, &old.PSShaderResource); if (old.PSShaderResource) old.PSShaderResource->Release();
+	hw.d3dImmediateContext->PSSetSamplers(0, 1, &old.PSSampler); if (old.PSSampler) old.PSSampler->Release();
+	hw.d3dImmediateContext->PSSetShader(old.PS, old.PSInstances, old.PSInstancesCount); if (old.PS) old.PS->Release();
 	for (UINT i = 0; i < old.PSInstancesCount; i++) if (old.PSInstances[i]) old.PSInstances[i]->Release();
-	md3dImmediateContext->VSSetShader(old.VS, old.VSInstances, old.VSInstancesCount); if (old.VS) old.VS->Release();
-	md3dImmediateContext->VSSetConstantBuffers(0, 1, &old.VSConstantBuffer); if (old.VSConstantBuffer) old.VSConstantBuffer->Release();
+	hw.d3dImmediateContext->VSSetShader(old.VS, old.VSInstances, old.VSInstancesCount); if (old.VS) old.VS->Release();
+	hw.d3dImmediateContext->VSSetConstantBuffers(0, 1, &old.VSConstantBuffer); if (old.VSConstantBuffer) old.VSConstantBuffer->Release();
 	for (UINT i = 0; i < old.VSInstancesCount; i++) if (old.VSInstances[i]) old.VSInstances[i]->Release();
-	md3dImmediateContext->IASetPrimitiveTopology(old.PrimitiveTopology);
-	md3dImmediateContext->IASetIndexBuffer(old.IndexBuffer, old.IndexBufferFormat, old.IndexBufferOffset); if (old.IndexBuffer) old.IndexBuffer->Release();
-	md3dImmediateContext->IASetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset); if (old.VertexBuffer) old.VertexBuffer->Release();
-	md3dImmediateContext->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
+	hw.d3dImmediateContext->IASetPrimitiveTopology(old.PrimitiveTopology);
+	hw.d3dImmediateContext->IASetIndexBuffer(old.IndexBuffer, old.IndexBufferFormat, old.IndexBufferOffset); if (old.IndexBuffer) old.IndexBuffer->Release();
+	hw.d3dImmediateContext->IASetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset); if (old.VertexBuffer) old.VertexBuffer->Release();
+	hw.d3dImmediateContext->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
 std::string ls::castHR2Chars(HRESULT hr)
@@ -863,4 +1096,63 @@ std::string ls::castHR2Chars(HRESULT hr)
 		return "D3D_UNEXPECTED_ERROR";
 	}
 	return "";
+}
+
+
+
+
+
+
+ls::D3DRealtimeThreadTask::D3DRealtimeThreadTask(s32 width, s32 height)
+{
+	mInitialWidth = width;
+	mInitialHeight = height;
+}
+
+void ls::D3DRealtimeThreadTask::operator()()
+{
+	/*
+		Step 1: 初始化
+		Windows 窗口
+		D3D 硬件接口
+	*/
+	lsWnd::lsWndInit(mInitialWidth, mInitialHeight, wndGUIProcHandler);
+	D3D11Renderer::initD3D11();
+
+	// 创建 实例
+	RealtimeRendererPtr renderer = new D3D11Renderer();
+	lsEnvironment::realtimeRenderer = renderer;
+
+	/*
+		Step 2: 消息循环
+	*/
+#if 1
+	MSG msg;
+	ZeroMemory(&msg, sizeof(msg));
+	ls::Timer timer;
+	while (msg.message != WM_QUIT)
+	{
+		if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+
+		{
+
+			TranslateMessage(&msg);
+
+			DispatchMessage(&msg);
+
+			continue;
+
+		}
+		timer.tick();
+		renderer->newFrame(timer.deltaTime());
+		renderer->render();
+	}
+#endif
+
+	/*
+		Step 3: 清除数据
+	*/
+	delete renderer;
+	lsEnvironment::realtimeRenderer = nullptr;
+
 }

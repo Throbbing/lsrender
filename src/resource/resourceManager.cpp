@@ -31,6 +31,7 @@
 #include<resource/xmlHelper.h>
 #include<texture/constantTexture.h>
 #include<texture/imageTexture.h>
+#include<thread/QueuedThreadPool.h>
 
 
 
@@ -43,6 +44,7 @@ std::vector<ls::MeshPtr>	ls::ResourceManager::mMeshs;
 std::map<std::string, ls::ImageData> ls::ResourceManager::mImageDatas;
 std::vector<ls::ModulePtr> ls::ResourceManager::mModules;
 std::string					ls::ResourceManager::mPath;
+std::vector<ls::QueuedThreadPoolPtr> ls::ResourceManager::mThreadPools;
 
 void ls::ResourceManager::clear()
 {
@@ -51,6 +53,12 @@ void ls::ResourceManager::clear()
 		ReleaselsPtr(p);
 	}
 	mModules.clear();
+
+	for (auto& p : mThreadPools)
+	{
+		ReleaselsPtr(p);
+	}
+	mThreadPools.clear();
 }
 
 std::vector<ls::MeshPtr> ls::ResourceManager::loadMeshFromFile(Path fullPath)
@@ -620,6 +628,13 @@ void ls::ResourceManager::write2File(ls::Texture * texture,
 
 
 	
+}
+
+ls::QueuedThreadPoolPtr ls::ResourceManager::createThreadPool(s32 threadCount)
+{
+	auto pool = new QueuedThreadPool(threadCount);
+	mThreadPools.push_back(pool);
+	return pool;
 }
 
 

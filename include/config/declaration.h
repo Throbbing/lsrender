@@ -69,7 +69,7 @@ namespace ls
 	
 	//About Scene
 	class Scene;
-	class SceneRenderBlock;
+	struct SceneRenderBlock;
 
 
 	//About Spectrum
@@ -77,9 +77,12 @@ namespace ls
 
 
 	//About Thread
-	class ThreadWaker;
+//	class ThreadWaker;
+	class Thread;
 	class ThreadTask;
-	class ThreadPool;
+//	class ThreadEvent;
+//	class ThreadPool;
+	class QueuedThreadPool;
 
 	//About File
 	class Path;
@@ -87,8 +90,10 @@ namespace ls
 	//About Timer
 	class Timer;
 
-	//About Preview
-	class Previewer;
+	//About Realtime
+	class RealtimeRenderer;
+	class RealtimeRenderCommand;
+	class Canvas;
 
 	//About Math
 	struct Vec2;

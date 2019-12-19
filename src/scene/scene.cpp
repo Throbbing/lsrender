@@ -23,13 +23,28 @@
 #include<scene/scene.h>
 #include<sampler/randomsampler.h>
 #include<texture/constantTexture.h>
+#include<thread/AsynTask.h>
 #include<thread/thread.h>
+#include<thread/QueuedThreadPool.h>
 
-void ls::SceneRenderBlock::run()
+#include<realtime/D3D11Realtime.h>
+#include<realtime/D3D11Canvas.h>
+
+ID3D11ShaderResourceView* finalSRV = nullptr;
+ID3D11Texture2D*		  finalTex = nullptr;
+void ls::SceneRenderTask::operator ()()
 {
 	RNG rng;
-	algorithm->render(scene, this, sampler, camera, rng);
+	SceneRenderBlock block;
+	block.xStart = mXStart;
+	block.yStart = mYStart;
+	block.xEnd = mXEnd;
+	block.yEnd = mYEnd;
+
+	mAlgorithm->render(mScene, &block, mSampler, mCamera, rng);
 }
+
+
 
 ls::Scene::Scene(const std::string& id):Module(id)
 {
@@ -89,7 +104,7 @@ void ls::Scene::setSceneFromXML(const ls::Path& path, XMLPackage & package)
 	{
 		lsRender::sampleInfo.spp = package.mSampleInfo.querys32("spp",1);
 		lsRender::sampleInfo.iterations = package.mSampleInfo.querys32("iterations", 1);
-		lsRender::sampleInfo.directSamples = package.mSampleInfo.querys32("direcSamples", 1);
+		lsRender::sampleInfo.directSamples = package.mSampleInfo.querys32("directSamples", 1);
 	}
 
 	rtcCommitScene(ls::lsEmbree::hw.rtcScene);
@@ -209,8 +224,46 @@ void ls::Scene::deleteLight(Light * light)
 	
 }
 
+
+struct RenderTaskWrap
+{
+	s32 xStart, xEnd, yStart, yEnd;
+	ls::CameraPtr camera;
+	ls::ThreadTaskPtr task;
+};
+
 void ls::Scene::render()
 {
+
+	{
+		auto width = mCamera->getFilm()->getWidth();
+		auto height = mCamera->getFilm()->getHeight();
+		auto ppCanvas = &mRealtimeCanvas;
+
+		ls_Enqueue_OnceRenderCommand(CreateRealtimeCanvas)([ppCanvas,width,height]()
+		{
+			*ppCanvas = new D3D11Canvas2D(width, height, nullptr);
+		});
+
+		ls_Enqueue_RenderCommand(RenderResultWindow)([ppCanvas,width,height]() 
+		{
+			if (!ImGui::Begin("RenderWindow"))
+			{
+				ImGui::End();
+				return;
+			}
+			ImGui::BeginChild("Result", ImVec2(width + 2, height + 2));
+			ImGui::Image((*ppCanvas)->getHardwareResource(),ImVec2(width,height));
+			ImGui::EndChild();
+
+			ImGui::End();
+		});
+
+
+		ls_Trigger_RenderCommand;
+
+		
+	}
 	ls::Log::log("Start Render ! \n");
 	auto threadUsedCount = std::thread::hardware_concurrency();
 	u32 hasProcess = 0;
@@ -219,7 +272,9 @@ void ls::Scene::render()
 
 	
 
-	std::vector<SceneRenderBlock> renderBlocks;
+	std::vector<RenderTaskWrap> renderTasks;
+
+
 	auto screenWidth = mCamera->getFilm()->getWidth();
 	auto screenHeight = mCamera->getFilm()->getHeight();
 
@@ -232,66 +287,129 @@ void ls::Scene::render()
 		screenHeight)
 		blockResY += 1;
 
-	for (s32 blockY = 0; blockY < blockResY; ++blockY)
-	{
-		for (s32 blockX = 0; blockX < blockResX; ++blockX)
-		{
-			SceneRenderBlock scr;
-			scr.xStart = blockX * lsRender::sceneRenderBlockInfo.blockSizeX;
-			scr.xEnd = std::min(scr.xStart + lsRender::sceneRenderBlockInfo.blockSizeX,
-				screenWidth);
+	s32 taskSize = blockResX * blockResY;
+	std::vector<RenderAlgorithmPtr> renderAlgorithms(taskSize);
+	std::vector<FilmPtr>		    films(taskSize);
+	std::vector<SamplerPtr>			samplers(taskSize);
+	std::vector<CameraPtr>			cameras(taskSize);
 
-			scr.yStart = blockY * lsRender::sceneRenderBlockInfo.blockSizeY;
-			scr.yEnd = std::min(scr.yStart + lsRender::sceneRenderBlockInfo.blockSizeY,
-				screenHeight);
-
-			scr.scene = this;
-			
-
-
-			
-			renderBlocks.push_back(scr);
-		}
-	}
-
-	std::vector<RenderAlgorithmPtr> renderAlgorithms(renderBlocks.size());
-	std::vector<FilmPtr>		    films(renderBlocks.size());
-	std::vector<SamplerPtr>			samplers(renderBlocks.size());
-	std::vector<CameraPtr>			cameras(renderBlocks.size());
-
-#if 0
-	renderAlgorithms[0] = mAlgorithm;
-	films[0] = mCamera->getFilm();
-	samplers[0] = mSampler;
-	renderBlocks[0].algorithm = mAlgorithm;
-	renderBlocks[0].sampler = mSampler;
-	renderBlocks[0].camera = mCamera;
-	renderBlocks[0].scene = this;
-#endif
-	for (s32 i = 0; i < renderBlocks.size(); ++i)
+	for (s32 i = 0; i < taskSize; ++i)
 	{
 		renderAlgorithms[i] = mAlgorithm->copy(); renderAlgorithms[i]->commit();
 		films[i] = mCamera->getFilm()->copy(); films[i]->commit();
 		samplers[i] = mSampler->copy(); samplers[i]->commit();
 		cameras[i] = mCamera->copy(); cameras[i]->addFilm(films[i]); cameras[i]->commit();
-
-
-		renderBlocks[i].algorithm = renderAlgorithms[i];
-		renderBlocks[i].sampler = samplers[i];
-		renderBlocks[i].camera = cameras[i];
-		renderBlocks[i].scene = this;
-
 	}
+
+	for (s32 blockY = 0; blockY < blockResY; ++blockY)
+	{
+		for (s32 blockX = 0; blockX < blockResX; ++blockX)
+		{
+
+			s32 xStart = blockX * lsRender::sceneRenderBlockInfo.blockSizeX;
+			s32 xEnd = std::min(xStart + lsRender::sceneRenderBlockInfo.blockSizeX,
+				screenWidth);
+
+			s32 yStart = blockY * lsRender::sceneRenderBlockInfo.blockSizeY;
+			s32 yEnd = std::min(yStart + lsRender::sceneRenderBlockInfo.blockSizeY,
+				screenHeight);
+
+			s32 index = blockY * blockResX + blockX;
+			ls::ThreadTaskPtr task = new ls::AsynOnceTask<SceneRenderTask>(
+				xStart,
+				yStart,
+				xEnd,
+				yEnd,
+				samplers[index],
+				cameras[index],
+				renderAlgorithms[index],
+				this);
+
+			RenderTaskWrap wrap;
+			wrap.task = task;
+			wrap.xStart = xStart;
+			wrap.yStart = yStart;
+			wrap.xEnd = xEnd;
+			wrap.yEnd = yEnd;
+			wrap.camera = cameras[index];
+			renderTasks.push_back(wrap);
+		}
+	}
+
+
 
 	Timer timer;
 	timer.tick();
 
-#ifdef ls_OPENMP
-//#pragma omp parallel for
-#endif
-	for (s32 i = 0; i < renderBlocks.size(); ++i)
+	for (auto& task : renderTasks)
+		lsEnvironment::renderThreadPool->addTask(task.task);
+
+	std::vector<RenderTaskWrap> undoTasks(renderTasks.begin(), renderTasks.end());
+	std::vector<RenderTaskWrap> temp;
+	
+	while (true)
 	{
-		renderBlocks[i].run();
+		int finishTask = 0;
+		for (auto& task : undoTasks)
+		{
+			if (task.task->getThreadTaskState() == EThreadTaskState_DONE)
+			{
+				// 该 Block 渲染完成
+				// 添加进实时列表
+				finishTask++;
+				s32 xStart = task.xStart;
+				s32 xEnd = task.xEnd;
+				s32 quadWidth = xEnd - xStart;
+				s32 yStart = task.yStart;
+				s32 yEnd = task.yEnd;
+				s32 quadHeight = yEnd - yStart;
+
+				std::vector<Vec4> data(quadWidth * quadHeight);
+				task.camera->getFilm()->flush();
+				auto* rawData = (Spectrum*)task.camera->getFilm()->convert2Texture()->getRawData();
+				
+				auto width = task.camera->getFilm()->getWidth();
+				auto height = task.camera->getFilm()->getHeight();
+
+				for (s32 y = yStart; y < yEnd; ++y)
+				{
+					for (s32 x = xStart; x < xEnd; ++x)
+					{
+						auto color = rawData[y * width + x];
+						f32 rgb[3];
+						color.toSRGB(rgb);
+						data[(y - yStart) * quadWidth + (x - xStart)] = Vec4(rgb[0],rgb[1],rgb[2],1.f);
+					}
+				}
+				auto ppCanvas = &mRealtimeCanvas;
+
+				ls_Enqueue_AnonymousOnceRenderCommand([xStart, yStart, xEnd, yEnd,
+					data,ppCanvas]() 
+				{
+					auto canvas = (*ppCanvas);
+
+					canvas->drawQuad(xStart, xEnd, yStart, yEnd, (void*)&data[0],
+						ECanvasOpAccess_CPU);
+				});
+
+				ls_Trigger_RenderCommand;
+
+			}
+			else
+			{
+				// 临时保存未完成的任务
+				temp.push_back(task);
+			}
+		}
+		if (undoTasks.empty())
+			break;
+
+		// 
+		undoTasks = temp;
+		temp.clear();
+
+		Sleep(1000);
+		Log::log("%f \n", float(finishTask) / float(renderTasks.size()));
 	}
 	
 	timer.tick();
@@ -372,7 +490,7 @@ void ls::Scene::render()
 	ls::Log::log("Merge Multi-Block Film ! \n");
 	mCamera->getFilm()->merge(films);
 
-	mCamera->getFilm()->flush();
+//	mCamera->getFilm()->flush();
 
 	
 	

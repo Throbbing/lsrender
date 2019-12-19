@@ -12,7 +12,7 @@
 #include<string>
 #include<memory>
 #include<fstream>
-
+#include<thread>
 
 
 #define ls_Embree3
@@ -91,7 +91,7 @@ using u32 = unsigned __int32;
 using u64 = unsigned __int64;
 using f32 = float;
 using f64 = double;
-
+using ThreadID = std::thread::id;
 
 #pragma warning (disable : 4305) // double constant assigned to float
 #pragma warning (disable : 4244) // int -> float conversion

@@ -39,7 +39,7 @@ namespace ls
 		static void write2File(ls::Texture* texture,
 			const Path& fullPath);
 
-
+		static QueuedThreadPoolPtr	createThreadPool(s32 threadCount);
 		
 
 //		static ls_Smart(ls::Material) createMaterial(ParamSet paramSet)
@@ -56,5 +56,7 @@ namespace ls
 		static std::vector<ls::ModulePtr>					mModules;
 
 		static std::string									mPath;
+
+		static std::vector<QueuedThreadPoolPtr>				mThreadPools;
 	};
 }

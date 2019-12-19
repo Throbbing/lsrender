@@ -8,6 +8,10 @@
 #include<windows.h>
 namespace ls
 {
+	void initRender();
+	void releaseRender();
+
+
 	class lsEmbree
 	{
 	public:
@@ -30,38 +34,22 @@ namespace ls
 	class lsWnd
 	{
 	public:
-
-		static
-			struct _wnd
-		{
-			HWND									wndHwnd = nullptr;
-			HINSTANCE								wndHinstance = nullptr;
-			u32										screenWidth;
-			u32										screenHeight;
-			f32										fps = 0.f;
-		}wnd;
-
-		static
-			struct _hw
-		{
-			ID3D11Device*							d3dDevice = nullptr;
-			ID3D11DeviceContext*					d3dImmediateContext = nullptr;
-			IDXGISwapChain*							swapChain = nullptr;
-			ID3D11Texture2D*						depthStencilBuffer = nullptr;
-
-			ID3D11Texture2D*						backBuffer = nullptr;
-			ID3D11RenderTargetView*					renderTargetView = nullptr;
-			ID3D11DepthStencilView*					depthStencilView = nullptr;
-			D3D11_VIEWPORT							viewPort;
-		}hw;
-
+		static HWND										wndHwnd;
+		static HINSTANCE								wndHinstance;
+		static u32										screenWidth;
+		static u32										screenHeight;
+		static f32										fps;
 
 
 		static
 			bool										lsWndInit(u32 w, u32 h, WNDPROC wndProc);
 
 		static
+			void										lsWndResize(u32 w, u32 h);
+
+		static
 			void										lsWndShutDown();
+
 
 	};
 
@@ -92,6 +80,11 @@ namespace ls
 	{
 	public:
 //		static TimerPtr timer;
+		static QueuedThreadPoolPtr renderThreadPool; 
+		static ThreadID	realtimeRenderThreadID;
+		static RealtimeRendererPtr realtimeRenderer;
+
+		static ThreadTaskPtr realtimeTask;
 	};
 	
 	

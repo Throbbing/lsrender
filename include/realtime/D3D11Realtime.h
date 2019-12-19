@@ -1,7 +1,7 @@
 #pragma once
 #include<3rd/imgui.h>
 #include<function/log.h>
-#include<previewer/previewer.h>
+#include<realtime/realtime.h>
 #include<math/transform.h>
 #include<function/file.h>
 
@@ -204,7 +204,7 @@ namespace ls
 	{
 		return XMFLOAT4(vec.x, vec.y, vec.z, vec.w);
 	}
-
+	
 
 
 	class SRVMgr
@@ -242,18 +242,38 @@ namespace ls
 	};
 
 
-	class D3D11Previewer :public Previewer
+	class D3D11Renderer :public RealtimeRenderer
 	{
 	public:
-		D3D11Previewer(u32 w, u32 h,
-			HWND hwnd, HINSTANCE hinstance,
-			ID3D11Device* device, ID3D11DeviceContext* context,
-			ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv,
-			const D3D11_VIEWPORT& vp);
+		
+		/*
+			初始化 D3D11 硬件支持
+			与实例无关
+		*/
+		static void initD3D11();
+		static struct _hw
+		{
+			IDXGISwapChain*				swapChain = nullptr;
+			ID3D11Device*				d3dDevice = nullptr;
+			ID3D11DeviceContext*		d3dImmediateContext = nullptr;
+			ID3D11RenderTargetView*		renderTargetView = nullptr;
+			ID3D11Texture2D*			backBuffer = nullptr;
+			ID3D11DepthStencilView*		depthStencilView = nullptr;
+			ID3D11Texture2D*			depthStencilBuffer = nullptr;
+			D3D11_VIEWPORT				viewport;
+			s32							width;
+			s32							height;
 
-		virtual ~D3D11Previewer();
+		}hw;
 
 
+
+		D3D11Renderer();
+
+		virtual ~D3D11Renderer();
+
+
+		virtual void resizeImmediate(s32 w,s32 h) override;
 		virtual void newFrame(f32 dt) override;
 		virtual void render() override;
 
@@ -265,15 +285,12 @@ namespace ls
 		void createShader();
 		void createBuf();
 		void createStates();
-		void render(ImDrawData* drawData);
+		void guiRender(ImDrawData* drawData);
 
+		void resize(s32 w,s32 h);
+		void onResize();
+		bool						mToResize = false;
 
-		HWND						mWndHwnd;
-		HINSTANCE					mWndHinstance;
-		ID3D11Device*				md3dDevice;
-		ID3D11DeviceContext*		md3dImmediateContext;
-		ID3D11RenderTargetView*		mRTV;
-		ID3D11DepthStencilView*		mDSV;
 
 
 		ID3D11VertexShader*			mGuiVs = nullptr;
@@ -290,20 +307,31 @@ namespace ls
 		ID3D11BlendState*			mBS = nullptr;
 		ID3D11DepthStencilState*	mDSS = nullptr;
 		ID3D11RasterizerState*		mRS = nullptr;
-		D3D11_VIEWPORT				mViewPort;
-
-		u32							mWidth;
-		u32							mHeight;
-
-
 
 		ID3D11Buffer*				mPoint3DVB = nullptr;
 		ID3D11Buffer*				mLine3DVB = nullptr;
 		ID3D11Buffer*				mTri3DVB = nullptr;
 		ID3D11Buffer*				mQuadTexVB = nullptr;
+
 	};
 
 
+
+	/*
+		实时渲染线程任务
+	*/
+	class D3DRealtimeThreadTask
+	{
+	public:
+		D3DRealtimeThreadTask(s32 width = 1280, s32 height = 720);
+
+		void operator()();
+
+	private:
+		s32  mInitialWidth;
+		s32	 mInitialHeight;
+
+	};
 
 
 }

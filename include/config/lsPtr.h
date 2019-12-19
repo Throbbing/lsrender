@@ -30,11 +30,20 @@ namespace ls
 	using FilmPtr				= Film*;
 	//About Scene
 	using ScenePtr				= Scene*;
-	//About Preview
-	using PreviewerPtr			= Previewer*;
+	//About RealtimeRenderer
+	using RealtimeRendererPtr	= RealtimeRenderer*;
+	using RealtimeRenderCommandPtr = RealtimeRenderCommand * ;
+	using CanvasPtr				= Canvas * ;
 
 	//About Timer
 	using TimerPtr				= Timer*;
+
+	//About Thread
+	using ThreadPtr				= Thread* ;
+	using ThreadTaskPtr			= ThreadTask*;
+//	using ThreadEventPtr		= ThreadEvent*;
+	using QueuedThreadPoolPtr	= QueuedThreadPool*;
+	
 
 
 	template<typename T>
