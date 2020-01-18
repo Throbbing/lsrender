@@ -374,9 +374,14 @@ bool ls::TriMesh::sample(ls_Param_In Sampler * sampler,
 
 }
 
-f32 ls::TriMesh::pdf(ls_Param_In const MeshSampleRecord * refRec) const
+f32 ls::TriMesh::pdf(ls_Param_In ls_Param_Out MeshSampleRecord * refRec) const
 {
-	return f32();
+	refRec->pdfA = 1.f / mArea;
+	Frame localFrame(refRec->surfaceNormal);
+
+	refRec->pdfD = MonteCarlo::sampleCosHemispherePdf(localFrame.toLocal(refRec->sampleDirection));
+
+	return refRec->pdfA * refRec->pdfD;
 }
 
 void ls::TriMesh::subdivide(ESubdivision_Type type, u32 count) const

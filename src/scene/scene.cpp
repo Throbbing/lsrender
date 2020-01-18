@@ -191,6 +191,11 @@ f32 ls::Scene::sampleLight(ls_Param_In Sampler * sampler, ls_Param_Out LightSamp
 	return 1.f / mSceneLights.size();
 }
 
+f32 ls::Scene::pdfSampleLight(ls_Param_In LightPtr  light)
+{
+	return 1.f / (f32)(mSceneLights.size());
+}
+
 f32 ls::Scene::sampleMesh(ls_Param_In Sampler * sampler, ls_Param_Out MeshSampleRecord * rec)
 {
 	Unimplement;
@@ -253,7 +258,16 @@ void ls::Scene::render()
 				return;
 			}
 			ImGui::BeginChild("Result", ImVec2(width + 2, height + 2));
-			ImGui::Image((*ppCanvas)->getHardwareResource(),ImVec2(width,height));
+			if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+			{
+				if (ImGui::BeginTabItem("FinalResult"))
+				{
+					ImGui::Image((*ppCanvas)->getHardwareResource(), ImVec2(width, height));
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+				
+			}
 			ImGui::EndChild();
 
 			ImGui::End();
@@ -346,17 +360,20 @@ void ls::Scene::render()
 
 	std::vector<RenderTaskWrap> undoTasks(renderTasks.begin(), renderTasks.end());
 	std::vector<RenderTaskWrap> temp;
-	
+
+	int finishTask = 0;
 	while (true)
 	{
-		int finishTask = 0;
+		
 		for (auto& task : undoTasks)
 		{
 			if (task.task->getThreadTaskState() == EThreadTaskState_DONE)
 			{
-				// 该 Block 渲染完成
-				// 添加进实时列表
 				finishTask++;
+				#if 0
+// 该 Block 渲染完成
+				// 添加进实时列表
+				
 				s32 xStart = task.xStart;
 				s32 xEnd = task.xEnd;
 				s32 quadWidth = xEnd - xStart;
@@ -393,7 +410,7 @@ void ls::Scene::render()
 				});
 
 				ls_Trigger_RenderCommand;
-
+#endif
 			}
 			else
 			{
@@ -490,7 +507,7 @@ void ls::Scene::render()
 	ls::Log::log("Merge Multi-Block Film ! \n");
 	mCamera->getFilm()->merge(films);
 
-//	mCamera->getFilm()->flush();
+	mCamera->getFilm()->flush();
 
 	
 	

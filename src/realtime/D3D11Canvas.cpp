@@ -22,11 +22,6 @@ ls::D3D11Canvas2D::D3D11Canvas2D(s32 width, s32 height, Vec4 * data):
 		1, 0, 0,
 		D3D11Renderer::hw.d3dDevice);
 
-	mRTV = createRTV(mTex,
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		D3D11_RTV_DIMENSION_TEXTURE2D,
-		0, 0, 0,
-		D3D11Renderer::hw.d3dDevice);
 
 }
 
@@ -39,7 +34,7 @@ ls::D3D11Canvas2D::~D3D11Canvas2D()
 
 void ls::D3D11Canvas2D::drawQuad(s32 xStart, s32 xEnd, s32 yStart, s32 yEnd, void * data, CanvasOpAccessMode accessMode)
 {
-	ls_Assert(mTex && mSRV && mRTV && data);
+	ls_Assert(mTex && mSRV && data);
 
 	Vec4* pData = (Vec4*)(data);
 	s32 width = mResolution[0];

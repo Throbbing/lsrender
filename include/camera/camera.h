@@ -8,8 +8,8 @@ namespace ls
 	class Camera:public Module
 	{
 	public:
-		Camera(const std::string& id = "camera"):Module(id){}
-		virtual ~Camera() {}
+		Camera(const std::string& id = "camera");
+		virtual ~Camera();
 
 		virtual CameraPtr copy() const { return nullptr; }
 
@@ -42,10 +42,11 @@ namespace ls
 		auto getFilm() { return mFilm; }
 
 		
-		
+		MaterialPtr getDummyMaterial() const { return mMaterial; }
 
 	protected:
 		Film*				mFilm = nullptr;
+		MaterialPtr			mMaterial = nullptr;
 		
 	};
 }

@@ -29,10 +29,17 @@ void ls::HDRFilm::merge(const std::vector<FilmPtr>& films)
 		{
 			auto& pixel = mRenderBuffer[i];
 			auto& filmPixel = film->mRenderBuffer[i];
-
+			
 			pixel.color += filmPixel.color;
 			pixel.weight += filmPixel.weight;
+
+			auto& lightSamplePixel = mLightSampleBuffer[i];
+			auto& filmLightSamplePixel = film->mLightSampleBuffer[i];
+			lightSamplePixel.color += filmLightSamplePixel.color;
+			lightSamplePixel.weight += filmLightSamplePixel.weight;
 		}
+
+
 	}
 }
 
@@ -42,8 +49,10 @@ void ls::HDRFilm::commit()
 		ls_AssertMsg(false, "Invalid args in HDRFilm");
 
 	mRenderBuffer.clear();
-
 	mRenderBuffer.resize(mWidth * mHeight);
+
+	mLightSampleBuffer.clear();
+	mLightSampleBuffer.resize(mWidth * mHeight);
 }
 
 std::string ls::HDRFilm::strOut() const
@@ -72,6 +81,18 @@ void ls::HDRFilm::addPixel(const Spectrum& color,
 	
 }
 
+void ls::HDRFilm::addLightSample(const Spectrum & color, float xpos, float ypos)
+{
+	s32 x = lsMath::clamp(s32(xpos), 0, mWidth - 1);
+	s32 y = lsMath::clamp(s32(ypos), 0, mHeight - 1);
+
+	auto& pixel = mLightSampleBuffer[y * mWidth + x];
+	pixel.x = x;
+	pixel.y = y;
+	pixel.color += color;
+	pixel.weight += 1.f;
+}
+
 void ls::HDRFilm::flush()
 {
 	int index = 0;
@@ -82,16 +103,30 @@ void ls::HDRFilm::flush()
 	for (int i = 0; i < mRenderBuffer.size(); ++i)
 	{
 		auto& p = mRenderBuffer[i];
+		auto& lp = mLightSampleBuffer[i];
 
 		if (!lsMath::closeZero(p.weight))
 			p.color /= p.weight;
+		if (!lsMath::closeZero(lp.weight))
+			lp.color /= lp.weight;
+
 		f32 rgb[3]; p.color.toRGB(rgb);
+		f32 lightRGB[3]; lp.color.toRGB(lightRGB);
 
-		for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
-
-
-
+		for (int i = 0; i < 3; ++i)
+		{
+			rgb[i] += lightRGB[i];
+			rgb[i] = toSRGB(rgb[i]);
+		}
 		p.color = Spectrum(rgb[0], rgb[1], rgb[2]);
+		lp.color = Spectrum(rgb[0], rgb[1], rgb[2]);
+
+		//for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
+		//p.color = Spectrum(rgb[0], rgb[1], rgb[2]);
+
+		//lp.color.toRGB(rgb);
+		//for (int i = 0; i < 3; ++i) rgb[i] = toSRGB(rgb[i]);
+		//lp.color = Spectrum(rgb[0], rgb[1], rgb[2]);
 	}
 }
 
@@ -138,9 +173,9 @@ ls::TexturePtr ls::HDRFilm::convert2Texture() const
 	ImageTexture* image = new ImageTexture(mWidth, mHeight);
 
 	std::vector<Spectrum> data;
-	for (auto& pixel : mRenderBuffer)
+	for (u32 i =0;i<mRenderBuffer.size();++i)
 	{
-		data.push_back(pixel.color);
+		data.push_back(mRenderBuffer[i].color);
 	}
 
 	image->setData(&data[0]);

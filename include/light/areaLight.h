@@ -27,7 +27,7 @@ namespace ls
 		virtual f32			 pdf(const Ray& ray)	override;
 		virtual f32			 pdf(const Ray& ray ,const IntersectionRecord& its) override;
 
-		virtual f32 pdf(ls_Param_In const LightSampleRecord* refRec) override;
+		virtual f32 pdf(ls_Param_In ls_Param_Out LightSampleRecord* refRec) override;
 
 
 		void attachMesh(MeshPtr mesh)

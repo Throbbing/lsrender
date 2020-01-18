@@ -25,6 +25,7 @@ void ls::AreaLight::sample(
 	rec->le = mRadiance;
 	rec->samplePosition = meshRec.samplePosition;
 	rec->sampleDirection = meshRec.sampleDirection;
+	rec->n = sampledNormal;
 	rec->pdfPos = meshRec.pdfA ;
 	rec->pdfDir = meshRec.pdfD;
 	rec->pdfW = rec->pdfDir * rec->pdfPos;
@@ -54,6 +55,7 @@ void ls::AreaLight::sample(ls_Param_In SamplerPtr sampler,
 	rec->le = dot(dir, meshRec.surfaceNormal) > 0.f ? mRadiance : 0.f;
 	rec->samplePosition = meshRec.samplePosition;
 	rec->sampleDirection = dir;
+	rec->n = meshRec.surfaceNormal;
 	rec->pdfPos = 1.f / mMesh->getArea();
 	rec->pdfDir = 1.f;
 	rec->pdfW = RenderLib::pdfA2W(rec->pdfPos, r, dot(meshRec.surfaceNormal, dir));
@@ -111,10 +113,17 @@ f32 ls::AreaLight::pdf(const Ray & ray, const IntersectionRecord & its)
 	return dot(its.ns, -ray.dir) > 0.f ? RenderLib::pdfA2W(1.f / mMesh->getArea(), dist, dot(its.ns, -ray.dir)) : 0.f;
 }
 
-f32 ls::AreaLight::pdf(ls_Param_In const LightSampleRecord * refRec)
+f32 ls::AreaLight::pdf(ls_Param_In ls_Param_Out LightSampleRecord * refRec)
 {
-	Unimplement;
-	return f32();
+	MeshSampleRecord meshRec;
+	meshRec.samplePosition = refRec->samplePosition;
+	meshRec.sampleDirection = refRec->sampleDirection;
+	meshRec.surfaceNormal = refRec->n;
+	mMesh->pdf(&meshRec);
+	refRec->pdfPos = meshRec.pdfA;
+	refRec->pdfDir = meshRec.pdfD;
+
+	return refRec->pdfPos * refRec->pdfDir;
 }
 
 std::string ls::AreaLight::strOut() const

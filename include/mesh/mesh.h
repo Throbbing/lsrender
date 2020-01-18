@@ -64,7 +64,7 @@ namespace ls
 		//commit changes to geometry
 		virtual void commit() = 0;
 
-		virtual f32 pdf(ls_Param_In const MeshSampleRecord* refRec) const = 0;
+		virtual f32 pdf(ls_Param_In ls_Param_Out MeshSampleRecord* refRec) const = 0;
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const = 0;
 

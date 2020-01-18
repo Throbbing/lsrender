@@ -88,7 +88,7 @@ namespace ls
 		//@pdfW							pdfPos * pdfDir
 		f32				pdfW;
 
-
+		f32				selectLightPdf;
 		LightPtr		light = nullptr;
 		u32				mode;
 	};

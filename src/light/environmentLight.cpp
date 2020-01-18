@@ -78,6 +78,7 @@ void ls::EnvironmentLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In co
 	rec->sampleDirection = -uv2DirAndTheta(uv, &theta); if (lsMath::closeZero(theta)) theta = lsMath::Epsilon;
 	rec->samplePosition = refRec->position - 2.f * worldDiameter * rec->sampleDirection;
 	rec->le = fetch(uv) * mScale;
+	rec->n = Normal(rec->sampleDirection);
 	rec->mode = EMeasure_SolidAngle;
 	rec->pdfW = uvPdf / (2.f * lsMath::PI * lsMath::PI * std::sinf(theta));
 	rec->pdfA = 0.f;
@@ -106,7 +107,7 @@ f32 ls::EnvironmentLight::pdf(const Ray & ray)
 
 }
 
-f32 ls::EnvironmentLight::pdf(ls_Param_In const LightSampleRecord * refRec)
+f32 ls::EnvironmentLight::pdf(ls_Param_In ls_Param_Out LightSampleRecord * refRec)
 {
 	//environment light 中只有 基于立体角的Pdf
 	f32 theta;

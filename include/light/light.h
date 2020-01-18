@@ -17,8 +17,8 @@ namespace ls
 	{
 		friend Scene;
 	public:
-		Light(const std::string& id = "Light"):Module(id){}
-		virtual ~Light() {}
+		Light(const std::string& id = "Light");
+		virtual ~Light();
 
 
 		virtual LightType getLightType() const = 0;
@@ -67,12 +67,15 @@ namespace ls
 		//返回记录器中光线所需要的Pdf
 		//@refRef		[in]		记录器
 		//				[return]	pdf
-		virtual f32 pdf(ls_Param_In const LightSampleRecord* refRec) = 0;
+		virtual f32 pdf(ls_Param_In ls_Param_Out LightSampleRecord* refRec) = 0;
+
+		MaterialPtr getDummyMaterial() const { return mDummyMaterial; }
 
 
 		virtual void commit() = 0;
 		
 
 	protected:
+		MaterialPtr			mDummyMaterial;
 	};
 }

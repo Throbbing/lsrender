@@ -31,6 +31,7 @@ void ls::PointLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const In
 
 	rec->samplePosition = mPosition;
 	rec->sampleDirection = l2p;
+	rec->n = Normal(rec->sampleDirection);
 	rec->le = mIntensity / (dist * dist);
 	rec->mode = EMeasure_SolidAngle;
 	rec->pdfPos = 1.f;
@@ -39,9 +40,12 @@ void ls::PointLight::sample(ls_Param_In SamplerPtr sampler, ls_Param_In const In
 	rec->light = LightPtr(this);
 }
 
-f32 ls::PointLight::pdf(ls_Param_In const LightSampleRecord * refRec)
+f32 ls::PointLight::pdf(ls_Param_In ls_Param_Out LightSampleRecord * refRec)
 {
-	return 1.f;
+	refRec->pdfDir = MonteCarlo::sampleSpherePdf(Vec3());
+	refRec->pdfPos = 1.f;
+
+	return refRec->pdfDir * refRec->pdfPos;
 }
 
 std::string ls::PointLight::strOut() const

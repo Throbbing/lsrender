@@ -31,6 +31,8 @@ namespace ls
 		virtual void commit() = 0;
 		virtual void addPixel(const Spectrum& color,
 			float xpos,float ypos) = 0;
+		virtual void addLightSample(const Spectrum& color,
+			float xpos, float ypos) = 0;
 
 		virtual void flush() = 0;
 		virtual TexturePtr convert2Texture() const = 0;

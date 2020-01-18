@@ -324,8 +324,10 @@ ls::CameraPtr ls::ResourceManager::createCamera(ParamSet & paramSet)
 	}
 
 
-	if(camera)
+	if (camera)
+	{
 		mModules.push_back(camera);
+	}
 
 	return camera;
 }

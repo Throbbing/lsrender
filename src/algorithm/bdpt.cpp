@@ -24,48 +24,60 @@ void ls::BDPT::render(ScenePtr scene,
 {
 	auto film = camera->getFilm();
 	s32 spp = lsRender::sampleInfo.spp;
-	Spectrum L(0.f);
+
 	for (s32 h = renderBlock->yStart; h < renderBlock->yEnd; ++h)
 	{
 		for (s32 w = renderBlock->xStart; w < renderBlock->xEnd; ++w)
 		{
-			if (w != 256 || h != 256)
-				continue;
+//			if (w != 256 || h != 256)
+//				continue;
 			for (s32 i = 0; i < spp; ++i)
-			{
-				CameraSample cs;
+			{	
+				//if (w == 12 && h == 8 && i == 29)
+				//{
+				//	std::cout << "Fuck" << std::endl;
+				//}
+				Spectrum L(0.f);
 				auto offset = sampler->next2D();
-				cs.pos.x = w + offset.x;
-				cs.pos.y = h + offset.y;
-
+				Point2 initialPixelPos = Point2(w + offset.x, h + offset.y);
+			
+				CameraSample cs;
+				cs.pos = initialPixelPos;
 				/*
 					生成 双向路径
 				*/
-				auto cameraPath = Path::createPathFromCamera(
+				auto cameraPath = BiDirPath::createPathFromCamera(
 					sampler, scene, cs, camera, mPathMaxDepth);
 
-				auto lightPath = Path::createPathFromLight(
+				auto lightPath = BiDirPath::createPathFromLight(
 					sampler, scene, mPathMaxDepth);
 
 				auto cameraPathSize = cameraPath.size();
 				auto lightPathSize = lightPath.size();
 
-				for (s32 s = 0; s <= lightPathSize; ++s)
+//				if (lightPathSize >= 3)
 				{
-					for (s32 t = 1; t <= cameraPathSize; ++t)
+					for (s32 s = 0; s <= lightPathSize; ++s)
 					{
-						auto result = connectPath(scene,
-							sampler, camera,
-							lightPath,
-							cameraPath,
-							s, t,
-							&cs);
+						for (s32 t = 1; t <= cameraPathSize; ++t)
+						{
+							cs.pos = initialPixelPos;
+							auto result = connectPath(scene,
+								sampler, camera,
+								lightPath,
+								cameraPath,
+								s, t,
+								&cs);
 
-						L += result;
+							if (t != 1)
+								L += result;
+							else
+								film->addLightSample(result, cs.pos.x, cs.pos.y);
+						}
 					}
 				}
 
-				film->addPixel(L, cs.pos.x, cs.pos.y); 
+				film->addPixel(L, initialPixelPos.x, initialPixelPos.y); 
 			}
 
 		}
@@ -95,8 +107,8 @@ std::string ls::BDPT::strOut() const
 ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 	ls_Param_In SamplerPtr sampler,
 	ls_Param_In CameraPtr camera,
-	ls_Param_In const Path & lightPath, 
-	ls_Param_In const Path & cameraPath, 
+	ls_Param_In const BiDirPath & lightPath, 
+	ls_Param_In const BiDirPath & cameraPath, 
 	ls_Param_In s32 s,
 	ls_Param_In s32 t,
 	ls_Param_In ls_Param_Out CameraSample * cameraSample) const
@@ -108,6 +120,10 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 		return Spectrum(0.f);
 
 	Spectrum L(0.f);
+	LightSampleRecord lightSampleRecord;
+	f32 selectLightPdf = 0.f;
+	ZeroMemory(&lightSampleRecord, sizeof(lightSampleRecord));
+	
 	/*
 		case 1: s = 0 光源直接在相机路径的端点
 	*/
@@ -126,12 +142,14 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 	else if (s == 1)
 	{
 		auto& cameraVertex = cameraPath[t - 1];
+
+		if (!cameraVertex.isConnectable())
+			return Spectrum(0.f);
 		
 		if (cameraVertex.getVertexType() != PathVertexType::EPathVertex_Surface)
 			return 0.f;
 
-		LightSampleRecord lightSampleRecord;
-		scene->sampleLight(sampler, &lightSampleRecord);
+		selectLightPdf = scene->sampleLight(sampler, &lightSampleRecord);
 		auto light = lightSampleRecord.light;
 
 		IntersectionRecord refIts;
@@ -141,8 +159,27 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 
 		light->sample(sampler, &refIts, &lightSampleRecord);
 
+		/*
+			计算 BSDF 系数
+		*/
+		if (!RenderLib::visible(scene, refIts.position, lightSampleRecord.samplePosition))
+			return Spectrum(0);
+
+		ScatteringRecord sr;
+		RenderLib::fillScatteringRecordForBSDFValueAndPdf(refIts.position,
+			cameraVertex.ns,
+			cameraVertex.wo,
+			cameraVertex.wi,
+			ETransport_Radiance,
+			&sr);
+
+		RenderLib::surfaceBSDFValueAndPdf(cameraVertex.material->getSurfaceScattering(),
+			&sr);
+		
+		auto bsdfValue = sr.sampledValue * cameraVertex.material->scatteringFactor(sr,refIts);
+
 		L = cameraVertex.throughput *
-			cameraVertex.scatter->f(cameraVertex.wi, cameraVertex.wo) * 
+			bsdfValue *
 			std::fabs(dot(cameraVertex.ns,-lightSampleRecord.sampleDirection)) * 
 			lightSampleRecord.le
 			/ lightSampleRecord.pdfW;
@@ -153,6 +190,8 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 	else if (t == 1)
 	{
 		auto& lightVertex = lightPath[s - 1];
+		if (!lightVertex.isConnectable())
+			return Spectrum(0);
 
 		// 是否可连接
 		if (lightVertex.getVertexType() != PathVertexType::EPathVertex_Surface ||
@@ -175,15 +214,30 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 		}
 
 		/*
-			Light Path Vertex 由 Importance Transport 顺序生成
+			Light BiDirPath Vertex 由 Importance Transport 顺序生成
 
 			wi 指向 相机
 			wo 指向 光源
 		*/
-		auto wi = lightVertex.wo;
-		auto wo = lightVertex.wi;
+		Vec3 wi = normalize(Vec3(cameraSampleRecord.samplePosition - refIts.position));
+		Vec3 wo = lightVertex.wo;
+
+		ScatteringRecord sr;
+		RenderLib::fillScatteringRecordForBSDFValueAndPdf(refIts.position,
+			lightVertex.ns,
+			wo,
+			wi,
+			ETransport_Importance,
+			&sr);
+
+		RenderLib::surfaceBSDFValueAndPdf(lightVertex.material->getSurfaceScattering(),
+			&sr);
+
+		auto bsdfValue = sr.sampledValue * lightVertex.material->scatteringFactor(sr, refIts);
+
+		
 		L = lightVertex.throughput
-			* lightVertex.scatter->f(wi, wo) *
+			* bsdfValue *
 			std::fabs(dot(lightVertex.ns, wi)) *
 			cameraSampleRecord.we
 			/ cameraSampleRecord.pdfD;
@@ -196,8 +250,9 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 		auto& cameraVertex = cameraPath[t - 1];
 		auto& lightVertex = lightPath[s - 1];
 
-		if (!PathVertex::connectable(cameraVertex, lightVertex) || 
-			!RenderLib::visible(scene,cameraVertex.position,lightVertex.position))
+		if (!cameraVertex.isConnectable() ||
+			!lightVertex.isConnectable() ||
+			!RenderLib::visible(scene, cameraVertex.position, lightVertex.position))
 			return Spectrum(0.f);
 
 		/*
@@ -210,25 +265,48 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 			wo 指向光源
 			进行反转
 		*/
-		auto cameraWi = cameraVertex.wi;
 		auto cameraWo = cameraVertex.wo;
-		auto lightWi = lightVertex.wo;
-		auto lightWo = lightVertex.wi;
+		auto cameraWi = normalize(Vec3(lightVertex.position - cameraVertex.position));
+		auto lightWo = lightVertex.wo;
+		auto lightWi = -cameraWi;
 
-		L = cameraVertex.throughput * cameraVertex.scatter->f(cameraWi, cameraWo) *
+		ScatteringRecord cameraSR;
+		RenderLib::fillScatteringRecordForBSDFValueAndPdf(cameraVertex.position,
+			cameraVertex.ns,
+			cameraWo, cameraWi,
+			ETransport_Radiance,
+			&cameraSR);
+		RenderLib::surfaceBSDFValueAndPdf(cameraVertex.material->getSurfaceScattering(), &cameraSR);
+		auto cameraBSDFValue = cameraSR.sampledValue * cameraVertex.material->scatteringFactor(cameraSR, cameraVertex.getIntersection());
+
+		ScatteringRecord lightSR;
+		RenderLib::fillScatteringRecordForBSDFValueAndPdf(lightVertex.position,
+			lightVertex.ns,
+			lightWo, lightWi,
+			ETransport_Importance,
+			&lightSR);
+		RenderLib::surfaceBSDFValueAndPdf(lightVertex.material->getSurfaceScattering(), &lightSR);
+		auto lightBSDFValue = lightSR.sampledValue * lightVertex.material->scatteringFactor(lightSR, lightVertex.getIntersection());
+
+
+
+		L = cameraVertex.throughput * cameraBSDFValue *
 			RenderLib::G(cameraVertex.position, cameraVertex.ns, lightVertex.position, lightVertex.ns) *
-			lightVertex.scatter->f(lightWi, lightWo) * lightVertex.throughput;
+			lightBSDFValue * lightVertex.throughput;
+
 	}
 
 	if (L.isBlack())
 		return 0.f;
 
-#if 1
+#if 0
 	auto misWeight = BDPTMIS(lightPath,
 		cameraPath,
 		s, t);
 #else
 	auto misWeight = BDPTMISEfficiency(lightPath,
+		lightSampleRecord,
+		selectLightPdf,
 		cameraPath,
 		s, t);
 #endif
@@ -238,8 +316,8 @@ ls::Spectrum ls::BDPT::connectPath(ls_Param_In ScenePtr scene,
 }
 
 f32 ls::BDPT::BDPTMIS(
-	ls_Param_In const Path & lightPath,
-	ls_Param_In const Path & cameraPath, 
+	ls_Param_In const BiDirPath & lightPath,
+	ls_Param_In const BiDirPath & cameraPath, 
 	ls_Param_In s32 s,
 	ls_Param_In s32 t) const
 {
@@ -258,7 +336,7 @@ f32 ls::BDPT::BDPTMIS(
 	f32 pdfSum = 0.f;
 
 #if 0
-	// i 代表 Light Path 中 的 顶点个数
+	// i 代表 Light BiDirPath 中 的 顶点个数
 
 	// case 1: i <= s
 	for (s32 i = 1; i <= s; ++i)
@@ -269,7 +347,7 @@ f32 ls::BDPT::BDPTMIS(
 		/*
 			Importance Transport
 
-			[0,i-1] 都在 Light Path 中  
+			[0,i-1] 都在 Light BiDirPath 中  
 		*/
 		for (s32 impIndex = 0; impIndex < i; ++impIndex)
 		{
@@ -279,10 +357,10 @@ f32 ls::BDPT::BDPTMIS(
 		/*
 			Radiance Transport
 
-			[i,s - 1]   在 Light  Path 中
-			[s,s + t]   在 Camera Path 中
+			[i,s - 1]   在 Light  BiDirPath 中
+			[s,s + t]   在 Camera BiDirPath 中
 			
-			由于传播方向是相反的，所以取 Camera Path 的顶点索引需要求反
+			由于传播方向是相反的，所以取 Camera BiDirPath 的顶点索引需要求反
 		*/
 		for (s32 radIndex = i; radIndex < s; ++radIndex)
 		{
@@ -306,7 +384,7 @@ f32 ls::BDPT::BDPTMIS(
 		/*
 			Importance Transport
 
-			[0,s-1] 在 Light Path 中
+			[0,s-1] 在 Light BiDirPath 中
 		*/
 		for (s32 impIndex = 0; impIndex < s; ++impIndex)
 		{
@@ -316,7 +394,7 @@ f32 ls::BDPT::BDPTMIS(
 		/*
 			Importance Transport
 
-			[s, i] 在 Camera Path中 
+			[s, i] 在 Camera BiDirPath中 
 		*/
 		for(s32 impIndex = t - 1;impIndex >= )
 	}
@@ -348,7 +426,7 @@ f32 ls::BDPT::BDPTMIS(
 	}
 
 	/*
-		i 代表 连接策略中 Light Path 的顶点数
+		i 代表 连接策略中 Light BiDirPath 的顶点数
 	*/
 	for (s32 i = 1; i < s + t + 1 ; ++i)
 	{
@@ -390,11 +468,88 @@ f32 ls::BDPT::BDPTMIS(
 }
 
 f32 ls::BDPT::BDPTMISEfficiency(
-	ls_Param_In const Path & lightPath, 
-	ls_Param_In const Path & cameraPath, 
+	ls_Param_In const BiDirPath & lightPath, 
+	ls_Param_In const LightSampleRecord& lightSampleRecord, // 只有 s = 1 时，该 Record 才会被使用
+	ls_Param_In f32	  selectLightPdf,						// 只有 s = 1 时，该 Record 才会被使用
+	ls_Param_In const BiDirPath & cameraPath, 
 	ls_Param_In s32 s, ls_Param_In s32 t) const
 {
-	return f32(); 
+	///*
+	//	暂时先不考虑 s = 0
+	//*/
+	//if (s == 0)
+	//	return 0;
+
+	// 更新 连接点的 BSDF 和 pdf
+
+	BiDirPath mergePath(EPath_Light);
+	if (s == 1)
+	{
+		ls_Assert(selectLightPdf != f32(0));
+		mergePath = BiDirPath::mergePath(cameraPath, lightSampleRecord, selectLightPdf, t, EPath_Light);
+	}
+	else
+	{
+		mergePath = BiDirPath::mergePath(cameraPath, lightPath, t, s, EPath_Light);
+	}
+
+	auto correctValue = [](f32 v)->f32 { return v == 0.f ? 1.f : v; };
+
+	/*
+		从 i = s 开始，中间向两边扩散
+		pdfWeights 方便 debug
+		pdfWeights[i] : P_{i} / P_s
+	*/
+	std::vector<f32> pdfWeights(s + t + 2,1.f);
+	
+	f32 misWeight = 0.f;
+	
+	// i 代表光源子路径的个数
+	
+	/*
+		光源子路径部分
+
+		i < s
+		P_i / P_{i + 1} = P(x_i)_ra / P(x_i)_im
+	*/
+	for (s32 i = s - 1; i >= 0; --i)
+	{		
+		pdfWeights[i] = correctValue(mergePath[i].getRadiancePdf()) / correctValue(mergePath[i].getImportancePdf()) * pdfWeights[i + 1];
+		
+		bool isPossible = false;
+
+		if (i == 0)
+		{
+			isPossible = (mergePath[0].getVertexType() == EPathVertex_Light &&
+				!mergePath[0].pathVertexRecord.lightSampleRecord.light->isDelta());
+		}
+		else
+		{
+			isPossible = PathVertex::connectable(mergePath[i - 1], mergePath[i]);
+		}
+
+		if(isPossible)
+			misWeight += pdfWeights[i];
+	}
+
+	/*
+		相机子路径部分
+
+		i > s
+		P_i / P_{i - 1} = P(x_{i - 1})_im / P(x_{i - 1})_ra
+	*/
+	for (s32 i = s + 1; i < s + t;++i)
+	{
+		
+		pdfWeights[i] = correctValue(mergePath[i - 1].getImportancePdf()) / correctValue(mergePath[i - 1].getRadiancePdf()) * pdfWeights[i - 1];
+
+		if (PathVertex::connectable(mergePath[i - 1], mergePath[i]))
+			misWeight += pdfWeights[i];
+	}
+
+	ls_Assert(misWeight > 0.f);
+	return 1.f / (1.f + misWeight);
+
 }
 
 ls::BDPT::BDPT(ParamSet & paramSet)

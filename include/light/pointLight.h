@@ -28,7 +28,7 @@ namespace ls
 		virtual ls::Spectrum sample(const Ray& ray) override { return ls::Spectrum(0); }
 		virtual f32			 pdf(const Ray& ray)	override { return 0.f; }
 
-		virtual f32 pdf(ls_Param_In const LightSampleRecord* refRec) override;
+		virtual f32 pdf(ls_Param_In ls_Param_Out LightSampleRecord* refRec) override;
 
 
 		void applyPosition(const Point3& position) { mPosition = position; }

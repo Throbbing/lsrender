@@ -9,3 +9,23 @@ ls::Spectrum ls::Material::scatteringFactor(ls_Param_In const ScatteringRecord &
 	else
 		return transmittance(ir);
 }
+
+ls::DummyMaterial::DummyMaterial()
+{
+	mDummyScatter = new DummyScatter();
+}
+
+ls::DummyMaterial::~DummyMaterial()
+{
+	delete mDummyScatter;
+}
+
+ls::Spectrum ls::DummyMaterial::reflectance(ls_Param_In const IntersectionRecord & ir)
+{
+	return Spectrum(1.f);
+}
+
+ls::Spectrum ls::DummyMaterial::transmittance(ls_Param_In const IntersectionRecord & ir)
+{
+	return Spectrum(1.f);
+}

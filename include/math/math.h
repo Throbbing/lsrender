@@ -22,7 +22,7 @@ namespace ls
 
 
 		constexpr static f32 Infinity = 3.402823466e+38F;
-		constexpr static f32 Epsilon = 1e-4f;
+		constexpr static f32 Epsilon = 1e-3f;
 		constexpr static f32 PI = 3.141592653589f;
 		constexpr static f32 PI_2 = 6.283185307178f;
 		constexpr static f32 PI_4 = 12.566370614356f;

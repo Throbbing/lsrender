@@ -59,7 +59,7 @@ namespace ls
 			ls_Param_Out MeshSampleRecord* rec) const  override;
  
 
-		virtual f32 pdf(ls_Param_In const MeshSampleRecord* refRec) const override;
+		virtual f32 pdf(ls_Param_In ls_Param_Out MeshSampleRecord* refRec) const override;
 
 		virtual void subdivide(ESubdivision_Type type, u32 count) const override;
 

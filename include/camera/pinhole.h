@@ -60,5 +60,7 @@ namespace ls
 
 		f32					mInvWidth;
 		f32					mInvHeight;
+
+		f32					mArea;
 	};
 }

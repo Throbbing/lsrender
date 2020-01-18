@@ -20,14 +20,42 @@ namespace ls
 
 		EScattering_Surface			= 0b001'000'000,
 		EScattering_Medium			= 0b010'000'000,
+
+		EScattering_Dummy			= 0b100'000'000
 		
 	};
+
+
 
 	enum TransportMode
 	{
 		ETransport_Radiance			=0b000'000'001,
 		ETransport_Importance		=0b000'000'010
 	};
+
+
+	
+
+	/*
+		   (100)      (000)        (010)    (000)      (001)  (000)    
+		{Radiance, Importance} x {Forward, Reverse} x {Solid, Area}
+	*/
+#define PDFWrap_Radiance		0b100
+#define PDFWrap_Importance		0b000
+#define PDFWrap_Forward			0b010
+#define PDFWrap_Reverse			0b000
+#define PDFWrap_Solid			0b001
+#define PDFWrap_Area			0b000
+
+	struct PDFWrap
+	{
+		f32 get(s32 type) const { return pdfs[type]; }
+		f32& set(s32 type) { return std::ref(pdfs[type]); }
+
+		f32 pdfs[8];
+	};
+
+
 	class ScatteringFunction:public Module
 	{
 
@@ -64,5 +92,29 @@ namespace ls
 
 	protected:
 		s32			mSFlag;
+	};
+
+
+	class DummyScatter :public ScatteringFunction
+	{
+	public:
+		DummyScatter(s32 flag = EScattering_Dummy):ScatteringFunction(EScattering_Dummy) {}
+
+		bool isDelta() override { return false; }
+		virtual void sample(ls_Param_In Sampler* sampler,
+			ls_Param_In ls_Param_Out ScatteringRecord* rec)	override;
+		
+		virtual f32 pdf(ls_Param_In const Vec3& wi, ls_Param_In const Vec3& wo) override;
+		virtual ls::Spectrum f(ls_Param_In const Vec3& wi, ls_Param_In const Vec3& wo) override;
+
+		virtual std::string strOut() const override
+		{
+			return "DummyScatter";
+		}
+		virtual void commit() override
+		{
+
+		}
+
 	};
 }

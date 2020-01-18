@@ -4,6 +4,7 @@
 #include<algorithm/renderalgorithm.h>
 #include<spectrum/spectrum.h>
 #include<function/func.h>
+#include<function/bidirStru.h>
 namespace ls
 {
 	class BDPT :public RenderAlgorithm
@@ -39,8 +40,8 @@ namespace ls
 			ls_Param_In ScenePtr scene,
 			ls_Param_In SamplerPtr sampler,
 			ls_Param_In CameraPtr camera,
-			ls_Param_In const Path& lightPath,
-			ls_Param_In const Path& cameraPath,
+			ls_Param_In const BiDirPath& lightPath,
+			ls_Param_In const BiDirPath& cameraPath,
 			ls_Param_In s32 s, // 光源路径 顶点数
 			ls_Param_In s32 t, // 相机路径 数点数
 			ls_Param_In ls_Param_Out CameraSample* cameraSample) const;
@@ -51,8 +52,8 @@ namespace ls
 			Brute Force
 		*/
 		virtual f32 BDPTMIS(
-			ls_Param_In const Path& lightPath,
-			ls_Param_In const Path& cameraPath,
+			ls_Param_In const BiDirPath& lightPath,
+			ls_Param_In const BiDirPath& cameraPath,
 			ls_Param_In s32 s, //光源路径 顶点数
 			ls_Param_In s32 t //相机路径 顶点数
 			) const ;
@@ -61,8 +62,10 @@ namespace ls
 			生成 MIS
 		*/
 		virtual f32 BDPTMISEfficiency(
-			ls_Param_In const Path& lightPath,
-			ls_Param_In const Path& cameraPath,
+			ls_Param_In const BiDirPath& lightPath,
+			ls_Param_In const LightSampleRecord& lightSampleRecord, // 只有 s = 1 时，该 Record 才会被使用
+			ls_Param_In f32	  selectLightPdf,						// 只有 s = 1 时，该 Record 才会被使用
+			ls_Param_In const BiDirPath& cameraPath,
 			ls_Param_In s32 s,
 			ls_Param_In s32 t) const;
 	protected:

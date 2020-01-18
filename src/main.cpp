@@ -18,7 +18,7 @@
 
 #define PrePath "SceneFile//cbox//"
 #define FileName "cbox.xml"
-#define OutName "cbox.png"
+#define OutName "cbox-bdpt.png"
 
 
 extern LRESULT CALLBACK wndGUIProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -180,18 +180,6 @@ private:
 int main()
 {
 	ls::initRender();
-
-
-	//while (true)
-	//{
-	//	std::cout << "main!" << std::endl;
-
-	//	Sleep(500);
-	//}
-
-	Sleep(2000);
-
-
 #if 0
 	ls_Enqueue_RenderCommand(TestRenderCommand)([]() {
 		if (!ImGui::Begin("RenderCommand"))
@@ -206,8 +194,6 @@ int main()
 
 	ls_Trigger_RenderCommand;
 #endif
-
-
 #if 1
 	{
 		auto package = ls::XMLParser::loadXMLFromMTSFile(PrePath,

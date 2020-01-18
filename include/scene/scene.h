@@ -83,6 +83,8 @@ namespace ls
 		virtual f32 sampleLight(ls_Param_In Sampler* sampler,
 			ls_Param_Out LightSampleRecord* rec);
 
+		virtual f32 pdfSampleLight(ls_Param_In LightPtr light);
+
 		virtual f32 sampleMesh(ls_Param_In Sampler* sampler,
 			ls_Param_Out MeshSampleRecord* rec);
 

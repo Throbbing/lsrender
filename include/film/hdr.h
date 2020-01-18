@@ -19,6 +19,8 @@ namespace ls
 
 		virtual void addPixel(const Spectrum& color,
 			float xpos, float ypos) override;
+		virtual void addLightSample(const Spectrum& color,
+			float xpos, float ypos) override;
 
 		virtual void flush()	override;
 
@@ -28,7 +30,7 @@ namespace ls
 		HDRFilm(ParamSet& paramSet);
 	protected:
 		std::vector<Pixel>				mRenderBuffer;
-		
+		std::vector<Pixel>				mLightSampleBuffer;
 
 	};
 }

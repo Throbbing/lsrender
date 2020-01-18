@@ -100,12 +100,12 @@ void ls::Pinhole::sample(
 		return;
 	}
 
-	f32 area = mFilm->getWidth() * mFilm->getHeight();
+
 
 	f32 cosTheta2 = cameraRay.dir.z * cameraRay.dir.z;
 	rec->samplePosition = cameraPoint;
 	rec->sampleDirection = dir;
-	rec->we = 1.f / (area * cosTheta2 * cosTheta2);
+	rec->we = 1.f / (mArea * cosTheta2 * cosTheta2);
 
 	/*
 		pdfD 为 采样方向的 pdf 
@@ -146,14 +146,14 @@ void ls::Pinhole::sample(ls_Param_In SamplerPtr sampler,
 
 		由于 两者 为 基于面积 ，需要转换成 基于立体角
 	*/
-	auto area = mFilm->getWidth() * mFilm->getHeight();
+
 	auto pdfA = 1.f;
-	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / area, 1 / cosTheta, cosTheta);
+	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / mArea, 1 / cosTheta, cosTheta);
 
 
 	rec->samplePosition = mC2W(Point3(0.f, 0.f, 0.f));
 	rec->sampleDirection = mC2W(cameraRay.dir);
-	rec->we = 1.f / (area * 1.f * cosTheta2 * cosTheta2);
+	rec->we = 1.f / (mArea * 1.f * cosTheta2 * cosTheta2);
 	rec->pdfA = pdfA;
 	rec->pdfD = pdfD;
 }
@@ -184,14 +184,15 @@ void ls::Pinhole::sample(ls_Param_In SamplerPtr sampler,
 
 		由于 两者 为 基于面积 ，需要转换成 基于立体角
 	*/
-	auto area = mFilm->getWidth() * mFilm->getHeight();
+
 	auto pdfA = 1.f;
-	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / area, 1 / cosTheta, cosTheta);
+	auto pdfD = RenderLib::pdfA2W(pdfA * 1.f / mArea, 1 / cosTheta, cosTheta);
 
 
 	rec->samplePosition = mC2W(Point3(0.f, 0.f, 0.f));
 	rec->sampleDirection = mC2W(cameraRay.dir);
-	rec->we = 1.f / (area * 1.f * cosTheta * cosTheta);
+	rec->n = mC2W(Normal(0.f, 0.f, 1.f));
+	rec->we = 1.f / (mArea * 1.f * cosTheta * cosTheta);
 	rec->pdfA = pdfA;
 	rec->pdfD = pdfD;
 
@@ -243,6 +244,14 @@ void ls::Pinhole::commit()
 
 	mC2R = C2R;
 	mR2C = C2R.inverse();
+
+	auto pMin = mR2C(Point3(0, 0, 0));
+	auto pMax = mR2C(Point3(1, 1, 0));
+	pMin.x /= pMin.z;
+	pMin.y /= pMin.z;
+	pMax.x /= pMax.z;
+	pMax.y /= pMax.z;
+	mArea = std::fabs((pMax.x - pMin.x) * (pMax.y - pMin.y));
 
 
 #if 0

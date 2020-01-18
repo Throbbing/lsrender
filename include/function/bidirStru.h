@@ -13,7 +13,9 @@
 //This file is for Bidirection Render Algorithm
 namespace ls
 {		
-	class Path;
+
+
+	class BiDirPath;
 	enum PathVertexType
 	{
 		EPathVertex_Surface,
@@ -42,7 +44,8 @@ namespace ls
 			ns = v.ns;
 			wi = v.wi;
 			wo = v.wo;
-			scatter = v.scatter;
+			its = v.its;
+			material = v.material;
 			pdfType = v.pdfType;
 			pdfForward = v.pdfForward;
 			pdfReverse = v.pdfReverse;
@@ -81,7 +84,8 @@ namespace ls
 			ns = v.ns;
 			wi = v.wi;
 			wo = v.wo;
-			scatter = v.scatter;
+			its = v.its;
+			material = v.material;
 			pdfType = v.pdfType;
 			pdfForward = v.pdfForward;
 			pdfReverse = v.pdfReverse;
@@ -137,7 +141,9 @@ namespace ls
 		Vec3				wi;
 		Vec3				wo;
 
-		ScatteringFunctionPtr	scatter = nullptr;
+//		ScatteringFunctionPtr	scatter = nullptr;
+		MaterialPtr			material = nullptr;
+		IntersectionRecord  its;
 		ScatteringFlag		pdfType;
 
 		/*
@@ -146,8 +152,8 @@ namespace ls
 			pdfRerverse 则正好相反，代表根据反方向 (wo) 生成该顶点的概率密度
 
 		*/
-		f32					pdfForward;
-		f32					pdfReverse;
+		f32					pdfForward = 0.f;
+		f32					pdfReverse = 0.f;
 
 		/*
 			该顶点的方向PDF
@@ -163,8 +169,8 @@ namespace ls
 			wo 指向 光源
 			wi 指向 相机
 		*/
-		f32					pdfWi;
-		f32					pdfWo;
+		f32					pdfWi = 0.f;
+		f32					pdfWo = 0.f;
 
 
 		/*
@@ -184,15 +190,33 @@ namespace ls
 
 
 		/*
+			
+		*/
+
+		/*
 			计算 pdfForward 需要 pre 顶点有效
 		*/
-		bool				updatePdfForward(const Path& path);
+		bool				updatePdfForward(const BiDirPath& path);
 
 		/*
 			计算 pdfReverse 需要 next 顶点有效
 		*/
-		bool				updatePdfReverse(const Path& path);
+		bool				updatePdfReverse(const BiDirPath& path);
 
+		/*
+			获取 Intersection
+		*/
+		IntersectionRecord	getIntersection() const
+		{
+			// 只有 surface 上的顶点才能获取碰撞信息
+			ls_Assert(mVertexType == EPathVertex_Surface);
+			return its;
+		}
+
+		/*
+			判断该顶点是否可连
+		*/
+		bool isConnectable() const;
 
 
 		PathVertexType		getVertexType() const { return mVertexType; }
@@ -204,13 +228,21 @@ namespace ls
 			ls_Param_Out Vec3* wi,
 			ls_Param_Out Vec3* wo);
 
-		//从光源生成顶点
+		// 从光源生成顶点
 		static PathVertex createPathVertex(
 			ls_Param_In TransportMode mode,
 			ls_Param_In SamplerPtr sampler,
 			ls_Param_In LightPtr light,
+			ls_Param_In f32 selectLightPdf,
 			ls_Param_Out LightSampleRecord* lsr = nullptr);
 
+		// 从给定的光源采样点 和 refPoint 生成顶点
+		static PathVertex createPathVertex(
+			ls_Param_In TransportMode mode,
+			ls_Param_In f32 selectLightPdf,
+			ls_Param_In const Point3& refP,
+			ls_Param_In const LightSampleRecord& lsr
+		);
 
 		//从相机生成顶点
 		static PathVertex createPathVertex(
@@ -232,14 +264,14 @@ namespace ls
 		//在表面生成顶点
 		static PathVertex createPathVertex(
 			ls_Param_In TransportMode mode,
-			ls_Param_In ScatteringFunctionPtr bsdf,
+			ls_Param_In const IntersectionRecord& its,
 			ls_Param_In const SurfaceSampleRecord& surfaceSampleRecord,
 			ls_Param_In const Spectrum& throughput);
 
 		//在介质中生成顶点
 		static PathVertex createPathVertex(
 			ls_Param_In TransportMode mode,
-			ls_Param_In ScatteringFunctionPtr medium,
+			ls_Param_In MaterialPtr material,
 			ls_Param_In const MediumSampleRecord& mediumSampleRecord,
 			ls_Param_In const Spectrum& throughput);
 
@@ -248,6 +280,22 @@ namespace ls
 		static bool connectable(
 			ls_Param_In const PathVertex& a,
 			ls_Param_In const PathVertex& b);
+
+		// 计算两个顶点的距离
+		static f32 distance(
+			ls_Param_In const PathVertex& a,
+			ls_Param_In const PathVertex& b);
+
+		// 计算两个顶点的距离平方
+		static f32 distanceSquare(
+			ls_Param_In const PathVertex& a,
+			ls_Param_In const PathVertex& b);
+
+		// 计算生成某个 光源顶点的 概率密度
+		static f32 genLightPdf(
+			ls_Param_In ls_Param_Out PathVertex& vertex,
+			ls_Param_In const PathVertex& next);
+
 
 		/*
 			路径生成顺序:
@@ -263,13 +311,17 @@ namespace ls
 		
 	};
 
-	class Path
+	class BiDirPath
 	{
 	public:
-		Path(PathType type) :mPathType(type) {}
+		BiDirPath(PathType type) :mPathType(type) {}
 
-//		Path(const Path& var) = delete;
-//		Path& operator=(const Path& var) = delete;
+		~BiDirPath()
+		{
+
+		}
+//		BiDirPath(const BiDirPath& var) = delete;
+//		BiDirPath& operator=(const BiDirPath& var) = delete;
 
 		auto getPathType() const { return mPathType; }
 		auto size() const { return vertices.size(); }
@@ -292,7 +344,8 @@ namespace ls
 				pre.next = vertices.size() - 1;
 				cur.pre = vertices.size() - 2;
 
-				auto ttt = &vertices[vertices.size() - 1];
+//				cur.wo = normalize(Vec3(pre.position - cur.position));
+
 				// 更新相邻顶点的 基于面积的PDF
 				pre.updatePdfReverse(*this);
 				cur.updatePdfForward(*this);
@@ -317,14 +370,14 @@ namespace ls
 		}
 
 
-		static Path createPathFromCamera(
+		static BiDirPath createPathFromCamera(
 			ls_Param_In SamplerPtr sampler,
 			ls_Param_In ScenePtr scene,
 			ls_Param_In const CameraSample& cameraSample,
 			ls_Param_In const CameraPtr camera,
 			ls_Param_In s32 maxDepth);
 
-		static Path createPathFromLight(
+		static BiDirPath createPathFromLight(
 			ls_Param_In SamplerPtr sampler,
 			ls_Param_In ScenePtr scene,
 			ls_Param_In s32 maxDepth);
@@ -336,8 +389,34 @@ namespace ls
 			ls_Param_In Spectrum throughput,
 			ls_Param_In TransportMode transMode,
 			ls_Param_In s32 maxDepth,
-			ls_Param_In ls_Param_Out Path* path);
+			ls_Param_In ls_Param_Out BiDirPath* path);
 
+
+		/*
+			合并相机路径和光源子路径
+			新路径的传播类型根据参数指定 （默认为 Radiance）
+		*/
+		static BiDirPath mergePath(
+			const BiDirPath& cameraPath,
+			const BiDirPath& lightPath,
+			const s32 cameraPathSize,
+			const s32 lightPathSize,
+			PathType pathType = EPath_Camera);
+
+		static BiDirPath mergePath(
+			const BiDirPath& cameraPath,
+			const LightSampleRecord& lightSampleRecord,
+			f32 selectLightPdf,
+			const s32 cameraPathSize,
+			PathType pathType = EPath_Camera);
+
+
+		// 连接 合并路径 中的 p q 顶点 (p q 属于不同传播方向的顶点)
+		// Note: 只更新连接顶点的 pdf ，不更新 throughput
+		static void connectVertex(
+			ls_Param_In ls_Param_Out BiDirPath& path,
+			ls_Param_In s32 pIndex, s32 qIndex,
+			ls_Param_In s32 prePIndex, s32 preQIndex);
 		
 
 	private:

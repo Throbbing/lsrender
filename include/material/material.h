@@ -27,8 +27,29 @@ namespace ls
 			ls_Param_In const IntersectionRecord& ir);
 
 		virtual void commit() = 0;
+	};
 
+	class DummyMaterial :public Material
+	{
+	public:
+		DummyMaterial();
+		virtual ~DummyMaterial();
 
-		
+		virtual ScatteringFunctionPtr getSurfaceScattering() { return mDummyScatter; }
+		virtual ScatteringFunctionPtr getMediumScattering() { return mDummyScatter; }
+
+		virtual Spectrum reflectance(ls_Param_In const IntersectionRecord& ir);
+		virtual Spectrum transmittance(ls_Param_In const IntersectionRecord& ir);
+
+		virtual std::string strOut() const override {
+			return "DummyMaterial";
+		}
+		virtual void commit() override {
+			
+		}
+
+	protected:
+		ScatteringFunctionPtr mDummyScatter;
+
 	};
 }
